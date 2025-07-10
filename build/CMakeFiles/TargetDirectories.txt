@@ -1,3 +1,0 @@
-/home/party14534/Code/GameboyEmulator/build/CMakeFiles/gameboy.dir
-/home/party14534/Code/GameboyEmulator/build/CMakeFiles/edit_cache.dir
-/home/party14534/Code/GameboyEmulator/build/CMakeFiles/rebuild_cache.dir
