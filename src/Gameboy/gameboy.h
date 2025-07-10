@@ -29,7 +29,9 @@ struct Registers {
 };
 
 struct Gameboy {
-    // Register file
+    /*
+     * Variable Definitions
+     */
     short unsigned int PC = 0; // Program counter
     short unsigned int SP = 0; // Stack pointer
     short unsigned int IX = 0; // Index register
@@ -46,15 +48,19 @@ struct Gameboy {
 
     /*
      * Function Definitions
-    */
+     */
     Gameboy(std::string _romPath);
     void FDE();
     unsigned char fetch();
     void decode(unsigned char instruction);
+    void call8XInstructions(unsigned char secondHalfByte);
+    void call9XInstructions(unsigned char secondHalfByte);
 
     // Instructions
-    void Add(RegisterIndex target, bool carry);
-    void AddFromMemory(bool carry);
+    void add(RegisterIndex target, bool carry);
+    void addFromMemory(bool carry);
+    void subtract(RegisterIndex target, bool carry);
+    void subtractFromMemory(bool carry);
 };
 
 #endif
