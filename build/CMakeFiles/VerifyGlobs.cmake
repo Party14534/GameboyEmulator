@@ -7,6 +7,7 @@ file(GLOB_RECURSE NEW_GLOB LIST_DIRECTORIES false "/home/party14534/Code/Gameboy
 set(OLD_GLOB
   "/home/party14534/Code/GameboyEmulator/src/EventHandling/handleEvents.cpp"
   "/home/party14534/Code/GameboyEmulator/src/Gameboy/gameboy.cpp"
+  "/home/party14534/Code/GameboyEmulator/src/Gameboy/intructions.cpp"
   "/home/party14534/Code/GameboyEmulator/src/Gameboy/registers.cpp"
   "/home/party14534/Code/GameboyEmulator/src/RenderHandling/handleRendering.cpp"
   )
@@ -20,6 +21,7 @@ file(GLOB_RECURSE NEW_GLOB LIST_DIRECTORIES false "/home/party14534/Code/Gameboy
 set(OLD_GLOB
   "/home/party14534/Code/GameboyEmulator/src/EventHandling/handleEvents.cpp"
   "/home/party14534/Code/GameboyEmulator/src/Gameboy/gameboy.cpp"
+  "/home/party14534/Code/GameboyEmulator/src/Gameboy/intructions.cpp"
   "/home/party14534/Code/GameboyEmulator/src/Gameboy/registers.cpp"
   "/home/party14534/Code/GameboyEmulator/src/RenderHandling/handleRendering.cpp"
   "/home/party14534/Code/GameboyEmulator/src/main.cpp"

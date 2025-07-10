@@ -3,6 +3,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/gameboy.dir/src/EventHandling/handleEvents.cpp.o.d"
   "CMakeFiles/gameboy.dir/src/Gameboy/gameboy.cpp.o"
   "CMakeFiles/gameboy.dir/src/Gameboy/gameboy.cpp.o.d"
+  "CMakeFiles/gameboy.dir/src/Gameboy/intructions.cpp.o"
+  "CMakeFiles/gameboy.dir/src/Gameboy/intructions.cpp.o.d"
   "CMakeFiles/gameboy.dir/src/Gameboy/registers.cpp.o"
   "CMakeFiles/gameboy.dir/src/Gameboy/registers.cpp.o.d"
   "CMakeFiles/gameboy.dir/src/RenderHandling/handleRendering.cpp.o"

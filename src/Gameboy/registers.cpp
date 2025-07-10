@@ -2,23 +2,23 @@
 
 // 16 bit functions
 void Registers::setAF(short unsigned int val) {
-    a = (0xFF00 & val) >> 8;
-    f = 0x00FF & val;
+    registers[RegisterIndex::A] = (0xFF00 & val) >> 8;
+    registers[RegisterIndex::F] = 0x00FF & val;
 }
 
 void Registers::setBC(short unsigned int val) {
-    b = (0xFF00 & val) >> 8;
-    c = 0x00FF & val;
+    registers[RegisterIndex::B] = (0xFF00 & val) >> 8;
+    registers[RegisterIndex::C] = 0x00FF & val;
 }
 
 void Registers::setDE(short unsigned int val) {
-    d = (0xFF00 & val) >> 8;
-    e = 0x00FF & val;
+    registers[RegisterIndex::D] = (0xFF00 & val) >> 8;
+    registers[RegisterIndex::E] = 0x00FF & val;
 }
 
 void Registers::setHL(short unsigned int val) {
-    h = (0xFF00 & val) >> 8;
-    l = 0x00FF & val;
+    registers[RegisterIndex::H] = (0xFF00 & val) >> 8;
+    registers[RegisterIndex::L] = 0x00FF & val;
 }
 
 // Flag register functions
@@ -39,3 +39,4 @@ void Registers::u8toFR(unsigned char byte) {
     halfCarry = (byte >> 5) & 0b00000001; 
     carry = (byte >> 4) & 0b00000001; 
 }
+

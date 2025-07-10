@@ -10,6 +10,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/party14534/Code/GameboyEmulator/src/EventHandling/handleEvents.cpp" "CMakeFiles/gameboy.dir/src/EventHandling/handleEvents.cpp.o" "gcc" "CMakeFiles/gameboy.dir/src/EventHandling/handleEvents.cpp.o.d"
   "/home/party14534/Code/GameboyEmulator/src/Gameboy/gameboy.cpp" "CMakeFiles/gameboy.dir/src/Gameboy/gameboy.cpp.o" "gcc" "CMakeFiles/gameboy.dir/src/Gameboy/gameboy.cpp.o.d"
+  "/home/party14534/Code/GameboyEmulator/src/Gameboy/intructions.cpp" "CMakeFiles/gameboy.dir/src/Gameboy/intructions.cpp.o" "gcc" "CMakeFiles/gameboy.dir/src/Gameboy/intructions.cpp.o.d"
   "/home/party14534/Code/GameboyEmulator/src/Gameboy/registers.cpp" "CMakeFiles/gameboy.dir/src/Gameboy/registers.cpp.o" "gcc" "CMakeFiles/gameboy.dir/src/Gameboy/registers.cpp.o.d"
   "/home/party14534/Code/GameboyEmulator/src/RenderHandling/handleRendering.cpp" "CMakeFiles/gameboy.dir/src/RenderHandling/handleRendering.cpp.o" "gcc" "CMakeFiles/gameboy.dir/src/RenderHandling/handleRendering.cpp.o.d"
   "/home/party14534/Code/GameboyEmulator/src/main.cpp" "CMakeFiles/gameboy.dir/src/main.cpp.o" "gcc" "CMakeFiles/gameboy.dir/src/main.cpp.o.d"

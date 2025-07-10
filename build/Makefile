@@ -178,6 +178,30 @@ src/Gameboy/gameboy.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/gameboy.dir/build.make CMakeFiles/gameboy.dir/src/Gameboy/gameboy.cpp.s
 .PHONY : src/Gameboy/gameboy.cpp.s
 
+src/Gameboy/intructions.o: src/Gameboy/intructions.cpp.o
+.PHONY : src/Gameboy/intructions.o
+
+# target to build an object file
+src/Gameboy/intructions.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gameboy.dir/build.make CMakeFiles/gameboy.dir/src/Gameboy/intructions.cpp.o
+.PHONY : src/Gameboy/intructions.cpp.o
+
+src/Gameboy/intructions.i: src/Gameboy/intructions.cpp.i
+.PHONY : src/Gameboy/intructions.i
+
+# target to preprocess a source file
+src/Gameboy/intructions.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gameboy.dir/build.make CMakeFiles/gameboy.dir/src/Gameboy/intructions.cpp.i
+.PHONY : src/Gameboy/intructions.cpp.i
+
+src/Gameboy/intructions.s: src/Gameboy/intructions.cpp.s
+.PHONY : src/Gameboy/intructions.s
+
+# target to generate assembly for a file
+src/Gameboy/intructions.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gameboy.dir/build.make CMakeFiles/gameboy.dir/src/Gameboy/intructions.cpp.s
+.PHONY : src/Gameboy/intructions.cpp.s
+
 src/Gameboy/registers.o: src/Gameboy/registers.cpp.o
 .PHONY : src/Gameboy/registers.o
 
@@ -265,6 +289,9 @@ help:
 	@echo "... src/Gameboy/gameboy.o"
 	@echo "... src/Gameboy/gameboy.i"
 	@echo "... src/Gameboy/gameboy.s"
+	@echo "... src/Gameboy/intructions.o"
+	@echo "... src/Gameboy/intructions.i"
+	@echo "... src/Gameboy/intructions.s"
 	@echo "... src/Gameboy/registers.o"
 	@echo "... src/Gameboy/registers.i"
 	@echo "... src/Gameboy/registers.s"
