@@ -31,6 +31,9 @@ void Gameboy::decode(unsigned char instruction) {
         case 0x90:
             call9XInstructions(secondHalfByte);
             break;
+        case 0xA0:
+            callAXInstructions(secondHalfByte);
+            break;
         default:
             printf("Unknown instruction %04x\n", instruction);
             exit(1);
@@ -149,5 +152,58 @@ void Gameboy::call9XInstructions(unsigned char secondHalfByte) {
         default:
             printf("Unknown instruction %04x\n", secondHalfByte);
             exit(1);
+    }
+}
+
+void Gameboy::callAXInstructions(unsigned char secondHalfByte) { 
+    switch (secondHalfByte) {
+        case 0x00:
+            bitwiseAnd(RegisterIndex::B);
+            break;
+        case 0x01:
+            bitwiseAnd(RegisterIndex::C);
+            break;
+        case 0x02:
+            bitwiseAnd(RegisterIndex::D);
+            break;
+        case 0x03:
+            bitwiseAnd(RegisterIndex::E);
+            break;
+        case 0x04:
+            bitwiseAnd(RegisterIndex::H);
+            break;
+        case 0x05:
+            bitwiseAnd(RegisterIndex::L);
+            break;
+        case 0x06:
+            bitwiseAndFromMemory();
+            break;
+        case 0x07:
+            bitwiseAnd(RegisterIndex::A);
+            break;
+        case 0x08:
+            bitwiseXor(RegisterIndex::B);
+            break;
+        case 0x09:
+            bitwiseXor(RegisterIndex::C);
+            break;
+        case 0x0A:
+            bitwiseXor(RegisterIndex::D);
+            break;
+        case 0x0B:
+            bitwiseXor(RegisterIndex::E);
+            break;
+        case 0x0C:
+            bitwiseXor(RegisterIndex::H);
+            break;
+        case 0x0D:
+            bitwiseXor(RegisterIndex::L);
+            break;
+        case 0x0E:
+            bitwiseXorFromMemory();
+            break;
+        case 0x0F:
+            bitwiseXor(RegisterIndex::A);
+            break;
     }
 }

@@ -55,12 +55,23 @@ struct Gameboy {
     void decode(unsigned char instruction);
     void call8XInstructions(unsigned char secondHalfByte);
     void call9XInstructions(unsigned char secondHalfByte);
+    void callAXInstructions(unsigned char secondHalfByte);
 
     // Instructions
+
+    // 0x8
     void add(RegisterIndex target, bool carry);
     void addFromMemory(bool carry);
+
+    // 0x9
     void subtract(RegisterIndex target, bool carry);
     void subtractFromMemory(bool carry);
+
+    // 0xA
+    void bitwiseAnd(RegisterIndex target);
+    void bitwiseAndFromMemory();
+    void bitwiseXor(RegisterIndex target);
+    void bitwiseXorFromMemory();
 };
 
 #endif
