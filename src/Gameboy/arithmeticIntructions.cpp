@@ -154,3 +154,67 @@ void Gameboy::bitwiseXorFromMemory() {
     r.halfCarry = 0;
     r.carry = 0;
 }
+
+// 0xB0 - 0xB5, 0xB7
+void Gameboy::bitwiseOr(RegisterIndex target) {
+    r.registers[RegisterIndex::A] |= r.registers[target];
+
+    r.zero = (!r.registers[RegisterIndex::A]);
+    r.subtract = 0;
+    r.halfCarry = 0;
+    r.carry = 0;
+}
+
+// 0xB6
+void Gameboy::bitwiseOrFromMemory() {
+    unsigned short int addr = r.registers[RegisterIndex::L];
+    addr += (r.registers[RegisterIndex::H] << 8);
+    
+    unsigned char value = mem[addr];
+
+    r.registers[RegisterIndex::A] |= value;
+
+    r.zero = (!r.registers[RegisterIndex::A]);
+    r.subtract = 0;
+    r.halfCarry = 0;
+    r.carry = 0;
+}
+
+// 0xB8 - 0xBD, 0xBF
+void Gameboy::compare(RegisterIndex target) {
+    unsigned char value = r.registers[target];
+
+    unsigned char oldVal = r.registers[RegisterIndex::A];
+    unsigned char result = oldVal - value;
+    
+    // Set flags
+    if (!result) { r.zero = 0x01; }
+    r.subtract = true;
+    r.carry = (oldVal < result); // Overflow
+    // Half Carry is set if adding the lower nibbles of the value and register
+    // A together result in a value bigger than 0xF. If the result is larger 
+    // than 0xF then the addition caused a carry from the lower nibble to the
+    // upper nibble.
+    r.halfCarry = (((oldVal & 0x0F) - (value & 0x0F)) & 0x10);
+}
+
+// 0xBE
+void Gameboy::compareFromMemory() {
+    unsigned short int addr = r.registers[RegisterIndex::L];
+    addr += (r.registers[RegisterIndex::H] << 8);
+
+    unsigned char value = mem[addr];
+
+    unsigned char oldVal = r.registers[RegisterIndex::A];
+    unsigned char result = oldVal - value;
+    
+    // Set flags
+    if (!result) { r.zero = 0x01; }
+    r.subtract = true;
+    r.carry = (oldVal < result); // Overflow
+    // Half Carry is set if adding the lower nibbles of the value and register
+    // A together result in a value bigger than 0xF. If the result is larger 
+    // than 0xF then the addition caused a carry from the lower nibble to the
+    // upper nibble.
+    r.halfCarry = (((oldVal & 0x0F) - (value & 0x0F)) & 0x10);
+}

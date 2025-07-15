@@ -56,6 +56,7 @@ struct Gameboy {
     void call8XInstructions(unsigned char secondHalfByte);
     void call9XInstructions(unsigned char secondHalfByte);
     void callAXInstructions(unsigned char secondHalfByte);
+    void callBXInstructions(unsigned char secondHalfByte);
 
     // Instructions
 
@@ -72,6 +73,12 @@ struct Gameboy {
     void bitwiseAndFromMemory();
     void bitwiseXor(RegisterIndex target);
     void bitwiseXorFromMemory();
+
+    // 0xB
+    void bitwiseOr(RegisterIndex target);
+    void bitwiseOrFromMemory();
+    void compare(RegisterIndex target);
+    void compareFromMemory();
 };
 
 #endif

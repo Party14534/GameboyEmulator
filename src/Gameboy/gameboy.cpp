@@ -34,6 +34,9 @@ void Gameboy::decode(unsigned char instruction) {
         case 0xA0:
             callAXInstructions(secondHalfByte);
             break;
+        case 0xB0:
+            callBXInstructions(secondHalfByte);
+            break;
         default:
             printf("Unknown instruction %04x\n", instruction);
             exit(1);
@@ -206,4 +209,57 @@ void Gameboy::callAXInstructions(unsigned char secondHalfByte) {
             bitwiseXor(RegisterIndex::A);
             break;
     }
+}
+
+void Gameboy::callBXInstructions(unsigned char secondHalfByte) {
+    switch (secondHalfByte) {
+        case 0x00:
+            bitwiseOr(RegisterIndex::B);
+            break;
+        case 0x01:
+            bitwiseOr(RegisterIndex::C);
+            break;
+        case 0x02:
+            bitwiseOr(RegisterIndex::D);
+            break;
+        case 0x03:
+            bitwiseOr(RegisterIndex::E);
+            break;
+        case 0x04:
+            bitwiseOr(RegisterIndex::H);
+            break;
+        case 0x05:
+            bitwiseOr(RegisterIndex::L);
+            break;
+        case 0x06:
+            bitwiseOrFromMemory();
+            break;
+        case 0x07:
+            bitwiseOr(RegisterIndex::A);
+            break;
+        case 0x08:
+            compare(RegisterIndex::B);
+            break;
+        case 0x09:
+            compare(RegisterIndex::C);
+            break;
+        case 0x0A:
+            compare(RegisterIndex::D);
+            break;
+        case 0x0B:
+            compare(RegisterIndex::E);
+            break;
+        case 0x0C:
+            compare(RegisterIndex::H);
+            break;
+        case 0x0D:
+            compare(RegisterIndex::L);
+            break;
+        case 0x0E:
+            compareFromMemory();
+            break;
+        case 0x0F:
+            compare(RegisterIndex::A);
+            break;
+    } 
 }
