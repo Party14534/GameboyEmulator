@@ -70,3 +70,53 @@ TEST(AdditionTest, HandlesCarryPath) {
     assert(g.r.halfCarry == false);
     assert(g.r.carry == true);
 }
+
+/*
+ * Logic Tests
+ */
+
+TEST(OrTest, HappyPath) {
+    Gameboy g("");
+
+    // Set instruction
+    g.mem[0x0000] = 0xB0;
+
+    // Set register values
+    g.r.registers[RegisterIndex::A] = 0xF0;
+    g.r.registers[RegisterIndex::B] = 0x01;
+
+    // Run Code
+    g.FDE();
+
+    // Assert value is correct
+    assert(g.r.registers[RegisterIndex::A] == 0XF1);
+
+    // Assert flags set correctly
+    assert(g.r.zero == false);
+    assert(g.r.subtract == false);
+    assert(g.r.halfCarry == false);
+    assert(g.r.carry == false);
+}
+
+TEST(OrTest, ZeroPath) {
+    Gameboy g("");
+
+    // Set instruction
+    g.mem[0x0000] = 0xB0;
+
+    // Set register values
+    g.r.registers[RegisterIndex::A] = 0x00;
+    g.r.registers[RegisterIndex::B] = 0x00;
+
+    // Run Code
+    g.FDE();
+
+    // Assert value is correct
+    assert(g.r.registers[RegisterIndex::A] == 0X00);
+
+    // Assert flags set correctly
+    assert(g.r.zero == true);
+    assert(g.r.subtract == false);
+    assert(g.r.halfCarry == false);
+    assert(g.r.carry == false);
+}
