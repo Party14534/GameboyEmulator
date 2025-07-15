@@ -1,5 +1,4 @@
 #include "gtest/gtest.h"
-#include <cassert>
 #include "../../src/Gameboy/gameboy.h"
 
 TEST(AdditionTest, HandlesHappyPath) {

@@ -53,12 +53,22 @@ struct Gameboy {
     void FDE();
     unsigned char fetch();
     void decode(unsigned char instruction);
+
+    RegisterIndex byteToIndex(unsigned char secondHalfByte);
+
+    void call4X6XInstructions(RegisterIndex target, unsigned char secondHalfByte);
+    void call7XInstructions(unsigned char secondHalfByte);
     void call8XInstructions(unsigned char secondHalfByte);
     void call9XInstructions(unsigned char secondHalfByte);
     void callAXInstructions(unsigned char secondHalfByte);
     void callBXInstructions(unsigned char secondHalfByte);
 
     // Instructions
+
+    // 0x4-7
+    void load(RegisterIndex target, RegisterIndex value);
+    void loadFromMemory(RegisterIndex target);
+    void loadToMemory(RegisterIndex value);
 
     // 0x8
     void add(RegisterIndex target, bool carry);
