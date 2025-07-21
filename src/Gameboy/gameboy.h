@@ -10,6 +10,10 @@ enum RegisterIndex {
     A = 0, B, C, D, E, F, H, L
 };
 
+enum RegisterPair {
+    AF = 0, BC, DE, HL, SP
+};
+
 struct Registers {
     std::vector<unsigned char> registers;
 
@@ -23,6 +27,11 @@ struct Registers {
     void setBC(short unsigned int val);
     void setDE(short unsigned int val);
     void setHL(short unsigned int val);
+
+    short unsigned int getAF();
+    short unsigned int getBC();
+    short unsigned int getDE();
+    short unsigned int getHL();
 
     unsigned char fRtoU8();
     void u8toFR(unsigned char byte);
@@ -56,6 +65,10 @@ struct Gameboy {
 
     RegisterIndex byteToIndex(unsigned char secondHalfByte);
 
+    void call0XInstructions(unsigned char secondHalfByte);
+    void call1XInstructions(unsigned char secondHalfByte);
+    void call2XInstructions(unsigned char secondHalfByte);
+    void call3XInstructions(unsigned char secondHalfByte);
     void call4X6XInstructions(RegisterIndex target, unsigned char secondHalfByte);
     void call7XInstructions(unsigned char secondHalfByte);
     void call8XInstructions(unsigned char secondHalfByte);
@@ -89,6 +102,9 @@ struct Gameboy {
     void bitwiseOrFromMemory();
     void compare(RegisterIndex target);
     void compareFromMemory();
+
+    // 16bit loads
+    void incRegisterPair(RegisterPair pair);
 };
 
 #endif

@@ -26,6 +26,18 @@ void Gameboy::decode(unsigned char instruction) {
     unsigned char secondHalfByte = instruction & 0x0F;
 
     switch (firstHalfByte) {
+        case 0x00:
+            call0XInstructions(secondHalfByte);
+            break;
+        case 0x10:
+            call1XInstructions(secondHalfByte);
+            break;
+        case 0x20:
+            call2XInstructions(secondHalfByte);
+            break;
+        case 0x30:
+            call3XInstructions(secondHalfByte);
+            break;
         case 0x40:
             call4X6XInstructions(RegisterIndex::B, secondHalfByte);
             break;
@@ -87,6 +99,53 @@ RegisterIndex Gameboy::byteToIndex(unsigned char secondHalfByte) {
 /*
  * Instruction calling
  */
+void Gameboy::call0XInstructions(unsigned char secondHalfByte) {
+    switch (secondHalfByte) {
+        case 0x00:
+            // NO-OP
+            break;
+        case 0x03:
+            incRegisterPair(RegisterPair::BC);            
+            break;
+        default:
+            printf("Error: unknown opcode\n");
+            exit(1);
+    }
+}
+
+void Gameboy::call1XInstructions(unsigned char secondHalfByte) {
+    switch (secondHalfByte) {
+        case 0x03:
+            incRegisterPair(RegisterPair::DE);            
+            break;
+        default:
+            printf("Error: unknown opcode\n");
+            exit(1);
+    }
+}
+
+void Gameboy::call2XInstructions(unsigned char secondHalfByte) {
+    switch (secondHalfByte) {
+        case 0x03:
+            incRegisterPair(RegisterPair::HL);            
+            break;
+        default:
+            printf("Error: unknown opcode\n");
+            exit(1);
+    }
+}
+
+void Gameboy::call3XInstructions(unsigned char secondHalfByte) {
+    switch (secondHalfByte) {
+        case 0x03:
+            incRegisterPair(RegisterPair::SP);            
+            break;
+        default:
+            printf("Error: unknown opcode\n");
+            exit(1);
+    }
+}
+
 void Gameboy::call4X6XInstructions(RegisterIndex target, unsigned char secondHalfByte) {
     RegisterIndex value = byteToIndex(secondHalfByte);
     

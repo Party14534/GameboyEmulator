@@ -21,6 +21,42 @@ void Registers::setHL(short unsigned int val) {
     registers[RegisterIndex::L] = 0x00FF & val;
 }
 
+short unsigned int Registers::getAF() {
+    short unsigned int val;
+    
+    val = registers[RegisterIndex::A] << 8;
+    val += registers[RegisterIndex::F];
+
+    return val;
+}
+
+short unsigned int Registers::getBC() {
+    short unsigned int val;
+    
+    val = registers[RegisterIndex::B] << 8;
+    val += registers[RegisterIndex::C];
+
+    return val;
+}
+
+short unsigned int Registers::getDE() {
+    short unsigned int val;
+    
+    val = registers[RegisterIndex::D] << 8;
+    val += registers[RegisterIndex::E];
+
+    return val;
+}
+
+short unsigned int Registers::getHL() {
+    short unsigned int val;
+    
+    val = registers[RegisterIndex::H] << 8;
+    val += registers[RegisterIndex::L];
+
+    return val;
+}
+
 // Flag register functions
 unsigned char Registers::fRtoU8() {
     unsigned char byte;
