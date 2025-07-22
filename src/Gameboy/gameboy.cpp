@@ -105,7 +105,10 @@ void Gameboy::call0XInstructions(unsigned char secondHalfByte) {
             // NO-OP
             break;
         case 0x03:
-            incRegisterPair(RegisterPair::BC);            
+            incRegisterPair(RegisterPair::BC, 1);            
+            break;
+        case 0x0B:
+            incRegisterPair(RegisterPair::BC, -1);
             break;
         default:
             printf("Error: unknown opcode\n");
@@ -116,7 +119,10 @@ void Gameboy::call0XInstructions(unsigned char secondHalfByte) {
 void Gameboy::call1XInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
         case 0x03:
-            incRegisterPair(RegisterPair::DE);            
+            incRegisterPair(RegisterPair::DE, 1);            
+            break;
+        case 0x0B:
+            incRegisterPair(RegisterPair::DE, -1);
             break;
         default:
             printf("Error: unknown opcode\n");
@@ -127,7 +133,10 @@ void Gameboy::call1XInstructions(unsigned char secondHalfByte) {
 void Gameboy::call2XInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
         case 0x03:
-            incRegisterPair(RegisterPair::HL);            
+            incRegisterPair(RegisterPair::HL, 1);            
+            break;
+        case 0x0B:
+            incRegisterPair(RegisterPair::HL, -1);
             break;
         default:
             printf("Error: unknown opcode\n");
@@ -138,7 +147,10 @@ void Gameboy::call2XInstructions(unsigned char secondHalfByte) {
 void Gameboy::call3XInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
         case 0x03:
-            incRegisterPair(RegisterPair::SP);            
+            incRegisterPair(RegisterPair::SP, 1);
+            break;
+        case 0x0B:
+            incRegisterPair(RegisterPair::SP, -1);
             break;
         default:
             printf("Error: unknown opcode\n");

@@ -104,7 +104,7 @@ struct Gameboy {
     void compareFromMemory();
 
     // 16bit loads
-    void incRegisterPair(RegisterPair pair);
+    void incRegisterPair(RegisterPair pair, short int val);
 };
 
 #endif
