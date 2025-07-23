@@ -70,6 +70,90 @@ TEST(AdditionTest, HandlesCarryPath) {
     assert(g.r.carry == true);
 }
 
+TEST(IncTest, HandlesHappyPath) {
+    Gameboy g("");
+
+    // Set instruction
+    g.mem[0x0000] = 0x04;
+
+    // Set register values
+    g.r.registers[RegisterIndex::B] = 0x10;
+
+    // Run Code
+    g.FDE();
+
+    // Assert value is correct
+    assert(g.r.registers[RegisterIndex::B] == 0x11);
+
+    // Assert flags set correctly
+    assert(g.r.zero == false);
+    assert(g.r.subtract == false);
+    assert(g.r.halfCarry == false);
+}
+
+TEST(IncTest, HandlesZeroAndCarryPath) {
+    Gameboy g("");
+
+    // Set instruction
+    g.mem[0x0000] = 0x04;
+
+    // Set register values
+    g.r.registers[RegisterIndex::B] = 0xFF;
+
+    // Run Code
+    g.FDE();
+
+    // Assert value is correct
+    assert(g.r.registers[RegisterIndex::B] == 0x00);
+
+    // Assert flags set correctly
+    assert(g.r.zero == true);
+    assert(g.r.subtract == false);
+    assert(g.r.halfCarry == true);
+}
+
+TEST(DecTest, HandlesHappyPath) {
+    Gameboy g("");
+
+    // Set instruction
+    g.mem[0x0000] = 0x05;
+
+    // Set register values
+    g.r.registers[RegisterIndex::B] = 0x0F;
+
+    // Run Code
+    g.FDE();
+
+    // Assert value is correct
+    assert(g.r.registers[RegisterIndex::B] == 0x0E);
+
+    // Assert flags set correctly
+    assert(g.r.zero == false);
+    assert(g.r.subtract == true);
+    assert(g.r.halfCarry == false);
+}
+
+TEST(DecTest, HandlesZeroPath) {
+    Gameboy g("");
+
+    // Set instruction
+    g.mem[0x0000] = 0x05;
+
+    // Set register values
+    g.r.registers[RegisterIndex::B] = 0x01;
+
+    // Run Code
+    g.FDE();
+
+    // Assert value is correct
+    assert(g.r.registers[RegisterIndex::B] == 0x00);
+
+    // Assert flags set correctly
+    assert(g.r.zero == true);
+    assert(g.r.subtract == true);
+    assert(g.r.halfCarry == false);
+}
+
 /*
  * Logic Tests
  */

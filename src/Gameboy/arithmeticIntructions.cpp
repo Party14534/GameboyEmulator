@@ -115,7 +115,13 @@ void Gameboy::incRegister(RegisterIndex target, char val) {
     // A together result in a value bigger than 0xF. If the result is larger 
     // than 0xF then the addition caused a carry from the lower nibble to the
     // upper nibble.
-    r.halfCarry = (((oldVal & 0x0F) - (val & 0x0F)) & 0x10);
+    if (val < 0) {
+        // val is negative so we set it to positive for the half carry check
+        val *= -1;
+        r.halfCarry = (((oldVal & 0x0F) - (val & 0x0F)) & 0x10);
+    } else {
+        r.halfCarry = (((oldVal & 0x0F) + (val & 0x0F)) > 0x0F);
+    }
 
     r.registers[target] = result;
 }
@@ -128,12 +134,16 @@ void Gameboy::incMemory(char val) {
     
     // Set flags
     if (!result) { r.zero = 1; }
-    r.subtract = (val > 0);
+    r.subtract = (val < 0);
     // Half Carry is set if adding the lower nibbles of the value and register
     // A together result in a value bigger than 0xF. If the result is larger 
     // than 0xF then the addition caused a carry from the lower nibble to the
     // upper nibble.
-    r.halfCarry = (((oldVal & 0x0F) - (val & 0x0F)) & 0x10);
+    if (val < 0) {
+        r.halfCarry = (((oldVal & 0x0F) - (val & 0x0F)) & 0x10);
+    } else {
+        r.halfCarry = (((oldVal & 0x0F) + (val & 0x0F)) > 0x0F);
+    }
 
     mem[addr] = result;
 }
