@@ -101,6 +101,43 @@ void Gameboy::subtractFromMemory(bool carry) {
     r.halfCarry = (((oldVal & 0x0F) - (value & 0x0F)) & 0x10);
 }
 
+// Misc arithmetic functions
+
+void Gameboy::incRegister(RegisterIndex target, char val) {
+    unsigned char oldVal = r.registers[target];
+
+    unsigned char result = (unsigned char)(oldVal + val);
+    
+    // Set flags
+    if (!result) { r.zero = 1; }
+    r.subtract = (val < 0);
+    // Half Carry is set if adding the lower nibbles of the value and register
+    // A together result in a value bigger than 0xF. If the result is larger 
+    // than 0xF then the addition caused a carry from the lower nibble to the
+    // upper nibble.
+    r.halfCarry = (((oldVal & 0x0F) - (val & 0x0F)) & 0x10);
+
+    r.registers[target] = result;
+}
+
+void Gameboy::incMemory(char val) {
+    unsigned short int addr = r.getHL();
+    unsigned char oldVal = mem[addr];
+
+    unsigned char result = (unsigned char)(oldVal + val);
+    
+    // Set flags
+    if (!result) { r.zero = 1; }
+    r.subtract = (val > 0);
+    // Half Carry is set if adding the lower nibbles of the value and register
+    // A together result in a value bigger than 0xF. If the result is larger 
+    // than 0xF then the addition caused a carry from the lower nibble to the
+    // upper nibble.
+    r.halfCarry = (((oldVal & 0x0F) - (val & 0x0F)) & 0x10);
+
+    mem[addr] = result;
+}
+
 /*
  * Logical Functions
  */
