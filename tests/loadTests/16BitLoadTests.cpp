@@ -75,15 +75,14 @@ TEST(Add16BitTest, HandlesHLBCPair) {
     g.mem[0x0000] = 0x09; // Add BC to HL
 
     // Set register values
-    short unsigned int val = 100;
-    g.r.setBC(val);
-    g.r.setHL(50);
+    g.r.setBC(100);
+    g.r.setHL(1);
 
     // Run Code
     g.FDE();
 
     // Assert value is correct
-    assert(g.r.getHL() == (unsigned short int)150);
+    assert(g.r.getHL() == (unsigned short int)101);
     assert(!g.r.carry);
     assert(!g.r.halfCarry);
 }
@@ -95,8 +94,8 @@ TEST(Add16BitTest, HandlesCarryPath) {
     g.mem[0x0000] = 0x09; // Add BC to HL
 
     // Set register values
-    g.r.setBC(1);
-    g.r.setHL(65535);
+    g.r.setBC(0x1000);
+    g.r.setHL(0xF000);
 
     // Run Code
     g.FDE();
@@ -107,3 +106,21 @@ TEST(Add16BitTest, HandlesCarryPath) {
     assert(!g.r.halfCarry);
 }
 
+TEST(Add16BitTest, HandlesHalfCarryPath) {
+    Gameboy g("");
+
+    // Set instruction
+    g.mem[0x0000] = 0x09; // Add BC to HL
+
+    // Set register values
+    g.r.setBC(62);
+    g.r.setHL(34);
+
+    // Run Code
+    g.FDE();
+
+    // Assert value is correct
+    assert(g.r.getHL() == (unsigned short int)96);
+    assert(!g.r.carry);
+    assert(g.r.halfCarry);
+}
