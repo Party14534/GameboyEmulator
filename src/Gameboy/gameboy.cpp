@@ -60,6 +60,18 @@ void Gameboy::decode(unsigned char instruction) {
         case 0xB0:
             callBXInstructions(secondHalfByte);
             break;
+        case 0xC0:
+            callCXInstructions(secondHalfByte);
+            break;
+        case 0xD0:
+            callDXInstructions(secondHalfByte);
+            break;
+        case 0xE0:
+            callEXInstructions(secondHalfByte);
+            break;
+        case 0xF0:
+            callFXInstructions(secondHalfByte);
+            break;
         default:
             printf("Unknown instruction %04x\n", instruction);
             exit(1);
@@ -314,4 +326,48 @@ void Gameboy::callBXInstructions(unsigned char secondHalfByte) {
     }
     
     bitwiseOr(index);
+}
+
+void Gameboy::callCXInstructions(unsigned char secondHalfByte) {
+    switch (secondHalfByte) {
+        case 0x01:
+            popToRegisterPair(BC);
+            break;
+        default:
+            printf("Error: C unknown opcode %04x\n", secondHalfByte);
+            exit(1);
+    }
+}
+
+void Gameboy::callDXInstructions(unsigned char secondHalfByte) {
+    switch (secondHalfByte) {
+        case 0x01:
+            popToRegisterPair(DE);
+            break;
+        default:
+            printf("Error: D unknown opcode %04x\n", secondHalfByte);
+            exit(1);
+    }
+}
+
+void Gameboy::callEXInstructions(unsigned char secondHalfByte) {
+    switch (secondHalfByte) {
+        case 0x01:
+            popToRegisterPair(HL);
+            break;
+        default:
+            printf("Error: E unknown opcode %04x\n", secondHalfByte);
+            exit(1);
+    }
+}
+
+void Gameboy::callFXInstructions(unsigned char secondHalfByte) {
+    switch (secondHalfByte) {
+        case 0x01:
+            popToRegisterPair(AF);
+            break;
+        default:
+            printf("Error: F unknown opcode %04x\n", secondHalfByte);
+            exit(1);
+    }
 }

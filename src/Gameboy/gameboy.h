@@ -23,6 +23,9 @@ struct Registers {
     bool halfCarry = false;
     bool carry = false;
 
+    void setFlags();
+    void setF();
+
     void setAF(short unsigned int val);
     void setBC(short unsigned int val);
     void setDE(short unsigned int val);
@@ -75,6 +78,10 @@ struct Gameboy {
     void call9XInstructions(unsigned char secondHalfByte);
     void callAXInstructions(unsigned char secondHalfByte);
     void callBXInstructions(unsigned char secondHalfByte);
+    void callCXInstructions(unsigned char secondHalfByte);
+    void callDXInstructions(unsigned char secondHalfByte);
+    void callEXInstructions(unsigned char secondHalfByte);
+    void callFXInstructions(unsigned char secondHalfByte);
 
     // Instructions
 
@@ -113,6 +120,7 @@ struct Gameboy {
 
     // 16bit loads
     void loadToRegisterPair(RegisterPair target);
+    void popToRegisterPair(RegisterPair target);
 };
 
 #endif

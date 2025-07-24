@@ -1,9 +1,29 @@
 #include "gameboy.h"
 
+void Registers::setFlags() {
+    zero = registers[RegisterIndex::F] & 0b10000000;
+    subtract = registers[RegisterIndex::F] & 0b01000000;
+    halfCarry = registers[RegisterIndex::F] & 0b00100000;
+    carry = registers[RegisterIndex::F] & 0b00010000;
+}
+
+void Registers::setF() {
+    unsigned char f = 0x00;
+    f |= zero << 7;
+    f |= subtract << 6;
+    f |= halfCarry << 5;
+    f |= carry << 4;
+
+    registers[RegisterIndex::F] = f;
+}
+
 // 16 bit functions
 void Registers::setAF(short unsigned int val) {
     registers[RegisterIndex::A] = (0xFF00 & val) >> 8;
     registers[RegisterIndex::F] = 0x00FF & val;
+
+    // Set the boolean flags after setting F register
+    setFlags();
 }
 
 void Registers::setBC(short unsigned int val) {
@@ -25,6 +45,9 @@ short unsigned int Registers::getAF() {
     short unsigned int val;
     
     val = registers[RegisterIndex::A] << 8;
+    
+    // Make sure F is updated with values from flags
+    setF();
     val += registers[RegisterIndex::F];
 
     return val;
