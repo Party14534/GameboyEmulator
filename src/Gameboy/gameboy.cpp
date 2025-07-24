@@ -102,6 +102,9 @@ void Gameboy::call0XInstructions(unsigned char secondHalfByte) {
         case 0x00:
             // NO-OP
             break;
+        case 0x01:
+            loadToRegisterPair(BC);
+            break;
         case 0x03:
             incRegisterPair(RegisterPair::BC, 1);            
             break;
@@ -131,6 +134,9 @@ void Gameboy::call0XInstructions(unsigned char secondHalfByte) {
 
 void Gameboy::call1XInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
+        case 0x01:
+            loadToRegisterPair(DE);
+            break;
         case 0x03:
             incRegisterPair(RegisterPair::DE, 1);            
             break;
@@ -160,6 +166,9 @@ void Gameboy::call1XInstructions(unsigned char secondHalfByte) {
 
 void Gameboy::call2XInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
+        case 0x01:
+            loadToRegisterPair(HL);
+            break;
         case 0x03:
             incRegisterPair(RegisterPair::HL, 1);            
             break;
@@ -189,6 +198,9 @@ void Gameboy::call2XInstructions(unsigned char secondHalfByte) {
 
 void Gameboy::call3XInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
+        case 0x01:
+            loadToRegisterPair(RegisterPair::SP);
+            break;
         case 0x03:
             incRegisterPair(RegisterPair::SP, 1);
             break;
