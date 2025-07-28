@@ -72,3 +72,21 @@ TEST(Pop16BitTest, HandlesAFPath) {
     assert(g.r.halfCarry == true);
     assert(g.r.carry == false);
 }
+
+TEST(Push16BitTest, HandlesHappyPath) {
+    Gameboy g("");
+
+    // Set instruction
+    g.mem[0x0000] = 0xC5;
+    g.r.setBC(0xFEA0);
+    g.SP = 0x0003;
+    g.PC = 0x0000;
+
+    // Run Code
+    g.FDE();
+
+    // Assert value is correct
+    assert(g.SP == 0x0001);
+    assert(g.mem[0x0001] == 0xA0);
+    assert(g.mem[0x0002] == 0xFE);
+}
