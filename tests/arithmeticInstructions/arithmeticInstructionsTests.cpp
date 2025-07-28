@@ -1,4 +1,5 @@
 #include "gtest/gtest.h"
+#include <cstdio>
 #include "../../src/Gameboy/gameboy.h"
 
 TEST(AdditionTest, HandlesHappyPath) {
@@ -68,6 +69,9 @@ TEST(AdditionTest, HandlesCarryPath) {
     assert(g.r.subtract == false);
     assert(g.r.halfCarry == false);
     assert(g.r.carry == true);
+
+    // Assert F register set correctly
+    assert((g.r.getAF() & 0x00FF) == 0b10010000);
 }
 
 TEST(IncTest, HandlesHappyPath) {
