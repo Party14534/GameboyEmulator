@@ -53,3 +53,34 @@ void Gameboy::popToRegisterPair(RegisterPair target) {
             break;
     }
 }
+
+void Gameboy::pushRegisterPair(RegisterPair target) {
+    unsigned short int data;
+
+    switch (target) {
+        case BC:
+            data = r.getBC();
+            break;
+        case DE:
+            data = r.getDE();
+            break;
+        case HL:
+            data = r.getHL();
+            break;
+        case AF:
+            data = r.getAF();
+            break;
+        default:
+            break;
+    }
+    
+    SP--;
+    unsigned char msb = data >> 8;
+    mem[SP] = msb;
+    
+    SP--;
+    unsigned char lsb = data & 0x00FF;
+    mem[SP] = lsb;
+
+
+}

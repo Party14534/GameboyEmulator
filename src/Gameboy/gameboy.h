@@ -121,6 +121,7 @@ struct Gameboy {
     // 16bit loads
     void loadToRegisterPair(RegisterPair target);
     void popToRegisterPair(RegisterPair target);
+    void pushRegisterPair(RegisterPair target);
 };
 
 #endif

@@ -333,6 +333,9 @@ void Gameboy::callCXInstructions(unsigned char secondHalfByte) {
         case 0x01:
             popToRegisterPair(BC);
             break;
+        case 0x05:
+            pushRegisterPair(BC);
+            break;
         default:
             printf("Error: C unknown opcode %04x\n", secondHalfByte);
             exit(1);
@@ -343,6 +346,9 @@ void Gameboy::callDXInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
         case 0x01:
             popToRegisterPair(DE);
+            break;
+        case 0x05:
+            pushRegisterPair(DE);
             break;
         default:
             printf("Error: D unknown opcode %04x\n", secondHalfByte);
@@ -355,6 +361,9 @@ void Gameboy::callEXInstructions(unsigned char secondHalfByte) {
         case 0x01:
             popToRegisterPair(HL);
             break;
+        case 0x05:
+            pushRegisterPair(HL);
+            break;
         default:
             printf("Error: E unknown opcode %04x\n", secondHalfByte);
             exit(1);
@@ -365,6 +374,9 @@ void Gameboy::callFXInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
         case 0x01:
             popToRegisterPair(AF);
+            break;
+        case 0x05:
+            pushRegisterPair(AF);
             break;
         default:
             printf("Error: F unknown opcode %04x\n", secondHalfByte);
