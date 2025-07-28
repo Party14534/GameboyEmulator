@@ -9,6 +9,9 @@ void Gameboy::FDE() {
     unsigned char instruction = fetch();
 
     decode(instruction);
+
+    if (r.modifiedFlags) { r.setF(); }
+    r.modifiedFlags = false;
 }
 
 unsigned char Gameboy::fetch() {

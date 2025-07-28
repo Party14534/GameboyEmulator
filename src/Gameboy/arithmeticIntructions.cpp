@@ -24,6 +24,8 @@ void Gameboy::add(RegisterIndex target, bool carry) {
     // than 0xF then the addition caused a carry from the lower nibble to the
     // upper nibble.
     r.halfCarry = (((oldVal & 0x0F) + (value & 0x0F)) > 0x0F);
+
+    r.modifiedFlags = true;
 }
 
 // 0x86 && 0x8E
@@ -49,6 +51,8 @@ void Gameboy::addFromMemory(bool carry) {
     // upper nibble.
     r.halfCarry = (((oldVal & 0x0F) + 
         (value & 0x0F)) > 0x0F);
+
+    r.modifiedFlags = true;
 }
 
 // 0x90 - 0x95, 0x97 - 0x9D, 0x9F
@@ -75,6 +79,8 @@ void Gameboy::subtract(RegisterIndex target, bool carry) {
     // than 0xF then the addition caused a carry from the lower nibble to the
     // upper nibble.
     r.halfCarry = (((oldVal & 0x0F) - (value & 0x0F)) & 0x10);
+
+    r.modifiedFlags = true;
 }
 
 // 0x96 && 0x9E
@@ -99,6 +105,8 @@ void Gameboy::subtractFromMemory(bool carry) {
     // than 0xF then the addition caused a carry from the lower nibble to the
     // upper nibble.
     r.halfCarry = (((oldVal & 0x0F) - (value & 0x0F)) & 0x10);
+
+    r.modifiedFlags = true;
 }
 
 // Misc arithmetic functions
@@ -124,6 +132,8 @@ void Gameboy::incRegister(RegisterIndex target, char val) {
     }
 
     r.registers[target] = result;
+
+    r.modifiedFlags = true;
 }
 
 void Gameboy::incMemory(char val) {
@@ -146,6 +156,8 @@ void Gameboy::incMemory(char val) {
     }
 
     mem[addr] = result;
+
+    r.modifiedFlags = true;
 }
 
 /*
@@ -160,6 +172,8 @@ void Gameboy::bitwiseAnd(RegisterIndex target) {
     r.subtract = 0;
     r.halfCarry = 1;
     r.carry = 0;
+
+    r.modifiedFlags = true;
 }
 
 // 0xA6
@@ -175,6 +189,8 @@ void Gameboy::bitwiseAndFromMemory() {
     r.subtract = 0;
     r.halfCarry = 1;
     r.carry = 0;
+
+    r.modifiedFlags = true;
 }
 
 // 0xA8 - 0xAD, 0xAF
@@ -185,6 +201,8 @@ void Gameboy::bitwiseXor(RegisterIndex target) {
     r.subtract = 0;
     r.halfCarry = 0;
     r.carry = 0;
+
+    r.modifiedFlags = true;
 }
 
 // 0xAE
@@ -200,6 +218,8 @@ void Gameboy::bitwiseXorFromMemory() {
     r.subtract = 0;
     r.halfCarry = 0;
     r.carry = 0;
+
+    r.modifiedFlags = true;
 }
 
 // 0xB0 - 0xB5, 0xB7
@@ -210,6 +230,8 @@ void Gameboy::bitwiseOr(RegisterIndex target) {
     r.subtract = 0;
     r.halfCarry = 0;
     r.carry = 0;
+
+    r.modifiedFlags = true;
 }
 
 // 0xB6
@@ -225,6 +247,8 @@ void Gameboy::bitwiseOrFromMemory() {
     r.subtract = 0;
     r.halfCarry = 0;
     r.carry = 0;
+
+    r.modifiedFlags = true;
 }
 
 // 0xB8 - 0xBD, 0xBF
@@ -243,6 +267,8 @@ void Gameboy::compare(RegisterIndex target) {
     // than 0xF then the addition caused a carry from the lower nibble to the
     // upper nibble.
     r.halfCarry = (((oldVal & 0x0F) - (value & 0x0F)) & 0x10);
+
+    r.modifiedFlags = true;
 }
 
 // 0xBE
@@ -264,4 +290,6 @@ void Gameboy::compareFromMemory() {
     // than 0xF then the addition caused a carry from the lower nibble to the
     // upper nibble.
     r.halfCarry = (((oldVal & 0x0F) - (value & 0x0F)) & 0x10);
+
+    r.modifiedFlags = true;
 }

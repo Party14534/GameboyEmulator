@@ -22,6 +22,7 @@ struct Registers {
     bool subtract = false;
     bool halfCarry = false;
     bool carry = false;
+    bool modifiedFlags = false;
 
     void setFlags();
     void setF();
