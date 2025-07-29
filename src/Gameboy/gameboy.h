@@ -14,6 +14,10 @@ enum RegisterPair {
     AF = 0, BC, DE, HL, SP
 };
 
+enum Flag {
+    ZF, NF, HF, CF
+};
+
 struct Registers {
     std::vector<unsigned char> registers;
 
@@ -49,7 +53,7 @@ struct Gameboy {
     short unsigned int SP = 0; // Stack pointer
     short unsigned int IX = 0; // Index register
     short unsigned int IY = 0; // Index register
-    unsigned char A = 0; // 8-bit accumulator
+    // unsigned char A = 0; // 8-bit accumulator
     unsigned char I = 0; // Interrupt Page Address register
     unsigned char R = 0; // Memory Refresh register
     unsigned char IE = 0; // Interrupt Enable
@@ -63,6 +67,7 @@ struct Gameboy {
      * Function Definitions
      */
     Gameboy(std::string _romPath);
+    void writeBootRom();
     void FDE();
     unsigned char fetch();
     void decode(unsigned char instruction);
@@ -85,6 +90,9 @@ struct Gameboy {
     void callFXInstructions(unsigned char secondHalfByte);
 
     // Instructions
+
+    // Jump instructions
+    void relativeJump(Flag f);
 
     // 0x4-7
     void load(RegisterIndex target, RegisterIndex value);
@@ -123,6 +131,9 @@ struct Gameboy {
     void loadToRegisterPair(RegisterPair target);
     void popToRegisterPair(RegisterPair target);
     void pushRegisterPair(RegisterPair target);
+    void loadFromAccumulator(RegisterPair src, bool inc);
+
+    void loadCBInstruction();
 };
 
 #endif

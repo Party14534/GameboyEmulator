@@ -81,6 +81,34 @@ void Gameboy::pushRegisterPair(RegisterPair target) {
     SP--;
     unsigned char lsb = data & 0x00FF;
     mem[SP] = lsb;
+}
 
+void Gameboy::loadFromAccumulator(RegisterPair src, bool inc) {
+    short int addr;
 
+    switch (src) {
+        case BC:
+            addr = r.getBC();
+            break;
+        case DE:
+            addr = r.getDE();
+            break;
+        case HL:
+            addr = r.getHL();
+            break;
+        default:
+            break;
+    }
+
+    mem[addr] = r.registers[RegisterIndex::A];
+    
+    if (src == HL) {
+        if (inc) { 
+            addr++; 
+        } else { 
+            addr--; 
+        }
+        
+        r.setHL(addr);
+    }
 }

@@ -1,8 +1,24 @@
 #include "gameboy.h"
+#include <fstream>
+#include <sstream>
 
 Gameboy::Gameboy(std::string _romPath) : romPath(_romPath) {
     r.registers = std::vector<unsigned char>(8);
     mem = std::vector<unsigned char>(0xFFFF); // 65535
+    
+    writeBootRom();
+}
+
+void Gameboy::writeBootRom() {
+    std::ifstream file ("../src/res/dmg_boot.bin");
+    std::stringstream buff;
+    buff << file.rdbuf();
+    
+    int i = 0;
+    for (unsigned char byte : buff.str()) {
+        mem[i] = byte;
+        i++;
+    }
 }
 
 void Gameboy::FDE() {
@@ -120,6 +136,9 @@ void Gameboy::call0XInstructions(unsigned char secondHalfByte) {
         case 0x01:
             loadToRegisterPair(BC);
             break;
+        case 0x02:
+            loadFromAccumulator(BC, false);
+            break;
         case 0x03:
             incRegisterPair(RegisterPair::BC, 1);            
             break;
@@ -142,7 +161,7 @@ void Gameboy::call0XInstructions(unsigned char secondHalfByte) {
             incRegister(RegisterIndex::C, -1);
             break;
         default:
-            printf("Error: unknown opcode\n");
+            printf("Error: 0 unknown opcode %04x\n", secondHalfByte);
             exit(1);
     }
 }
@@ -151,6 +170,9 @@ void Gameboy::call1XInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
         case 0x01:
             loadToRegisterPair(DE);
+            break;
+        case 0x02:
+            loadFromAccumulator(DE, false);
             break;
         case 0x03:
             incRegisterPair(RegisterPair::DE, 1);            
@@ -174,15 +196,21 @@ void Gameboy::call1XInstructions(unsigned char secondHalfByte) {
             incRegister(RegisterIndex::E, -1);
             break;
         default:
-            printf("Error: unknown opcode\n");
+            printf("Error: 1 unknown opcode %04x\n", secondHalfByte);
             exit(1);
     }
 }
 
 void Gameboy::call2XInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
+        case 0x00:
+            relativeJump(ZF);
+            break;
         case 0x01:
             loadToRegisterPair(HL);
+            break;
+        case 0x02:
+            loadFromAccumulator(HL, true);
             break;
         case 0x03:
             incRegisterPair(RegisterPair::HL, 1);            
@@ -206,15 +234,21 @@ void Gameboy::call2XInstructions(unsigned char secondHalfByte) {
             incRegister(RegisterIndex::L, -1);
             break;
         default:
-            printf("Error: unknown opcode\n");
+            printf("Error: 2 unknown opcode %04x\n", secondHalfByte);
             exit(1);
     }
 }
 
 void Gameboy::call3XInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
+        case 0x00:
+            relativeJump(CF);
+            break;
         case 0x01:
             loadToRegisterPair(RegisterPair::SP);
+            break;
+        case 0x02:
+            loadFromAccumulator(HL, false);
             break;
         case 0x03:
             incRegisterPair(RegisterPair::SP, 1);
@@ -238,7 +272,7 @@ void Gameboy::call3XInstructions(unsigned char secondHalfByte) {
             incRegister(RegisterIndex::A, -1);
             break;
         default:
-            printf("Error: unknown opcode\n");
+            printf("Error: 3 unknown opcode %04x\n", secondHalfByte);
             exit(1);
     }
 }
@@ -338,6 +372,9 @@ void Gameboy::callCXInstructions(unsigned char secondHalfByte) {
             break;
         case 0x05:
             pushRegisterPair(BC);
+            break;
+        case 0x0B:
+            loadCBInstruction();
             break;
         default:
             printf("Error: C unknown opcode %04x\n", secondHalfByte);

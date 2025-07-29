@@ -69,6 +69,7 @@ void Gameboy::addRegisterPairs(RegisterPair target, RegisterPair source) {
     r.subtract = 0;
     r.carry = (oldVal > result);
     r.halfCarry = (((oldVal & 0x0F) + (val & 0x0F)) > 0x0F);
+    r.modifiedFlags = true;
 
     r.setHL(result);
 }
