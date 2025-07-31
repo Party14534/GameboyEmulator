@@ -17,8 +17,23 @@ void Gameboy::loadFromMemory(RegisterIndex target) {
 // Two cycles
 // 0x70 - 0x75, 0x77
 void Gameboy::loadToMemory(RegisterIndex value) {
-    unsigned short int addr = r.registers[RegisterIndex::L];
-    addr += (r.registers[RegisterIndex::H] << 8);
+    unsigned short int addr = r.getHL();
 
     mem[addr] = r.registers[value];
+}
+
+// Two cycles
+void Gameboy::loadToRegister(RegisterIndex target) {
+    unsigned char data = mem[PC];
+    PC++;
+    
+    r.registers[target] = data;
+}
+
+// 3 cycles
+void Gameboy::loadImmediateDataToMemory(RegisterIndex target) {
+    unsigned char data = mem[PC];
+    PC++;
+
+    mem[r.getHL()] = data;
 }

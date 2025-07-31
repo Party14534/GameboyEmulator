@@ -119,6 +119,10 @@ struct Gameboy {
     void compare(RegisterIndex target);
     void compareFromMemory();
 
+    // 8bit loads
+    void loadToRegister(RegisterIndex target);
+    void loadImmediateDataToMemory();
+
     // 8bit arithmetic
     void incRegister(RegisterIndex target, char val);
     void incMemory(char val);

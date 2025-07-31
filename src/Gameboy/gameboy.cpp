@@ -148,6 +148,9 @@ void Gameboy::call0XInstructions(unsigned char secondHalfByte) {
         case 0x05:
             incRegister(RegisterIndex::B, -1);
             break;
+        case 0x06:
+            loadToRegister(B);
+            break;
         case 0x09:
             addRegisterPairs(RegisterPair::HL, RegisterPair::BC);
             break;
@@ -159,6 +162,9 @@ void Gameboy::call0XInstructions(unsigned char secondHalfByte) {
             break;
         case 0x0D:
             incRegister(RegisterIndex::C, -1);
+            break;
+        case 0x0E:
+            loadToRegister(C);
             break;
         default:
             printf("Error: 0 unknown opcode %04x\n", secondHalfByte);
@@ -183,6 +189,9 @@ void Gameboy::call1XInstructions(unsigned char secondHalfByte) {
         case 0x05:
             incRegister(RegisterIndex::D, -1);
             break;
+        case 0x06:
+            loadToRegister(D);
+            break;
         case 0x09:
             addRegisterPairs(RegisterPair::HL, RegisterPair::DE);
             break;
@@ -194,6 +203,9 @@ void Gameboy::call1XInstructions(unsigned char secondHalfByte) {
             break;
         case 0x0D:
             incRegister(RegisterIndex::E, -1);
+            break;
+        case 0x0E:
+            loadToRegister(E);
             break;
         default:
             printf("Error: 1 unknown opcode %04x\n", secondHalfByte);
@@ -221,6 +233,9 @@ void Gameboy::call2XInstructions(unsigned char secondHalfByte) {
         case 0x05:
             incRegister(RegisterIndex::H, -1);
             break;
+        case 0x06:
+            loadToRegister(H);
+            break;
         case 0x09:
             addRegisterPairs(RegisterPair::HL, RegisterPair::HL);
             break;
@@ -232,6 +247,9 @@ void Gameboy::call2XInstructions(unsigned char secondHalfByte) {
             break;
         case 0x0D:
             incRegister(RegisterIndex::L, -1);
+            break;
+        case 0x0E:
+            loadToRegister(L);
             break;
         default:
             printf("Error: 2 unknown opcode %04x\n", secondHalfByte);
@@ -259,6 +277,9 @@ void Gameboy::call3XInstructions(unsigned char secondHalfByte) {
         case 0x05:
             incMemory(-1);
             break;
+        case 0x06:
+            loadImmediateDataToMemory();
+            break;
         case 0x09:
             addRegisterPairs(RegisterPair::HL, RegisterPair::SP);
             break;
@@ -270,6 +291,9 @@ void Gameboy::call3XInstructions(unsigned char secondHalfByte) {
             break;
         case 0x0D:
             incRegister(RegisterIndex::A, -1);
+            break;
+        case 0x0E:
+            loadToRegister(A);
             break;
         default:
             printf("Error: 3 unknown opcode %04x\n", secondHalfByte);
