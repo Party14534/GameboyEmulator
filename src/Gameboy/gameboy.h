@@ -134,6 +134,9 @@ struct Gameboy {
     void loadFromAccumulator(RegisterPair src, bool inc);
 
     void loadCBInstruction();
+    void RLC(RegisterIndex target);
+    void RRC(RegisterIndex target);
+    RegisterIndex operandToIndex(unsigned char op);
 };
 
 #endif
