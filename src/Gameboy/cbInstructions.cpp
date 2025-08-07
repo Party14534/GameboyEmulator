@@ -62,7 +62,7 @@ void Gameboy::loadCBInstruction() {
         case 0x05:
         case 0x06:
         case 0x07:
-            bitOffset = firstHalfByte - 0x04;
+            bitOffset = (firstHalfByte - 0x04) * 2;
             bitOffset = (secondHalfByte < 0x07) ? bitOffset : bitOffset + 1;
             
             bit(target, bitOffset);
@@ -106,9 +106,18 @@ void Gameboy::RRC(RegisterIndex target) {
 
 void Gameboy::bit(RegisterIndex target, unsigned short int bitOffset) {
     unsigned char mask = 0b10000000 >> bitOffset;
-    unsigned char val = (r.registers[target] & mask) >> (7 - bitOffset);
+    unsigned char val;    
+
+    printf("%04x %d\n", mask, bitOffset);
+    if (target == F) {
+        val = (mem[r.getHL()] & mask) >> (7 - bitOffset);
+    } else {
+        val = (r.registers[target] & mask) >> (7 - bitOffset);
+    }
 
     r.zero = val;
     r.subtract = false;
     r.halfCarry = true;
+
+    r.setF(); // Update flag variable
 }
