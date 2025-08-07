@@ -45,8 +45,10 @@ void Gameboy::loadCBInstruction() {
     unsigned char fiveBits = (byte & 0b11111000) >> 3;
     unsigned char op = byte & 0b00000111;
     unsigned char bitIndex = (byte & 0b00111000) >> 3;
+    unsigned short bitOffset;
 
     RegisterIndex r = operandToIndex(op);
+    RegisterIndex target = byteToIndex(secondHalfByte);
 
     switch (firstHalfByte) {
         case 0x00:
@@ -55,6 +57,15 @@ void Gameboy::loadCBInstruction() {
             } else {
                 RLC(r);
             }
+            break;
+        case 0x04:
+        case 0x05:
+        case 0x06:
+        case 0x07:
+            bitOffset = firstHalfByte - 0x04;
+            bitOffset = (secondHalfByte < 0x07) ? bitOffset : bitOffset + 1;
+            
+            bit(target, bitOffset);
             break;
         default:
             printf("Unknown CB opcode: %02x\n", byte);
@@ -93,3 +104,11 @@ void Gameboy::RRC(RegisterIndex target) {
     r.modifiedFlags = true;    
 }
 
+void Gameboy::bit(RegisterIndex target, unsigned short int bitOffset) {
+    unsigned char mask = 0b10000000 >> bitOffset;
+    unsigned char val = (r.registers[target] & mask) >> (7 - bitOffset);
+
+    r.zero = val;
+    r.subtract = false;
+    r.halfCarry = true;
+}

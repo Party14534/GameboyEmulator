@@ -137,10 +137,13 @@ struct Gameboy {
     void pushRegisterPair(RegisterPair target);
     void loadFromAccumulator(RegisterPair src, bool inc);
 
+    // CB
     void loadCBInstruction();
+    RegisterIndex operandToIndex(unsigned char op);
+
     void RLC(RegisterIndex target);
     void RRC(RegisterIndex target);
-    RegisterIndex operandToIndex(unsigned char op);
+    void bit(RegisterIndex target, unsigned short int bitOffset);
 };
 
 #endif

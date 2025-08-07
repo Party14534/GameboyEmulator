@@ -31,7 +31,7 @@ void Gameboy::loadToRegister(RegisterIndex target) {
 }
 
 // 3 cycles
-void Gameboy::loadImmediateDataToMemory(RegisterIndex target) {
+void Gameboy::loadImmediateDataToMemory() {
     unsigned char data = mem[PC];
     PC++;
 
