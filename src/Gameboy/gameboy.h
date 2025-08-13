@@ -131,6 +131,10 @@ struct Gameboy {
     void incRegisterPair(RegisterPair pair, short int val);
     void addRegisterPairs(RegisterPair target, RegisterPair source);
 
+    // 8 bit loads
+    void loadFromAcc(bool usingC);
+    void loadToAcc(bool usingC);
+
     // 16bit loads
     void loadToRegisterPair(RegisterPair target);
     void popToRegisterPair(RegisterPair target);

@@ -422,8 +422,14 @@ void Gameboy::callDXInstructions(unsigned char secondHalfByte) {
 
 void Gameboy::callEXInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
+        case 0x00:
+            loadFromAcc(false);
+            break;
         case 0x01:
             popToRegisterPair(HL);
+            break;
+        case 0x02:
+            loadFromAcc(true);
             break;
         case 0x05:
             pushRegisterPair(HL);
@@ -436,8 +442,14 @@ void Gameboy::callEXInstructions(unsigned char secondHalfByte) {
 
 void Gameboy::callFXInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
+        case 0x00:
+            loadToAcc(false);
+            break;
         case 0x01:
             popToRegisterPair(AF);
+            break;
+        case 0x02:
+            loadToAcc(true);
             break;
         case 0x05:
             pushRegisterPair(AF);
