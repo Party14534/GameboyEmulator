@@ -18,6 +18,7 @@ enum Flag {
     ZF, NF, HF, CF
 };
 
+
 struct Registers {
     std::vector<unsigned char> registers;
 
@@ -122,6 +123,10 @@ struct Gameboy {
     // 8bit loads
     void loadToRegister(RegisterIndex target);
     void loadImmediateDataToMemory();
+    void loadFromAcc(bool usingC);
+    void loadFromAcc(RegisterPair src, bool inc);
+    void loadToAcc(bool usingC);
+    void loadToAcc(RegisterPair target, short int change);
 
     // 8bit arithmetic
     void incRegister(RegisterIndex target, char val);
@@ -131,15 +136,10 @@ struct Gameboy {
     void incRegisterPair(RegisterPair pair, short int val);
     void addRegisterPairs(RegisterPair target, RegisterPair source);
 
-    // 8 bit loads
-    void loadFromAcc(bool usingC);
-    void loadToAcc(bool usingC);
-
     // 16bit loads
     void loadToRegisterPair(RegisterPair target);
     void popToRegisterPair(RegisterPair target);
     void pushRegisterPair(RegisterPair target);
-    void loadFromAccumulator(RegisterPair src, bool inc);
 
     // CB
     void loadCBInstruction();

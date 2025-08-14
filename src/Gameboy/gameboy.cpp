@@ -137,7 +137,7 @@ void Gameboy::call0XInstructions(unsigned char secondHalfByte) {
             loadToRegisterPair(BC);
             break;
         case 0x02:
-            loadFromAccumulator(BC, false);
+            loadFromAcc(BC, false);
             break;
         case 0x03:
             incRegisterPair(RegisterPair::BC, 1);            
@@ -153,6 +153,9 @@ void Gameboy::call0XInstructions(unsigned char secondHalfByte) {
             break;
         case 0x09:
             addRegisterPairs(RegisterPair::HL, RegisterPair::BC);
+            break;
+        case 0x0A:
+            loadToAcc(RegisterPair::BC, 0);
             break;
         case 0x0B:
             incRegisterPair(RegisterPair::BC, -1);
@@ -178,7 +181,7 @@ void Gameboy::call1XInstructions(unsigned char secondHalfByte) {
             loadToRegisterPair(DE);
             break;
         case 0x02:
-            loadFromAccumulator(DE, false);
+            loadFromAcc(DE, false);
             break;
         case 0x03:
             incRegisterPair(RegisterPair::DE, 1);            
@@ -194,6 +197,9 @@ void Gameboy::call1XInstructions(unsigned char secondHalfByte) {
             break;
         case 0x09:
             addRegisterPairs(RegisterPair::HL, RegisterPair::DE);
+            break;
+        case 0x0A:
+            loadToAcc(RegisterPair::DE, 0);
             break;
         case 0x0B:
             incRegisterPair(RegisterPair::DE, -1);
@@ -222,7 +228,7 @@ void Gameboy::call2XInstructions(unsigned char secondHalfByte) {
             loadToRegisterPair(HL);
             break;
         case 0x02:
-            loadFromAccumulator(HL, true);
+            loadFromAcc(HL, true);
             break;
         case 0x03:
             incRegisterPair(RegisterPair::HL, 1);            
@@ -238,6 +244,9 @@ void Gameboy::call2XInstructions(unsigned char secondHalfByte) {
             break;
         case 0x09:
             addRegisterPairs(RegisterPair::HL, RegisterPair::HL);
+            break;
+        case 0x0A:
+            loadToAcc(RegisterPair::HL, 1);
             break;
         case 0x0B:
             incRegisterPair(RegisterPair::HL, -1);
@@ -266,7 +275,7 @@ void Gameboy::call3XInstructions(unsigned char secondHalfByte) {
             loadToRegisterPair(RegisterPair::SP);
             break;
         case 0x02:
-            loadFromAccumulator(HL, false);
+            loadFromAcc(HL, false);
             break;
         case 0x03:
             incRegisterPair(RegisterPair::SP, 1);
@@ -282,6 +291,9 @@ void Gameboy::call3XInstructions(unsigned char secondHalfByte) {
             break;
         case 0x09:
             addRegisterPairs(RegisterPair::HL, RegisterPair::SP);
+            break;
+        case 0x0A:
+            loadToAcc(RegisterPair::HL, -1);
             break;
         case 0x0B:
             incRegisterPair(RegisterPair::SP, -1);

@@ -63,3 +63,57 @@ void Gameboy::loadToAcc(bool usingC) {
 
     printf("%04x\n", addr);
 }
+
+// 2 cycles
+void Gameboy::loadToAcc(RegisterPair target, short int change) {
+    unsigned short int addr;
+
+    switch (target) {
+        case BC:
+            addr = r.getBC();
+            break;
+        case DE:
+            addr = r.getDE();
+            break;
+        case HL:
+            addr = r.getHL();
+            r.setHL(addr + change);
+            break;
+        default:
+            printf("Error: load to acc\n");
+            exit(1);
+            break;
+    }
+
+    r.registers[A] = mem[addr];
+}
+
+void Gameboy::loadFromAcc(RegisterPair src, bool inc) {
+    short int addr;
+
+    switch (src) {
+        case BC:
+            addr = r.getBC();
+            break;
+        case DE:
+            addr = r.getDE();
+            break;
+        case HL:
+            addr = r.getHL();
+            break;
+        default:
+            break;
+    }
+
+    mem[addr] = r.registers[RegisterIndex::A];
+    
+    if (src == HL) {
+        if (inc) { 
+            addr++; 
+        } else { 
+            addr--; 
+        }
+        
+        r.setHL(addr);
+    }
+}

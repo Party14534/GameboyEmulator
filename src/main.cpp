@@ -7,6 +7,7 @@ int main() {
     
     for(int i = 0; i < 257; i++) {
         g.FDE();
+        printf("%d\n", i);
     }
 
     return 0;
