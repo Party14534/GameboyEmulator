@@ -74,3 +74,49 @@ TEST(CBBitTest, HandlesHLPath) {
     assert(g.r.subtract == false);
     assert(g.r.halfCarry == true);
 }
+
+TEST(CBRLTest, HandlesHappyPath) {
+    Gameboy g("");
+
+    // Set instruction
+    g.mem[0x0000] = 0xCB; // CB prefix
+    g.mem[0x0001] = 0x10; // bit operation
+
+    g.r.registers[B] = 0b10001111;
+    g.r.carry = true;
+
+    // Run Code
+    g.FDE();
+
+    // Assert value is correct
+    printf("%04x\n", g.r.registers[F]);
+    assert(g.r.registers[B] == 0b00011111);
+    assert(g.r.zero == false);
+    assert(g.r.subtract == false);
+    assert(g.r.halfCarry == false);
+    assert(g.r.carry);
+    assert(g.r.registers[F] == 0x10);
+}
+
+TEST(CBRRTest, HandlesHappyPath) {
+    Gameboy g("");
+
+    // Set instruction
+    g.mem[0x0000] = 0xCB; // CB prefix
+    g.mem[0x0001] = 0x18; // bit operation
+
+    g.r.registers[B] = 0b10001111;
+    g.r.carry = true;
+
+    // Run Code
+    g.FDE();
+
+    // Assert value is correct
+    printf("%04x\n", g.r.registers[F]);
+    assert(g.r.registers[B] == 0b11000111);
+    assert(g.r.zero == false);
+    assert(g.r.subtract == false);
+    assert(g.r.halfCarry == false);
+    assert(g.r.carry);
+    assert(g.r.registers[F] == 0x10);
+}

@@ -117,6 +117,12 @@ void Gameboy::rotateRegisterLeft(RegisterIndex target) {
 
     r.registers[target] = (r.registers[target] << 1) | carryBit;
     r.carry = newCarryBit;
+
+    r.zero = (r.registers[target] == 0);
+    r.subtract = false;
+    r.halfCarry = false;
+
+    r.modifiedFlags = true;
 }
 
 void Gameboy::rotateRegisterRight(RegisterIndex target) {
@@ -125,6 +131,12 @@ void Gameboy::rotateRegisterRight(RegisterIndex target) {
 
     r.registers[target] = (r.registers[target] >> 1) | carryBit;
     r.carry = newCarryBit;
+
+    r.zero = (r.registers[target] == 0);
+    r.subtract = false;
+    r.halfCarry = false;
+
+    r.modifiedFlags = true;
 }
 
 void Gameboy::bit(RegisterIndex target, unsigned short int bitOffset) {
@@ -142,5 +154,5 @@ void Gameboy::bit(RegisterIndex target, unsigned short int bitOffset) {
     r.subtract = false;
     r.halfCarry = true;
 
-    r.setF(); // Update flag variable
+    r.modifiedFlags = true;
 }
