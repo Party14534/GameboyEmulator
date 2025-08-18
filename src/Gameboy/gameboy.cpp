@@ -412,6 +412,9 @@ void Gameboy::callCXInstructions(unsigned char secondHalfByte) {
         case 0x0B:
             loadCBInstruction();
             break;
+        case 0x0D:
+            callFunction();
+            break;
         default:
             printf("Error: C unknown opcode %04x\n", secondHalfByte);
             exit(1);

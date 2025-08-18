@@ -141,6 +141,9 @@ struct Gameboy {
     void popToRegisterPair(RegisterPair target);
     void pushRegisterPair(RegisterPair target);
 
+    // Control Flow
+    void callFunction();
+
     // CB
     void loadCBInstruction();
     RegisterIndex operandToIndex(unsigned char op);
