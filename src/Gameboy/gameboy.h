@@ -147,6 +147,8 @@ struct Gameboy {
     // CB
     void loadCBInstruction();
     RegisterIndex operandToIndex(unsigned char op);
+    void rotateRegisterLeft(RegisterIndex target);
+    void rotateRegisterRight(RegisterIndex target);
 
     void RLC(RegisterIndex target);
     void RRC(RegisterIndex target);

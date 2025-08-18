@@ -58,6 +58,13 @@ void Gameboy::loadCBInstruction() {
                 RLC(r);
             }
             break;
+        case 0x01:
+            if (secondHalfByte >= 8) {
+                rotateRegisterRight(target);
+            } else {
+                rotateRegisterLeft(target);
+            }
+            break;
         case 0x04:
         case 0x05:
         case 0x06:
@@ -102,6 +109,22 @@ void Gameboy::RRC(RegisterIndex target) {
     r.carry = b1 >> 7;
 
     r.modifiedFlags = true;    
+}
+
+void Gameboy::rotateRegisterLeft(RegisterIndex target) {
+    unsigned char carryBit = r.carry;
+    unsigned char newCarryBit = (r.registers[target] & 0b10000000) >> 7;
+
+    r.registers[target] = (r.registers[target] << 1) | carryBit;
+    r.carry = newCarryBit;
+}
+
+void Gameboy::rotateRegisterRight(RegisterIndex target) {
+    unsigned char carryBit = (r.carry) << 7;
+    unsigned char newCarryBit = r.registers[target] & 0b00000001;
+
+    r.registers[target] = (r.registers[target] >> 1) | carryBit;
+    r.carry = newCarryBit;
 }
 
 void Gameboy::bit(RegisterIndex target, unsigned short int bitOffset) {
