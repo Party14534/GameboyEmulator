@@ -143,6 +143,7 @@ struct Gameboy {
 
     // Control Flow
     void callFunction();
+    void ret();
 
     // CB
     void loadCBInstruction();

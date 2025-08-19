@@ -421,6 +421,9 @@ void Gameboy::callCXInstructions(unsigned char secondHalfByte) {
         case 0x05:
             pushRegisterPair(BC);
             break;
+        case 0x09:
+            ret();
+            break;
         case 0x0B:
             loadCBInstruction();
             break;

@@ -21,3 +21,19 @@ void Gameboy::callFunction() {
 
     PC = addr;
 }
+
+void Gameboy::ret() {
+    unsigned char lsb = mem[SP];
+    SP++;
+
+    unsigned char msb = mem[SP];
+    SP++;
+
+    unsigned short int addr = msb;
+    addr = addr << 8;
+    addr |= lsb;
+
+    PC = addr;
+
+    printf("%04x returning to\n", addr);
+}
