@@ -83,14 +83,14 @@ TEST(CBRLTest, HandlesHappyPath) {
     g.mem[0x0001] = 0x10; // bit operation
 
     g.r.registers[B] = 0b10001111;
-    g.r.carry = true;
+    g.r.carry = false;
 
     // Run Code
     g.FDE();
 
     // Assert value is correct
     printf("%04x\n", g.r.registers[F]);
-    assert(g.r.registers[B] == 0b00011111);
+    assert(g.r.registers[B] == 0b00011110);
     assert(g.r.zero == false);
     assert(g.r.subtract == false);
     assert(g.r.halfCarry == false);
@@ -119,4 +119,48 @@ TEST(CBRRTest, HandlesHappyPath) {
     assert(g.r.halfCarry == false);
     assert(g.r.carry);
     assert(g.r.registers[F] == 0x10);
+}
+
+TEST(CBRLCTest, HandlesHappyPath) {
+    Gameboy g("");
+
+    // Set instruction
+    g.mem[0x0000] = 0xCB; // CB prefix
+    g.mem[0x0001] = 0x00; // bit operation
+
+    g.r.registers[B] = 0b10001111;
+
+    // Run Code
+    g.FDE();
+
+    // Assert value is correct
+    printf("%04x\n", g.r.registers[F]);
+    assert(g.r.registers[B] == 0b00011111);
+    assert(g.r.zero == false);
+    assert(g.r.subtract == false);
+    assert(g.r.halfCarry == false);
+    assert(g.r.carry);
+    assert(g.r.registers[F] == 0x10);
+}
+
+TEST(CBRRCTest, HandlesHappyPath) {
+    Gameboy g("");
+
+    // Set instruction
+    g.mem[0x0000] = 0xCB; // CB prefix
+    g.mem[0x0001] = 0x08; // bit operation
+
+    g.r.registers[B] = 0b10001110;
+
+    // Run Code
+    g.FDE();
+
+    // Assert value is correct
+    printf("%04x\n", g.r.registers[F]);
+    assert(g.r.registers[B] == 0b01000111);
+    assert(g.r.zero == false);
+    assert(g.r.subtract == false);
+    assert(g.r.halfCarry == false);
+    assert(g.r.carry == false);
+    assert(g.r.registers[F] == 0x00);
 }
