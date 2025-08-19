@@ -119,6 +119,7 @@ struct Gameboy {
     void bitwiseOrFromMemory();
     void compare(RegisterIndex target);
     void compareFromMemory();
+    void compareN();
 
     // 8bit loads
     void loadToRegister(RegisterIndex target);

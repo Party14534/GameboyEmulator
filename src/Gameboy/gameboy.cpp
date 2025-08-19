@@ -484,6 +484,9 @@ void Gameboy::callFXInstructions(unsigned char secondHalfByte) {
         case 0x05:
             pushRegisterPair(AF);
             break;
+        case 0x0E:
+            compareN();
+            break;
         default:
             printf("Error: F unknown opcode %04x\n", secondHalfByte);
             exit(1);

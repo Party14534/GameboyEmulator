@@ -293,3 +293,24 @@ void Gameboy::compareFromMemory() {
 
     r.modifiedFlags = true;
 }
+
+void Gameboy::compareN() {
+    unsigned char value = mem[PC];
+    PC++;
+
+    unsigned char oldVal = r.registers[RegisterIndex::A];
+    unsigned char result = oldVal - value;
+    
+    // Set flags
+    if (!result) { r.zero = 0x01; }
+    r.subtract = true;
+    r.carry = (oldVal < result); // Overflow
+    // Half Carry is set if adding the lower nibbles of the value and register
+    // A together result in a value bigger than 0xF. If the result is larger 
+    // than 0xF then the addition caused a carry from the lower nibble to the
+    // upper nibble.
+    r.halfCarry = (((oldVal & 0x0F) - (value & 0x0F)) & 0x10);
+
+    r.modifiedFlags = true;
+}
+
