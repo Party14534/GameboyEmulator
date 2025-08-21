@@ -93,3 +93,38 @@ TEST(LoadToMemoryTest, Halt) {
     assert(g.mem[0xFE01] == 0x00);
 }
 
+TEST(LoadAccToMemoryTest, HappyPath) {
+    Gameboy g("");
+
+    // Set instruction
+    g.mem[0x0000] = 0xEA;
+    g.mem[0x0001] = 0x10;
+    g.mem[0x0002] = 0xFF;
+
+    // Set register values
+    g.r.registers[A] = 0xBB;
+
+    // Run Code
+    g.FDE();
+
+    // Assert value is correct
+    assert(g.mem[0xFF10] == 0xBB);
+}
+
+TEST(LoadMemoryToAccTest, HappyPath) {
+    Gameboy g("");
+
+    // Set instruction
+    g.mem[0x0000] = 0xFA;
+    g.mem[0x0001] = 0x10;
+    g.mem[0x0002] = 0xFF;
+
+    // Set register values
+    g.mem[0xFF10] = 0xBB;
+
+    // Run Code
+    g.FDE();
+
+    // Assert value is correct
+    assert(g.r.registers[A] == 0xBB);
+}
