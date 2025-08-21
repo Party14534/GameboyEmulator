@@ -204,6 +204,9 @@ void Gameboy::call1XInstructions(unsigned char secondHalfByte) {
         case 0x07:
             rotateRegisterLeft(A);
             break;
+        case 0x08:
+            relativeJump(TF, false);
+            break;
         case 0x09:
             addRegisterPairs(RegisterPair::HL, RegisterPair::DE);
             break;
@@ -234,7 +237,7 @@ void Gameboy::call1XInstructions(unsigned char secondHalfByte) {
 void Gameboy::call2XInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
         case 0x00:
-            relativeJump(ZF);
+            relativeJump(ZF, true);
             break;
         case 0x01:
             loadToRegisterPair(HL);
@@ -253,6 +256,9 @@ void Gameboy::call2XInstructions(unsigned char secondHalfByte) {
             break;
         case 0x06:
             loadToRegister(H);
+            break;
+        case 0x08:
+            relativeJump(ZF, false);
             break;
         case 0x09:
             addRegisterPairs(RegisterPair::HL, RegisterPair::HL);
@@ -281,7 +287,7 @@ void Gameboy::call2XInstructions(unsigned char secondHalfByte) {
 void Gameboy::call3XInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
         case 0x00:
-            relativeJump(CF);
+            relativeJump(CF, true);
             break;
         case 0x01:
             loadToRegisterPair(RegisterPair::SP);
@@ -300,6 +306,9 @@ void Gameboy::call3XInstructions(unsigned char secondHalfByte) {
             break;
         case 0x06:
             loadImmediateDataToMemory();
+            break;
+        case 0x08:
+            relativeJump(CF, false);
             break;
         case 0x09:
             addRegisterPairs(RegisterPair::HL, RegisterPair::SP);

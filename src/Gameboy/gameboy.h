@@ -15,7 +15,7 @@ enum RegisterPair {
 };
 
 enum Flag {
-    ZF, NF, HF, CF
+    ZF, NF, HF, CF, TF
 };
 
 
@@ -93,7 +93,7 @@ struct Gameboy {
     // Instructions
 
     // Jump instructions
-    void relativeJump(Flag f);
+    void relativeJump(Flag f, bool n);
 
     // 0x4-7
     void load(RegisterIndex target, RegisterIndex value);
