@@ -464,6 +464,9 @@ void Gameboy::callEXInstructions(unsigned char secondHalfByte) {
         case 0x05:
             pushRegisterPair(HL);
             break;
+        case 0x0A:
+            loadAccToMemory();
+            break;
         default:
             printf("Error: E unknown opcode %04x\n", secondHalfByte);
             exit(1);
@@ -483,6 +486,9 @@ void Gameboy::callFXInstructions(unsigned char secondHalfByte) {
             break;
         case 0x05:
             pushRegisterPair(AF);
+            break;
+        case 0x0A:
+            loadMemoryToAcc();
             break;
         case 0x0E:
             compareN();

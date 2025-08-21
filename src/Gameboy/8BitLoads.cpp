@@ -117,3 +117,31 @@ void Gameboy::loadFromAcc(RegisterPair src, bool inc) {
         r.setHL(addr);
     }
 }
+
+// 4 cycles
+void Gameboy::loadAccToMemory() {
+    unsigned char lsb = mem[PC];
+    PC++;
+
+    unsigned char msb = mem[PC];
+    PC++;
+
+    unsigned short int addr = msb;
+    addr = (addr << 8) | lsb;
+
+    mem[addr] = r.registers[A];
+}
+
+// 4 cycles
+void Gameboy::loadMemoryToAcc() {
+    unsigned char lsb = mem[PC];
+    PC++;
+
+    unsigned char msb = mem[PC];
+    PC++;
+
+    unsigned short int addr = msb;
+    addr = (addr << 8) | lsb;
+
+    r.registers[A] = mem[addr];
+}

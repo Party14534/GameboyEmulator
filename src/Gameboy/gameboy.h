@@ -128,6 +128,8 @@ struct Gameboy {
     void loadFromAcc(RegisterPair src, bool inc);
     void loadToAcc(bool usingC);
     void loadToAcc(RegisterPair target, short int change);
+    void loadAccToMemory();
+    void loadMemoryToAcc();
 
     // 8bit arithmetic
     void incRegister(RegisterIndex target, char val);
