@@ -18,21 +18,51 @@ enum Flag {
     ZF, NF, HF, CF, TF
 };
 
+struct Pixel {
+    unsigned char color;
+    bool palette;
+    bool priority; // only used for sprites
+};
+
 
 struct PPU {
     std::vector<unsigned char> viewport;
     std::vector<unsigned char> background;
     std::vector<unsigned char> window;
+
+    std::vector<Pixel> spriteFIFO;
+    std::vector<Pixel> bgWinFIFO;
     
     // Pointers to VRAM sections
     unsigned char* graphicsData; // 8000 - 97FF
+    
+    // Hold data for background tiles layed out row by row.
+    // Each byte is a tile number and is on the background buffer
+    // based on where it is in the graphics data. E.g. the first
+    // byte would be in the top left corner and the 33rd would be
+    // placed in the leftmost position of the second row.
     unsigned char* backgroundMap1; // 9800 - 9BFF
     unsigned char* backgroundMap2; // 9C00 - 9FFF
+    
+    // Contains data for displaying sprites where each sprite
+    // takes up 4 bytes
+    // Byte 0: Y pos
+    // Byte 1: X pos
+    // Byte 2: Tile number Always using 8000 addressing mode
+    // Byte 3: Sprite flags
+    //          Bit 7:  0 = sprite always rendered above bg
+    //                  1 = Bg colors 1-3 overlay sprite, sprite
+    //                      is still rendered above color 0
+    //          Bit 6:  Y flip
+    //          Bit 5:  X flip
+    //          Bit 4: Palette Number
     unsigned char* OAMemory; // FE00 - FE9F
 
     // Register pointers
     unsigned char* WX; // FF4B
     unsigned char* WY; // FF4A
+    unsigned char* LCDC; // FF40
+    unsigned char* STAT; // FF41
     
     PPU(std::vector<unsigned char>& gameboyMem);
 
