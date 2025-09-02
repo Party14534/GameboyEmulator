@@ -19,6 +19,29 @@ enum Flag {
 };
 
 
+struct PPU {
+    std::vector<unsigned char> viewport;
+    std::vector<unsigned char> background;
+    std::vector<unsigned char> window;
+    
+    // Pointers to VRAM sections
+    unsigned char* graphicsData; // 8000 - 97FF
+    unsigned char* backgroundMap1; // 9800 - 9BFF
+    unsigned char* backgroundMap2; // 9C00 - 9FFF
+    unsigned char* OAMemory; // FE00 - FE9F
+
+    // Register pointers
+    unsigned char* WX; // FF4B
+    unsigned char* WY; // FF4A
+    
+    PPU(std::vector<unsigned char>& gameboyMem);
+
+    void mode0();
+    void mode1();
+    void mode2();
+    void mode3();
+};
+
 struct Registers {
     std::vector<unsigned char> registers;
 
@@ -45,6 +68,7 @@ struct Registers {
     unsigned char fRtoU8();
     void u8toFR(unsigned char byte);
 };
+
 
 struct Gameboy {
     /*
