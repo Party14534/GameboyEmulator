@@ -18,12 +18,40 @@ enum Flag {
     ZF, NF, HF, CF, TF
 };
 
+enum PPUState {
+    OAMSearch,
+    PixelTransfer,
+    HBlank,
+    VBlank
+};
+
+enum FetcherState {
+    ReadTileID,
+    ReadTileData0,
+    ReadTileData1,
+    PushToFIFO
+};
+
 struct Pixel {
     unsigned char color;
     bool palette;
     bool priority; // only used for sprites
 };
 
+struct Fetcher {
+    std::vector<Pixel> FIFO;
+    unsigned char* mem;
+    FetcherState state;
+    int cycles;
+    unsigned short int tileIndex;
+    unsigned short int mapAddr;
+    unsigned short int tileLine;
+    unsigned short int tileID;
+
+    Fetcher(unsigned char* _mem);
+    void Start(unsigned short int mapAddr, unsigned short int tileLine);
+    void Tick();
+};
 
 struct PPU {
     std::vector<unsigned char> viewport;
@@ -63,8 +91,14 @@ struct PPU {
     unsigned char* WY; // FF4A
     unsigned char* LCDC; // FF40
     unsigned char* STAT; // FF41
+
+    PPUState state = OAMSearch;
+    unsigned short int LY = 0; // Line currently being displayed
+    unsigned short int cycles = 0; // T-Cycles for current line
+    unsigned short int x = 0; // Num pixels already output in current line
     
     PPU(std::vector<unsigned char>& gameboyMem);
+    void main();
 
     void mode0();
     void mode1();
