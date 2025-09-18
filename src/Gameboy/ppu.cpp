@@ -1,6 +1,6 @@
 #include "gameboy.h"
 
-PPU::PPU(std::vector<unsigned char>& gameboyMem) {
+PPU::PPU(std::vector<unsigned char>& gameboyMem) : fetcher(&gameboyMem[0]) {
     background = std::vector<unsigned char>(256 * 256);
     window = std::vector<unsigned char>(256 * 256);
     viewport = std::vector<unsigned char>(160 * 144);
@@ -61,18 +61,16 @@ void PPU::mode1() {
 void PPU::mode2() {
     // TODO: wait for 80 T-Cycles
     if (cycles == 80) {
+        x = 0;
+        unsigned short int tileLine = LY % 8;
+        unsigned short int tileMapRowAddr = 0x9800 + ((LY / 8) * 32);
+        fetcher.Start(tileMapRowAddr, tileLine);
         state = PixelTransfer;
     }
 }
 
 // Drawing mode
 void PPU::mode3() {
-    if (cycles == 80) {
-        x = 0;
-        unsigned short int tileLine = LY % 8;
-        unsigned short int tileMapRowAddr = 0x9800 + ((LY / 8) * 32);
-    }
-
     x++;
     if (x == 160) {
         state = HBlank;

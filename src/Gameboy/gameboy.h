@@ -40,6 +40,7 @@ struct Pixel {
 
 struct Fetcher {
     std::vector<Pixel> FIFO;
+    std::vector<unsigned char> tileData;
     unsigned char* mem;
     FetcherState state;
     int cycles;
@@ -51,6 +52,8 @@ struct Fetcher {
     Fetcher(unsigned char* _mem);
     void Start(unsigned short int mapAddr, unsigned short int tileLine);
     void Tick();
+    void readTileData(unsigned short int addrOffset);
+    void pushToFIFO();
 };
 
 struct PPU {
@@ -96,6 +99,8 @@ struct PPU {
     unsigned short int LY = 0; // Line currently being displayed
     unsigned short int cycles = 0; // T-Cycles for current line
     unsigned short int x = 0; // Num pixels already output in current line
+
+    Fetcher fetcher;
     
     PPU(std::vector<unsigned char>& gameboyMem);
     void main();

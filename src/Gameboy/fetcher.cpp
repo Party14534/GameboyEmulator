@@ -2,7 +2,8 @@
 
 Fetcher::Fetcher(unsigned char* _mem) {
     mem = _mem;
-    FIFO = std::vector<Pixel>(8);
+    FIFO = std::vector<Pixel>(16);
+    tileData = std::vector<unsigned char>(8);
     cycles = 0;
     state = ReadTileID;
 }
@@ -13,6 +14,7 @@ void Fetcher::Start(unsigned short int _mapAddr, unsigned short int _tileLine) {
     tileLine = _tileLine;
     state = ReadTileID;
 
+    // Clear FIFO between calls
     FIFO.clear();
 }
 
@@ -31,13 +33,50 @@ void Fetcher::Tick() {
             state = ReadTileData0;
             break;
         case ReadTileData0:
+            readTileData(0);
             state = ReadTileData1;
             break;
         case ReadTileData1:
+            readTileData(1);
             state = PushToFIFO;
             break;
         case PushToFIFO:
+            pushToFIFO();
             state = ReadTileID;
             break;
     }
+}
+
+void Fetcher::readTileData(unsigned short int addrOffset) {
+            // A tile's graphical data takes 16 bytes so we compute an offset
+            // to find data for desired tile is
+            unsigned short int offset = 0x8000 + (tileID * 16);
+
+            // Compute final address to read by finding out which of the
+            // 8-pixel rows of the tile we want.
+            unsigned short int addr = offset + (tileLine * 2);
+
+            // Finally read the first byte of graphical data
+            unsigned char data = mem[addr + addrOffset];
+            for (unsigned short int bitPos; bitPos <= 7; bitPos++) {
+                if (!addrOffset) {
+                    tileData[bitPos] = (data >> bitPos) & 1;
+                } else {
+                    tileData[bitPos] |= ((data >> bitPos) & 1) << 1;
+                }
+            }
+}
+
+void Fetcher::pushToFIFO() {
+    if (FIFO.size() > 8) { return; }
+    // We stored pixels least significant to most significant so we push in
+    // reverse order
+
+    for (int i = 7; i >- 0; i--) {
+        Pixel p;
+        p.color = tileData[i];
+        FIFO.push_back(p);
+    }
+
+    tileIndex++;
 }
