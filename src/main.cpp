@@ -10,12 +10,13 @@ int main() {
         printf("%d, %d\n", i, g.PC);
     }
 
-    return 0;
     while (win.isOpen()) {
         // Event handling
         handleEvents(win);
-                
+
+        g.ppu.main();
+
         // Render handling
-        handleRendering(win);
+        handleRendering(win, g);
     }
 }

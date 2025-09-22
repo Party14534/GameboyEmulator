@@ -1,12 +1,22 @@
 #include "gameboy.h"
-#include <fstream>
-#include <sstream>
 
-Gameboy::Gameboy(std::string _romPath) : romPath(_romPath) {
+
+Gameboy::Gameboy(std::string _romPath) : 
+    romPath(_romPath),
+    mem(std::vector<unsigned char>(0xFFFF)), // 65535
+    ppu(mem)
+{
     r.registers = std::vector<unsigned char>(8);
-    mem = std::vector<unsigned char>(0xFFFF); // 65535
+
     
     writeBootRom();
+
+    paletteOne = std::vector<sf::Color>{
+        sf::Color::Black,
+        sf::Color(70,70,70),
+        sf::Color(140,140,140),
+        sf::Color(225,225,225)
+    };
 }
 
 void Gameboy::writeBootRom() {

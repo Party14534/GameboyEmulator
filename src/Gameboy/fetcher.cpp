@@ -1,11 +1,12 @@
 #include "gameboy.h"
 
-Fetcher::Fetcher(unsigned char* _mem) {
+void Fetcher::setup(unsigned char* _mem) {
     mem = _mem;
     FIFO = std::vector<Pixel>(16);
     tileData = std::vector<unsigned char>(8);
     cycles = 0;
     state = ReadTileID;
+    videoBuffer = std::vector<sf::Color>(160 * 144);
 }
 
 void Fetcher::Start(unsigned short int _mapAddr, unsigned short int _tileLine) {
@@ -72,10 +73,21 @@ void Fetcher::pushToFIFO() {
     // We stored pixels least significant to most significant so we push in
     // reverse order
 
-    for (int i = 7; i >- 0; i--) {
+    for (int i = 7; i >= 0; i--) {
         Pixel p;
         p.color = tileData[i];
         FIFO.push_back(p);
+    }
+
+    // Push to video buffer separately cause it's an experiment
+    for (int i = 0; i < 8; i++) {
+        Pixel pixel = FIFO.back();
+        FIFO.pop_back();
+
+        sf::Color c = paletteOne[pixel.color];
+
+        videoBuffer[vBufferIndex] = c;
+        vBufferIndex = (vBufferIndex + 1) % (160 * 144);
     }
 
     tileIndex++;

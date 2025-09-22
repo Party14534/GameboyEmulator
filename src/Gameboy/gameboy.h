@@ -1,10 +1,17 @@
 #ifndef GAMEBOY_H
 #define GAMEBOY_H
 
+#include "SFML/Graphics/Image.hpp"
+#include "SFML/Graphics/RectangleShape.hpp"
+#include "SFML/Graphics/RenderWindow.hpp"
+#include "SFML/Graphics/Sprite.hpp"
+#include "SFML/Graphics/Texture.hpp"
 #include <string>
 #include <vector>
 #include <stdio.h>
 #include <cstdlib>
+#include <fstream>
+#include <sstream>
 
 enum RegisterIndex {
     A = 0, B, C, D, E, F, H, L
@@ -32,6 +39,8 @@ enum FetcherState {
     PushToFIFO
 };
 
+inline std::vector<sf::Color> paletteOne;
+
 struct Pixel {
     unsigned char color;
     bool palette;
@@ -41,6 +50,7 @@ struct Pixel {
 struct Fetcher {
     std::vector<Pixel> FIFO;
     std::vector<unsigned char> tileData;
+    std::vector<sf::Color> videoBuffer;
     unsigned char* mem;
     FetcherState state;
     int cycles;
@@ -48,8 +58,9 @@ struct Fetcher {
     unsigned short int mapAddr;
     unsigned short int tileLine;
     unsigned short int tileID;
+    unsigned int vBufferIndex = 0;
 
-    Fetcher(unsigned char* _mem);
+    void setup(unsigned char* _mem);
     void Start(unsigned short int mapAddr, unsigned short int tileLine);
     void Tick();
     void readTileData(unsigned short int addrOffset);
@@ -101,6 +112,11 @@ struct PPU {
     unsigned short int x = 0; // Num pixels already output in current line
 
     Fetcher fetcher;
+    sf::Image display;
+    sf::Texture displayTexture;
+    sf::Sprite displaySprite;
+    sf::RectangleShape test;
+    bool readyToDraw = false;
     
     PPU(std::vector<unsigned char>& gameboyMem);
     void main();
@@ -109,6 +125,8 @@ struct PPU {
     void mode1();
     void mode2();
     void mode3();
+
+    void drawToScreen(sf::RenderWindow& win);
 };
 
 struct Registers {
@@ -156,6 +174,7 @@ struct Gameboy {
     // Emulator variables
     std::string romPath;
     std::vector<unsigned char> mem;
+    PPU ppu;
 
     /*
      * Function Definitions
