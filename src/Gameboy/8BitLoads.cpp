@@ -48,7 +48,7 @@ void Gameboy::loadFromAcc(bool usingC) {
 
     mem[addr] = r.registers[A];
 
-    printf("%04x\n", addr);
+    //printf("%04x\n", addr);
 }
 
 // 2 cycles
@@ -61,7 +61,7 @@ void Gameboy::loadToAcc(bool usingC) {
 
     r.registers[A] = mem[addr];
 
-    printf("%04x\n", addr);
+    //printf("%04x\n", addr);
 }
 
 // 2 cycles

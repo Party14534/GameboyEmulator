@@ -143,7 +143,7 @@ void Gameboy::bit(RegisterIndex target, unsigned short int bitOffset) {
     unsigned char mask = 0b10000000 >> bitOffset;
     unsigned char val;    
 
-    printf("%04x %d\n", mask, bitOffset);
+    //printf("%04x %d\n", mask, bitOffset);
     if (target == F) {
         val = (mem[r.getHL()] & mask) >> (7 - bitOffset);
     } else {

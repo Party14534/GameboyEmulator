@@ -65,6 +65,7 @@ struct Fetcher {
     void Tick();
     void readTileData(unsigned short int addrOffset);
     void pushToFIFO();
+    void pushToVBuffer();
 };
 
 struct PPU {

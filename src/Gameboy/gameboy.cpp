@@ -1,18 +1,16 @@
 #include "gameboy.h"
 
-
 Gameboy::Gameboy(std::string _romPath) : 
     romPath(_romPath),
     mem(std::vector<unsigned char>(0xFFFF)), // 65535
     ppu(mem)
 {
     r.registers = std::vector<unsigned char>(8);
-
     
     writeBootRom();
 
     paletteOne = std::vector<sf::Color>{
-        sf::Color::Black,
+        sf::Color::Green,
         sf::Color(70,70,70),
         sf::Color(140,140,140),
         sf::Color(225,225,225)
@@ -49,6 +47,7 @@ unsigned char Gameboy::fetch() {
 }
 
 void Gameboy::decode(unsigned char instruction) {
+    //printf("%02x %04x\n", instruction, PC);
     unsigned char firstHalfByte = instruction & 0xF0;
     unsigned char secondHalfByte = instruction & 0x0F;
 

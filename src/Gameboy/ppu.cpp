@@ -32,7 +32,6 @@ PPU::PPU(std::vector<unsigned char>& gameboyMem) :
 }
 
 void PPU::main() {
-    fetcher.Tick();
     cycles++;
     switch (state) {
         case OAMSearch:
@@ -55,18 +54,18 @@ void PPU::main() {
 void PPU::mode0() {
     // TODO: pad timing to 456 T-Cycles
     // Enter VBlank if at end of screen
-    //if (cycles == 456) {
+    if (cycles == 456) {
         cycles = 0;
         LY++;
         if (LY == 144) { state = VBlank; }
         else { state = OAMSearch; }
-    //}
+    }
 }
 
 // V-Blank
 void PPU::mode1() {
     // TODO: Takes place at end of every frame for 10 * 456 T-cycles
-    //if (cycles == 456) {
+    if (cycles == 456) {
         cycles = 0;
         LY++;
         if (LY == 153) {
@@ -74,34 +73,40 @@ void PPU::mode1() {
             LY = 0;
             state = OAMSearch;
         }
-    //}
+    }
 }
 
 // OAM Scan
 void PPU::mode2() {
     // TODO: wait for 80 T-Cycles
-    //if (cycles == 80) {
+    if (cycles == 80) {
         x = 0;
         unsigned short int tileLine = LY % 8;
         unsigned short int tileMapRowAddr = 0x9800 + ((LY / 8) * 32);
         fetcher.Start(tileMapRowAddr, tileLine);
         state = PixelTransfer;
-    //}
+    }
 }
 
 // Drawing mode
 void PPU::mode3() {
-    x++;
-    //if (x == 160) {
+    // Fetch pixel data
+    fetcher.Tick();
+    if (fetcher.FIFO.size() != 0) {
+        fetcher.pushToVBuffer();
+        x++;
+    }
+
+    if (x == 160) {
         state = HBlank;
-    //}
+    }
 }
 
 void PPU::drawToScreen(sf::RenderWindow& win) {
     sf::Vector2u coords;
     for (int i = 0; i < 160 * 144; i++) {
         coords.x = i % 160;
-        coords.y = i / 144;
+        coords.y = i / 160;
         display.setPixel(coords, fetcher.videoBuffer[i]);
     }
 

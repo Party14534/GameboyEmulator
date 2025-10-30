@@ -80,7 +80,7 @@ void Fetcher::pushToFIFO() {
     }
 
     // Push to video buffer separately cause it's an experiment
-    for (int i = 0; i < 8; i++) {
+    /*for (int i = 0; i < 8; i++) {
         Pixel pixel = FIFO.back();
         FIFO.pop_back();
 
@@ -88,7 +88,19 @@ void Fetcher::pushToFIFO() {
 
         videoBuffer[vBufferIndex] = c;
         vBufferIndex = (vBufferIndex + 1) % (160 * 144);
-    }
+    }*/
 
     tileIndex++;
+}
+
+
+void Fetcher::pushToVBuffer() {
+    // Push to video buffer 
+    Pixel pixel = FIFO.back();
+    FIFO.pop_back();
+
+    sf::Color c = paletteOne[pixel.color];
+
+    videoBuffer[vBufferIndex] = c;
+    vBufferIndex = (vBufferIndex + 1) % (160 * 144);
 }
