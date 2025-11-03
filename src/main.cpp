@@ -4,6 +4,7 @@ int main() {
     sf::RenderWindow win(sf::VideoMode::getDesktopMode(), "Template", sf::Style::Default);
     
     Gameboy g("");
+    //g.PC = 0x100;
     
     /*
     for(int i = 0; i < 457; i++) {
@@ -17,8 +18,7 @@ int main() {
         g.FDE();
         g.ppu.main();
         frameCount++;
-        
-        if (frameCount & 1) continue;
+        //if (frameCount & 1) continue;
 
         // Event handling
         handleEvents(win);

@@ -15,8 +15,11 @@ PPU::PPU(std::vector<unsigned char>& gameboyMem) :
     backgroundMap2 = &gameboyMem[0x9C00];
     OAMemory = &gameboyMem[0xFE00];
 
+    LY = &gameboyMem[0xFF44];
     WX = &gameboyMem[0xFF4B];
     WY = &gameboyMem[0xFF4A];
+    LCDC = &gameboyMem[0xFF40];
+    STAT = &gameboyMem[0xFF41];
 
     test = sf::RectangleShape({160, 144});
     test.setFillColor(sf::Color::Red);
@@ -56,8 +59,8 @@ void PPU::mode0() {
     // Enter VBlank if at end of screen
     if (cycles == 456) {
         cycles = 0;
-        LY++;
-        if (LY == 144) { state = VBlank; }
+        *LY = *LY + 1;
+        if (*LY == 144) { state = VBlank; }
         else { state = OAMSearch; }
     }
 }
@@ -67,10 +70,10 @@ void PPU::mode1() {
     // TODO: Takes place at end of every frame for 10 * 456 T-cycles
     if (cycles == 456) {
         cycles = 0;
-        LY++;
-        if (LY == 153) {
+        *LY = *LY + 1;
+        if (*LY == 153) {
             readyToDraw = true;
-            LY = 0;
+            *LY = 0;
             state = OAMSearch;
         }
     }
@@ -81,8 +84,8 @@ void PPU::mode2() {
     // TODO: wait for 80 T-Cycles
     if (cycles == 80) {
         x = 0;
-        unsigned short int tileLine = LY % 8;
-        unsigned short int tileMapRowAddr = 0x9800 + ((LY / 8) * 32);
+        unsigned short int tileLine = *LY % 8;
+        unsigned short int tileMapRowAddr = 0x9800 + ((*LY / 8) * 32);
         fetcher.Start(tileMapRowAddr, tileLine);
         state = PixelTransfer;
     }
@@ -92,10 +95,11 @@ void PPU::mode2() {
 void PPU::mode3() {
     // Fetch pixel data
     fetcher.Tick();
-    if (fetcher.FIFO.size() != 0) {
-        fetcher.pushToVBuffer();
-        x++;
-    }
+    
+    if (fetcher.FIFO.size() <= 8) { return; }
+
+    fetcher.pushToVBuffer();
+    x++;
 
     if (x == 160) {
         state = HBlank;

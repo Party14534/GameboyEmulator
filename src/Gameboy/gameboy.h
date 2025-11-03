@@ -108,7 +108,7 @@ struct PPU {
     unsigned char* STAT; // FF41
 
     PPUState state = OAMSearch;
-    unsigned short int LY = 0; // Line currently being displayed
+    unsigned char* LY = 0; // Line currently being displayed
     unsigned short int cycles = 0; // T-Cycles for current line
     unsigned short int x = 0; // Num pixels already output in current line
 
@@ -182,6 +182,7 @@ struct Gameboy {
      */
     Gameboy(std::string _romPath);
     void writeBootRom();
+    void writeRom();
     void FDE();
     unsigned char fetch();
     void decode(unsigned char instruction);

@@ -8,6 +8,7 @@ Gameboy::Gameboy(std::string _romPath) :
     r.registers = std::vector<unsigned char>(8);
     
     writeBootRom();
+    writeRom();
 
     paletteOne = std::vector<sf::Color>{
         sf::Color::Green,
@@ -18,15 +19,30 @@ Gameboy::Gameboy(std::string _romPath) :
 }
 
 void Gameboy::writeBootRom() {
-    std::ifstream file ("../src/res/dmg_boot.bin");
+    std::ifstream file ("../src/res/dmg_boot.bin", std::ios::binary);
+    printf("%ld\n", file.gcount());
+    
+    //file.read(reinterpret_cast<unsigned char*>(mem.data()), 256);
+
+    // Read entire file into vector
+    mem.assign(std::istreambuf_iterator<char>(file),
+               std::istreambuf_iterator<char>());
+    for (int i = 0; i <= 256; i++) {
+        printf("%d: %02x\n", i, mem[i]);
+    }
+}
+
+void Gameboy::writeRom() {
+    std::ifstream file ("../src/res/cpu_instrs.gb", std::ios::binary);
     std::stringstream buff;
     buff << file.rdbuf();
-    
-    int i = 0;
+
+    int i = 0x100;
     for (unsigned char byte : buff.str()) {
         mem[i] = byte;
         i++;
     }
+    printf("%d\n", i);
 }
 
 void Gameboy::FDE() {
@@ -47,9 +63,10 @@ unsigned char Gameboy::fetch() {
 }
 
 void Gameboy::decode(unsigned char instruction) {
-    //printf("%02x %04x\n", instruction, PC);
+    //printf("%02x %d\n", instruction, PC - 1);
     unsigned char firstHalfByte = instruction & 0xF0;
     unsigned char secondHalfByte = instruction & 0x0F;
+
 
     switch (firstHalfByte) {
         case 0x00:

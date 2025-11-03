@@ -49,23 +49,26 @@ void Fetcher::Tick() {
 }
 
 void Fetcher::readTileData(unsigned short int addrOffset) {
-            // A tile's graphical data takes 16 bytes so we compute an offset
-            // to find data for desired tile is
-            unsigned short int offset = 0x8000 + (tileID * 16);
+    // A tile's graphical data takes 16 bytes so we compute an offset
+    // to find data for desired tile is
+    unsigned short int offset = 0x8000 + (tileID * 16);
 
-            // Compute final address to read by finding out which of the
-            // 8-pixel rows of the tile we want.
-            unsigned short int addr = offset + (tileLine * 2);
+    // Compute final address to read by finding out which of the
+    // 8-pixel rows of the tile we want.
+    unsigned short int addr = offset + (tileLine * 2);
 
-            // Finally read the first byte of graphical data
-            unsigned char data = mem[addr + addrOffset];
-            for (unsigned short int bitPos; bitPos <= 7; bitPos++) {
-                if (!addrOffset) {
-                    tileData[bitPos] = (data >> bitPos) & 1;
-                } else {
-                    tileData[bitPos] |= ((data >> bitPos) & 1) << 1;
-                }
-            }
+    // Finally read the first byte of graphical data
+    unsigned char data = mem[addr + addrOffset];
+    if (data != 0) {
+        printf("here\n");
+    }
+    for (unsigned short int bitPos = 0; bitPos <= 7; bitPos++) {
+        if (!addrOffset) {
+            tileData[bitPos] = (data >> bitPos) & 1;
+        } else {
+            tileData[bitPos] |= ((data >> bitPos) & 1) << 1;
+        }
+    }
 }
 
 void Fetcher::pushToFIFO() {
