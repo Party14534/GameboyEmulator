@@ -33,7 +33,7 @@ TEST(CBBitTest, HandlesZeroPath) {
     g.FDE();
 
     // Assert value is correct
-    assert(g.r.zero == false);
+    assert(g.r.zero == true);
     assert(g.r.subtract == false);
     assert(g.r.halfCarry == true);
 }
