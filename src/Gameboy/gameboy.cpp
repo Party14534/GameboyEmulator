@@ -8,7 +8,7 @@ Gameboy::Gameboy(std::string _romPath) :
     r.registers = std::vector<unsigned char>(8);
     
     writeBootRom();
-    writeRom();
+    //writeRom();
 
     paletteOne = std::vector<sf::Color>{
         sf::Color::Green,
@@ -30,10 +30,21 @@ void Gameboy::writeBootRom() {
     for (int i = 0; i <= 256; i++) {
         printf("%d: %02x\n", i, mem[i]);
     }
+
+    // Write cartridge header
+    if (!WRITEHEADER) return;
+
+    unsigned char header[] = {
+        0xce, 0xed, 0x66, 0x66, 0xcc, 0x0d, 0x00, 0x0b, 0x03, 0x73, 0x00, 0x83, 0x00, 0x0c, 0x00, 0x0d, 0x00, 0x08, 0x11, 0x1f, 0x88, 0x89, 0x00, 0x0e, 0xdc, 0xcc, 0x6e, 0xe6, 0xdd, 0xdd, 0xd9, 0x99, 0xbb, 0xbb, 0x67, 0x63, 0x6e, 0x0e, 0xec, 0xcc, 0xdd, 0xdc, 0x99, 0x9f, 0xbb, 0xb9, 0x33, 0x3e
+    };
+    
+    for (int i = 0x104; i <= 0x133; i++) {
+        mem[i] = header[i - 0x104];
+    }
 }
 
 void Gameboy::writeRom() {
-    std::ifstream file ("../src/res/cpu_instrs.gb", std::ios::binary);
+    std::ifstream file ("../tests/cpu_instrs.gb", std::ios::binary);
     std::stringstream buff;
     buff << file.rdbuf();
 
@@ -52,6 +63,9 @@ void Gameboy::FDE() {
 
     if (r.modifiedFlags) { r.setF(); }
     r.modifiedFlags = false;
+
+    if(LOGFLAGS && LOGGING) printf("zero: %d, sub: %d, half: %d, carry: %d\n",
+            r.zero, r.subtract, r.halfCarry, r.carry);
 }
 
 unsigned char Gameboy::fetch() {
@@ -63,7 +77,7 @@ unsigned char Gameboy::fetch() {
 }
 
 void Gameboy::decode(unsigned char instruction) {
-    //printf("%02x %d\n", instruction, PC - 1);
+    if(LOGGING) printf("INSTRUCTION: %02x | PC: %d 0x%04x\n", instruction, PC - 1, PC - 1);
     unsigned char firstHalfByte = instruction & 0xF0;
     unsigned char secondHalfByte = instruction & 0x0F;
 
@@ -157,6 +171,7 @@ RegisterIndex Gameboy::byteToIndex(unsigned char secondHalfByte) {
 void Gameboy::call0XInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
         case 0x00:
+            if (LOGGING) printf("NOOP\n");
             // NO-OP
             break;
         case 0x01:
@@ -378,7 +393,9 @@ void Gameboy::call4X6XInstructions(RegisterIndex target, unsigned char secondHal
 void Gameboy::call7XInstructions(unsigned char secondHalfByte) {
     if (secondHalfByte > 0x07) { 
         call4X6XInstructions(RegisterIndex::A, secondHalfByte);
+        return;
     } else if (secondHalfByte == 0x06) { 
+        if(LOGGING) printf("HALT\n");
         return; // TODO: Implement HALT
     }
 

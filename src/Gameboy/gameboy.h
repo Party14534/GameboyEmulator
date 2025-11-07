@@ -13,6 +13,10 @@
 #include <fstream>
 #include <sstream>
 
+#define LOGGING true
+#define LOGFLAGS true
+#define WRITEHEADER true
+
 enum RegisterIndex {
     A = 0, B, C, D, E, F, H, L
 };
@@ -102,10 +106,12 @@ struct PPU {
     unsigned char* OAMemory; // FE00 - FE9F
 
     // Register pointers
-    unsigned char* WX; // FF4B
-    unsigned char* WY; // FF4A
+    unsigned char* SCY; // FF42
+    unsigned char* SCX; // FF43
     unsigned char* LCDC; // FF40
     unsigned char* STAT; // FF41
+    unsigned char* WY; // FF4A
+    unsigned char* WX; // FF4B
 
     PPUState state = OAMSearch;
     unsigned char* LY = 0; // Line currently being displayed

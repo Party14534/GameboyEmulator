@@ -19,6 +19,8 @@ void Gameboy::callFunction() {
     SP--;
     mem[SP] = lsbPC;
 
+    if (LOGGING) printf("CALL FUNCTION: SET PC TO ADDR 0x%04x\n", addr);
+
     PC = addr;
 }
 
@@ -35,5 +37,5 @@ void Gameboy::ret() {
 
     PC = addr;
 
-    printf("%04x returning to\n", addr);
+    if (LOGGING) printf("RETURN: SET PC TO ADDR 0x%04x\n", addr);
 }

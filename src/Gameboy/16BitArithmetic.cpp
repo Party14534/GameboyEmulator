@@ -9,21 +9,25 @@ void Gameboy::incRegisterPair(RegisterPair pair, short int amount) {
             exit(1);
             break;
         case BC:
+            if (LOGGING) printf("INC REGISTER PAIR BC BY %d\n", amount);
             val = r.getBC();
             val += amount;
             r.setBC(val);
             break;
         case DE:
+            if (LOGGING) printf("INC REGISTER PAIR DE BY %d\n", amount);
             val = r.getDE();
             val += amount;
             r.setDE(val);
             break;
         case HL:
+            if (LOGGING) printf("INC REGISTER PAIR HL BY %d\n", amount);
             val = r.getHL();
             val += amount;
             r.setHL(val);
             break;
         case RegisterPair::SP:
+            if (LOGGING) printf("INC SP BY %d\n", amount);
             SP += amount;
             break;
     }
@@ -36,27 +40,34 @@ void Gameboy::addRegisterPairs(RegisterPair target, RegisterPair source) {
 
     switch (source) {
         case AF:
+            if (LOGGING) printf("ADD AF ");
             val = r.getAF();
             break;
         case BC:
+            if (LOGGING) printf("ADD BC ");
             val = r.getBC();
             break;
         case DE:
+            if (LOGGING) printf("ADD DE ");
             val = r.getDE();
             break;
         case HL:
+            if (LOGGING) printf("ADD HL ");
             val = r.getHL();
             break;
         case RegisterPair::SP:
+            if (LOGGING) printf("ADD SP ");
             val = SP;
             break;
     }
 
     switch (target) {
         case HL:
+            if (LOGGING) printf("TO HL\n");
             oldVal = r.getHL();
             break;
         case RegisterPair::SP:
+            if (LOGGING) printf("TO SP\n");
             oldVal = SP;
             break;
         default:

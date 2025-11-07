@@ -16,6 +16,8 @@ int main() {
 
     while (win.isOpen()) {
         g.FDE();
+        if (LOGGING) printf("LY 0xFF44: %d 0x%02x\n", g.mem[0xFF44], g.mem[0xFF44]);
+        g.ppu.main();
         g.ppu.main();
         frameCount++;
         //if (frameCount & 1) continue;

@@ -11,15 +11,19 @@ void Gameboy::loadToRegisterPair(RegisterPair target) {
 
     switch (target) {
         case BC:
+            if (LOGGING) printf("LOAD %d to BC from 0x%04x\n", nn, PC - 2);
             r.setBC(nn);
             break;
         case DE:
+            if (LOGGING) printf("LOAD %d to DE from 0x%04x\n", nn, PC - 2);
             r.setDE(nn);
             break;
         case HL:
+            if (LOGGING) printf("LOAD %d to HL from 0x%04x\n", nn, PC - 2);
             r.setHL(nn);
             break;
         case RegisterPair::SP:
+            if (LOGGING) printf("LOAD %d to SP from 0x%04x\n", nn, PC - 2);
             SP = nn;
             break;
         default:
@@ -38,16 +42,21 @@ void Gameboy::popToRegisterPair(RegisterPair target) {
 
     switch (target) {
         case BC:
+            if (LOGGING) printf("SET BC TO %d FROM 0x%04x\n", nn, SP - 2);
             r.setBC(nn);
             break;
         case DE:
+            if (LOGGING) printf("SET DE TO %d FROM 0x%04x\n", nn, SP - 2);
             r.setDE(nn);
             break;
         case HL:
+            if (LOGGING) printf("SET HL TO %d FROM 0x%04x\n", nn, SP - 2);
             r.setHL(nn);
             break;
         case AF:
+            if (LOGGING) printf("SET AF TO %d FROM 0x%04x\n", nn, SP - 2);
             r.setAF(nn);
+            r.setFlags();
             break;
         default:
             break;
@@ -60,14 +69,18 @@ void Gameboy::pushRegisterPair(RegisterPair target) {
     switch (target) {
         case BC:
             data = r.getBC();
+            if (LOGGING) printf("PUSH BC: %d TO STACK\n", data);
             break;
         case DE:
             data = r.getDE();
+            if (LOGGING) printf("PUSH DE: %d TO STACK\n", data);
             break;
         case HL:
             data = r.getHL();
+            if (LOGGING) printf("PUSH HL: %d TO STACK\n", data);
             break;
         case AF:
+            if (LOGGING) printf("PUSH AF: %d TO STACK\n", data);
             data = r.getAF();
             break;
         default:

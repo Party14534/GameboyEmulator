@@ -140,17 +140,17 @@ void Gameboy::rotateRegisterRight(RegisterIndex target) {
 }
 
 void Gameboy::bit(RegisterIndex target, unsigned short int bitOffset) {
-    unsigned char mask = 0b10000000 >> bitOffset;
+    unsigned char mask = 0b00000001 << bitOffset;
     unsigned char val;    
 
     //printf("%04x %d\n", mask, bitOffset);
     if (target == F) {
-        val = (mem[r.getHL()] & mask) >> (7 - bitOffset);
+        val = mem[r.getHL()] & mask;
     } else {
-        val = (r.registers[target] & mask) >> (7 - bitOffset);
+        val = r.registers[target] & mask;
     }
 
-    r.zero = val;
+    r.zero = val == 0;
     r.subtract = false;
     r.halfCarry = true;
 

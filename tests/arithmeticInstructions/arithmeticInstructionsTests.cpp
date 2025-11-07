@@ -231,3 +231,27 @@ TEST(CompareNTest, HappyPath) {
     assert(g.r.carry == true);
     assert(g.r.registers[F] == 0x70);
 }
+
+TEST(CompareNTest, ZeroPath) {
+    Gameboy g("");
+
+    // Set instruction
+    g.mem[0x0000] = 0xFE; // CP n
+
+    // Set register values
+    g.r.registers[A] = 0x01;
+    g.mem[0x0001] = 0x01;
+
+    // Run Code
+    g.FDE();
+
+    // Assert value is correct
+    assert(g.r.registers[A] == 0x01);
+
+    // Assert flags set correctly
+    assert(g.r.zero == true);
+    assert(g.r.subtract == true);
+    assert(g.r.halfCarry == false);
+    assert(g.r.carry == false);
+    assert(g.r.registers[F] == 0b11000000);
+}
