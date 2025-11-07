@@ -122,6 +122,14 @@ void Gameboy::incRegister(RegisterIndex target, char val) {
     unsigned char oldVal = r.registers[target];
 
     unsigned char result = (unsigned char)(oldVal + val);
+
+    r.registers[target] = result;
+
+    if (val > 0) {
+        if (LOGGING) printf("INC %d TO REGISTER %c NOW: 0x%02x\n", val, target + 65, r.registers[target]);
+    } else {
+        if (LOGGING) printf("DEC %d TO REGISTER %c NOW: 0x%02x\n", val, target + 65, r.registers[target]);
+    }
     
     // Set flags
     r.zero = (result == 0);
@@ -137,10 +145,6 @@ void Gameboy::incRegister(RegisterIndex target, char val) {
     } else {
         r.halfCarry = (((oldVal & 0x0F) + (val & 0x0F)) > 0x0F);
     }
-
-    r.registers[target] = result;
-
-    if (LOGGING) printf("INC %d TO REGISTER %c\n", val, target + 65);
 
     r.modifiedFlags = true;
 }
@@ -229,7 +233,24 @@ void Gameboy::bitwiseXorFromMemory() {
 
     r.registers[RegisterIndex::A] ^= value;
 
-    r.zero = (!r.registers[RegisterIndex::A]);
+    r.zero = (r.registers[RegisterIndex::A] == 0);
+    r.subtract = 0;
+    r.halfCarry = 0;
+    r.carry = 0;
+
+    r.modifiedFlags = true;
+}
+
+// 0xEE
+void Gameboy::bitwiseXorImmediate() {
+    unsigned char value = mem[PC];
+    PC++;
+
+    if (LOGGING) printf("XOR REGISTER A WITH VALUE 0x%02x\n", value);
+
+    r.registers[RegisterIndex::A] ^= value;
+
+    r.zero = (r.registers[RegisterIndex::A] == 0);
     r.subtract = 0;
     r.halfCarry = 0;
     r.carry = 0;

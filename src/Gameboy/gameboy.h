@@ -233,6 +233,7 @@ struct Gameboy {
     void bitwiseAndFromMemory();
     void bitwiseXor(RegisterIndex target);
     void bitwiseXorFromMemory();
+    void bitwiseXorImmediate();
 
     // 0xB
     void bitwiseOr(RegisterIndex target);

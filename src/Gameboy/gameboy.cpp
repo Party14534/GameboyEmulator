@@ -77,7 +77,7 @@ unsigned char Gameboy::fetch() {
 }
 
 void Gameboy::decode(unsigned char instruction) {
-    if(LOGGING) printf("INSTRUCTION: %02x | PC: %d 0x%04x\n", instruction, PC - 1, PC - 1);
+    if(LOGGING) printf("---\nINSTRUCTION: %02x | PC: %d 0x%04x\n", instruction, PC - 1, PC - 1);
     unsigned char firstHalfByte = instruction & 0xF0;
     unsigned char secondHalfByte = instruction & 0x0F;
 
@@ -396,6 +396,8 @@ void Gameboy::call7XInstructions(unsigned char secondHalfByte) {
         return;
     } else if (secondHalfByte == 0x06) { 
         if(LOGGING) printf("HALT\n");
+        printf("Haven't implemented HALT");
+        exit(1);
         return; // TODO: Implement HALT
     }
 
@@ -518,6 +520,9 @@ void Gameboy::callEXInstructions(unsigned char secondHalfByte) {
             break;
         case 0x0A:
             loadAccToMemory();
+            break;
+        case 0x0E:
+            bitwiseXorImmediate();
             break;
         default:
             printf("Error: E unknown opcode %04x\n", secondHalfByte);
