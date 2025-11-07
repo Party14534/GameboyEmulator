@@ -392,7 +392,14 @@ void Gameboy::call4X6XInstructions(RegisterIndex target, unsigned char secondHal
 
 void Gameboy::call7XInstructions(unsigned char secondHalfByte) {
     if (secondHalfByte > 0x07) { 
-        call4X6XInstructions(RegisterIndex::A, secondHalfByte);
+        RegisterIndex value = byteToIndex(secondHalfByte);
+        
+        if (value == RegisterIndex::F) {
+            loadFromMemory(A);
+            return;
+        }
+
+        load(A, value);
         return;
     } else if (secondHalfByte == 0x06) { 
         if(LOGGING) printf("HALT\n");
