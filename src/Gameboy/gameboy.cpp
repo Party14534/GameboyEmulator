@@ -565,6 +565,9 @@ void Gameboy::callEXInstructions(unsigned char secondHalfByte) {
         case 0x05:
             pushRegisterPair(HL);
             break;
+        case 0x06:
+            bitwiseAndImmediate();
+            break;
         case 0x09:
             // Jump to HL
             PC = r.getHL();

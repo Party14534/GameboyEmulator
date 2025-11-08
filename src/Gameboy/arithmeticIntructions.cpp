@@ -183,7 +183,22 @@ void Gameboy::incMemory(char val) {
 void Gameboy::bitwiseAnd(RegisterIndex target) {
     r.registers[RegisterIndex::A] &= r.registers[target];
 
-    r.zero = (!r.registers[RegisterIndex::A]);
+    r.zero = (r.registers[RegisterIndex::A] == 0);
+    r.subtract = 0;
+    r.halfCarry = 1;
+    r.carry = 0;
+
+    r.modifiedFlags = true;
+}
+
+// 2 cycles
+void Gameboy::bitwiseAndImmediate() {
+    unsigned char n = mem[PC];
+    PC++;
+
+    r.registers[RegisterIndex::A] &= n;
+
+    r.zero = (r.registers[RegisterIndex::A] == 0);
     r.subtract = 0;
     r.halfCarry = 1;
     r.carry = 0;
