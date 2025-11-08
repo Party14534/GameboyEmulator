@@ -65,6 +65,13 @@ void Gameboy::loadCBInstruction() {
                 rotateRegisterLeft(target);
             }
             break;
+        case 0x03:
+            if (secondHalfByte < 8) {
+                swap(target);
+            } else {
+                srl(target);
+            }
+            break;
         case 0x04:
         case 0x05:
         case 0x06:
@@ -153,6 +160,46 @@ void Gameboy::bit(RegisterIndex target, unsigned short int bitOffset) {
     r.zero = val == 0;
     r.subtract = false;
     r.halfCarry = true;
+
+    r.modifiedFlags = true;
+}
+
+void Gameboy::swap(RegisterIndex target) {
+    unsigned char* data;
+    
+    if (target == RegisterIndex::F) {
+        data = &mem[r.getHL()];
+    } else {
+        data = &r.registers[target];
+    }
+
+    unsigned char lowBits = (*data & 0x0F) << 4;
+    *data = *data >> 4;
+    *data |= lowBits;
+
+    r.zero = *data == 0;
+    r.subtract = false;
+    r.halfCarry = false;
+    r.carry = false;
+
+    r.modifiedFlags = true;
+}
+
+void Gameboy::srl(RegisterIndex target) {
+    unsigned char* data;
+    
+    if (target == RegisterIndex::F) {
+        data = &mem[r.getHL()];
+    } else {
+        data = &r.registers[target];
+    }
+    
+    r.carry = (*data & 0x01) == 1;
+    *data = *data >> 1;
+
+    r.zero = *data == 0;
+    r.subtract = false;
+    r.halfCarry = false;
 
     r.modifiedFlags = true;
 }

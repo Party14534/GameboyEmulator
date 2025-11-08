@@ -294,6 +294,8 @@ struct Gameboy {
     void RLC(RegisterIndex target);
     void RRC(RegisterIndex target);
     void bit(RegisterIndex target, unsigned short int bitOffset);
+    void swap(RegisterIndex target);
+    void srl(RegisterIndex target);
 };
 
 #endif
