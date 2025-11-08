@@ -81,6 +81,24 @@ void Gameboy::loadCBInstruction() {
             
             bit(target, bitOffset);
             break;
+        case 0x08:
+        case 0x09:
+        case 0x0A:
+        case 0x0B:
+            bitOffset = (firstHalfByte - 0x08) * 2;
+            bitOffset = (secondHalfByte < 0x07) ? bitOffset : bitOffset + 1;
+
+            resetBit(target, bitOffset);
+            break;
+        case 0x0C:
+        case 0x0D:
+        case 0x0E:
+        case 0x0F:
+            bitOffset = (firstHalfByte - 0x0C) * 2;
+            bitOffset = (secondHalfByte < 0x07) ? bitOffset : bitOffset + 1;
+
+            setBit(target, bitOffset);
+            break;
         default:
             printf("Unknown CB opcode: %02x\n", byte);
             exit(1);
@@ -203,4 +221,31 @@ void Gameboy::srl(RegisterIndex target) {
     r.halfCarry = false;
 
     r.modifiedFlags = true;
+}
+
+void Gameboy::resetBit(RegisterIndex target, unsigned short bitOffset) {
+    unsigned char mask = 0b00000001 << bitOffset;
+    mask = ~mask;
+
+    unsigned char* data;
+    if (target == RegisterIndex::F) {
+        data = &mem[r.getHL()];
+    } else {
+        data = &r.registers[target];
+    }
+
+    *data &= mask;
+}
+
+void Gameboy::setBit(RegisterIndex target, unsigned short bitOffset) {
+    unsigned char mask = 0b00000001 << bitOffset;
+
+    unsigned char* data;
+    if (target == RegisterIndex::F) {
+        data = &mem[r.getHL()];
+    } else {
+        data = &r.registers[target];
+    }
+
+    *data |= mask;
 }

@@ -269,6 +269,7 @@ struct Gameboy {
     // 8bit arithmetic
     void incRegister(RegisterIndex target, char val);
     void incMemory(char val);
+    void addImmediate();
 
     // 16bit arithmetic
     void incRegisterPair(RegisterPair pair, short int val);
@@ -296,6 +297,8 @@ struct Gameboy {
     void bit(RegisterIndex target, unsigned short int bitOffset);
     void swap(RegisterIndex target);
     void srl(RegisterIndex target);
+    void resetBit(RegisterIndex target, unsigned short bitOffset);
+    void setBit(RegisterIndex target, unsigned short bitOffset);
 };
 
 #endif

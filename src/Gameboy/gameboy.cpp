@@ -43,7 +43,7 @@ void Gameboy::writeBootRom() {
 }
 
 void Gameboy::writeRom() {
-    std::ifstream file ("../roms/tetris.gb", std::ios::binary);
+    std::ifstream file ("../tests/cpu_instrs.gb", std::ios::binary);
     std::stringstream buff;
     buff << file.rdbuf();
 
@@ -502,6 +502,12 @@ void Gameboy::callCXInstructions(unsigned char secondHalfByte) {
         case 0x05:
             pushRegisterPair(BC);
             break;
+        case 0x06:
+            addImmediate();
+            break;
+        case 0x07:
+            restart(0x00);
+            break;
         case 0x08:
             ret(ZF, false);
             break;
@@ -533,6 +539,9 @@ void Gameboy::callDXInstructions(unsigned char secondHalfByte) {
             break;
         case 0x05:
             pushRegisterPair(DE);
+            break;
+        case 0x07:
+            restart(0x10);
             break;
         case 0x08:
             ret(CF, false);
@@ -567,6 +576,9 @@ void Gameboy::callEXInstructions(unsigned char secondHalfByte) {
             break;
         case 0x06:
             bitwiseAndImmediate();
+            break;
+        case 0x07:
+            restart(0x20);
             break;
         case 0x09:
             // Jump to HL
@@ -610,6 +622,9 @@ void Gameboy::callFXInstructions(unsigned char secondHalfByte) {
             break;
         case 0x05:
             pushRegisterPair(AF);
+            break;
+        case 0x07:
+            restart(0x30);
             break;
         case 0x0A:
             loadMemoryToAcc();
