@@ -15,7 +15,7 @@
 
 #define LOGGING false
 #define LOGFLAGS true
-#define WRITEHEADER false
+#define WRITEHEADER true
 
 enum RegisterIndex {
     A = 0, B, C, D, E, F, H, L
@@ -62,7 +62,7 @@ struct Fetcher {
     std::vector<Pixel> FIFO;
     std::vector<unsigned char> tileData;
     std::vector<sf::Color> videoBuffer;
-    unsigned char* mem;
+    GameboyMem& mem;
     FetcherState state;
     int cycles;
     unsigned short int tileIndex;
@@ -73,7 +73,9 @@ struct Fetcher {
 
     unsigned char* BGP;
 
-    void setup(unsigned char* _mem);
+    Fetcher(GameboyMem& _mem);
+
+    void setup();
     void Start(unsigned short int mapAddr, unsigned short int tileLine);
     void Tick();
     void readTileData(unsigned short int addrOffset);
@@ -134,7 +136,7 @@ struct PPU {
     sf::RectangleShape test;
     bool readyToDraw = false;
     
-    PPU(std::vector<unsigned char>& gameboyMem, sf::Vector2u winSize);
+    PPU(GameboyMem& gameboyMem, sf::Vector2u winSize);
     void main();
 
     void mode0();
@@ -184,19 +186,19 @@ struct Gameboy {
     // unsigned char A = 0; // 8-bit accumulator
     unsigned char I = 0; // Interrupt Page Address register
     unsigned char R = 0; // Memory Refresh register
-    unsigned char IE = 0; // Interrupt Enable
+    unsigned char* IE = 0; // Interrupt Enable 0xFFFF
+    bool IME = false;
     Registers r;
 
     // Emulator variables
     std::string romPath;
-    std::vector<unsigned char> mem;
+    GameboyMem mem;
     PPU ppu;
 
     /*
      * Function Definitions
      */
-    Gameboy(std::string _romPath, sf::Vector2u winSize);
-    Gameboy(std::string _romPath);
+    Gameboy(std::string _romPath, sf::Vector2u winSize = {160, 144});
     void writeBootRom();
     void writeRom();
     void FDE();
@@ -257,6 +259,7 @@ struct Gameboy {
     void loadImmediateDataToMemory();
     void loadFromAcc(bool usingC);
     void loadFromAcc(RegisterPair src, bool inc);
+    void loadFromStack();
     void loadToAcc(bool usingC);
     void loadToAcc(RegisterPair target, short int change);
     void loadAccToMemory();

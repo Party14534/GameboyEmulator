@@ -1,7 +1,8 @@
 #include "gameboy.h"
 
-void Fetcher::setup(unsigned char* _mem) {
-    mem = _mem;
+Fetcher::Fetcher(GameboyMem& _mem) : mem(_mem) { }
+
+void Fetcher::setup() {
     FIFO = std::vector<Pixel>(16);
     tileData = std::vector<unsigned char>(8);
     cycles = 0;

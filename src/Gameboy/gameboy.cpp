@@ -2,7 +2,7 @@
 
 Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize) : 
     romPath(_romPath),
-    mem(std::vector<unsigned char>(0xFFFF)), // 65535
+    mem(), // 65535
     ppu(mem, winSize)
 {
     r.registers = std::vector<unsigned char>(8);
@@ -10,23 +10,7 @@ Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize) :
     writeBootRom();
     writeRom();
 
-    paletteOne = std::vector<sf::Color>{
-        sf::Color(155, 188, 15),
-        sf::Color(139, 172, 15),
-        sf::Color(48, 98, 48),
-        sf::Color(15, 56, 15)
-    };
-}
-
-Gameboy::Gameboy(std::string _romPath) : 
-    romPath(_romPath),
-    mem(std::vector<unsigned char>(0xFFFF)), // 65535
-    ppu(mem, {160, 144})
-{
-    r.registers = std::vector<unsigned char>(8);
-    
-    writeBootRom();
-    writeRom();
+    IE = &mem[0xFFFF];
 
     paletteOne = std::vector<sf::Color>{
         sf::Color(155, 188, 15),
@@ -42,7 +26,7 @@ void Gameboy::writeBootRom() {
     
 
     // Read entire file into vector
-    mem.assign(std::istreambuf_iterator<char>(file),
+    mem.mem.assign(std::istreambuf_iterator<char>(file),
                std::istreambuf_iterator<char>());
 
     // Write cartridge header
@@ -58,11 +42,11 @@ void Gameboy::writeBootRom() {
 }
 
 void Gameboy::writeRom() {
-    std::ifstream file ("../roms/tetris.gb", std::ios::binary);
+    std::ifstream file ("../tests/cpu_instrs.gb", std::ios::binary);
     std::stringstream buff;
     buff << file.rdbuf();
 
-    int i = 0x104;
+    int i = 0x0;
     for (unsigned char byte : buff.str()) {
         mem[i] = byte;
         i++;
@@ -208,6 +192,9 @@ void Gameboy::call0XInstructions(unsigned char secondHalfByte) {
             break;
         case 0x07:
             RLC(A);
+            break;
+        case 0x08:
+            loadFromStack();
             break;
         case 0x09:
             addRegisterPairs(RegisterPair::HL, RegisterPair::BC);
@@ -545,6 +532,13 @@ void Gameboy::callEXInstructions(unsigned char secondHalfByte) {
         case 0x0E:
             bitwiseXorImmediate();
             break;
+        case 0x03:
+        case 0x04:
+        case 0x0B:
+        case 0x0C:
+        case 0x0D:
+            // Undefined
+            break;
         default:
             printf("Error: E unknown opcode %04x\n", secondHalfByte);
             exit(1);
@@ -562,14 +556,25 @@ void Gameboy::callFXInstructions(unsigned char secondHalfByte) {
         case 0x02:
             loadToAcc(true);
             break;
+        case 0x03:
+            IME = false;
+            break;
         case 0x05:
             pushRegisterPair(AF);
             break;
         case 0x0A:
             loadMemoryToAcc();
             break;
+        case 0x0B:
+            IME = true;
+            break;
         case 0x0E:
             compareN();
+            break;
+        case 0x04:
+        case 0x0C:
+        case 0x0D:
+            // Unused
             break;
         default:
             printf("Error: F unknown opcode %04x\n", secondHalfByte);

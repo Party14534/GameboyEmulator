@@ -96,3 +96,21 @@ void Gameboy::pushRegisterPair(RegisterPair target) {
     mem[SP] = lsb;
 }
 
+// 5 cycles
+void Gameboy::loadFromStack() {
+    unsigned char lsb = mem[PC];
+    PC++;
+    unsigned char msb = mem[PC];
+    PC++;
+
+    unsigned short int addr = msb << 8;
+    addr |= lsb;
+
+    unsigned char dataLsb = SP & 0x00FF;
+    unsigned char dataMsb = SP & 0xFF00;
+
+    mem[addr] = dataLsb;
+    mem[addr + 1] = dataMsb;
+
+    if (LOGGING) printf("LOAD STACK TO ADDR: 0x%04x\n", addr);
+}

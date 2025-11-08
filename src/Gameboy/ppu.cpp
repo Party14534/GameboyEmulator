@@ -1,14 +1,15 @@
 #include "gameboy.h"
 
-PPU::PPU(std::vector<unsigned char>& gameboyMem, sf::Vector2u winSize) :
+PPU::PPU(GameboyMem& gameboyMem, sf::Vector2u winSize) :
     display(sf::Image({160, 144}, sf::Color::Black)),
     displayTexture(display),
-    displaySprite(displayTexture)
+    displaySprite(displayTexture),
+    fetcher(gameboyMem)
 {
     background = std::vector<unsigned char>(256 * 256);
     window = std::vector<unsigned char>(256 * 256);
     viewport = std::vector<unsigned char>(160 * 144);
-    fetcher.setup(&gameboyMem[0]);
+    fetcher.setup();
 
     graphicsData = &gameboyMem[0x8000];
     backgroundMap1 = &gameboyMem[0x9800];
