@@ -8,7 +8,7 @@ Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize) :
     r.registers = std::vector<unsigned char>(8);
     
     writeBootRom();
-    //writeRom();
+    writeRom();
 
     paletteOne = std::vector<sf::Color>{
         sf::Color(155, 188, 15),
@@ -26,7 +26,7 @@ Gameboy::Gameboy(std::string _romPath) :
     r.registers = std::vector<unsigned char>(8);
     
     writeBootRom();
-    //writeRom();
+    writeRom();
 
     paletteOne = std::vector<sf::Color>{
         sf::Color(155, 188, 15),
@@ -40,14 +40,10 @@ void Gameboy::writeBootRom() {
     std::ifstream file ("../src/res/dmg_boot.bin", std::ios::binary);
     printf("%ld\n", file.gcount());
     
-    //file.read(reinterpret_cast<unsigned char*>(mem.data()), 256);
 
     // Read entire file into vector
     mem.assign(std::istreambuf_iterator<char>(file),
                std::istreambuf_iterator<char>());
-    /*for (int i = 0; i <= 256; i++) {
-        printf("%d: %02x\n", i, mem[i]);
-    }*/
 
     // Write cartridge header
     if (!WRITEHEADER) return;
@@ -62,11 +58,11 @@ void Gameboy::writeBootRom() {
 }
 
 void Gameboy::writeRom() {
-    std::ifstream file ("../tests/cpu_instrs.gb", std::ios::binary);
+    std::ifstream file ("../roms/tetris.gb", std::ios::binary);
     std::stringstream buff;
     buff << file.rdbuf();
 
-    int i = 0x100;
+    int i = 0x104;
     for (unsigned char byte : buff.str()) {
         mem[i] = byte;
         i++;

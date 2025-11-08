@@ -15,7 +15,7 @@
 
 #define LOGGING false
 #define LOGFLAGS true
-#define WRITEHEADER true
+#define WRITEHEADER false
 
 enum RegisterIndex {
     A = 0, B, C, D, E, F, H, L
@@ -44,6 +44,13 @@ enum FetcherState {
 };
 
 inline std::vector<sf::Color> paletteOne;
+
+struct GameboyMem {
+    std::vector<unsigned char> mem;
+
+    GameboyMem();
+    unsigned char& operator[](int);
+};
 
 struct Pixel {
     unsigned char color;
