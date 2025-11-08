@@ -61,3 +61,13 @@ void Gameboy::ret(std::optional<Flag> flag, bool notFlag) {
 
     if (LOGGING) printf("SET PC TO ADDR 0x%04x\n", addr);
 }
+
+// 4 cycles
+void Gameboy::restart(unsigned char addr) {
+    SP--;
+    mem[SP] = PC >> 8; // MSB
+    SP--;
+    mem[SP] = PC & 0x00FF; // LSB
+
+    PC = addr;
+}

@@ -281,6 +281,7 @@ struct Gameboy {
     // Control Flow
     void callFunction();
     void ret(std::optional<Flag> flag, bool notFlag);
+    void restart(unsigned char addr);
 
     // CB
     void loadCBInstruction();

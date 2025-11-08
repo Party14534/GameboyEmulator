@@ -499,6 +499,9 @@ void Gameboy::callCXInstructions(unsigned char secondHalfByte) {
         case 0x0D:
             callFunction();
             break;
+        case 0x0F:
+            restart(0x08);
+            break;
         default:
             printf("Error: C unknown opcode %04x\n", secondHalfByte);
             exit(1);
@@ -523,6 +526,9 @@ void Gameboy::callDXInstructions(unsigned char secondHalfByte) {
             // RETI
             ret(std::nullopt, false);
             IME = true;
+            break;
+        case 0x0F:
+            restart(0x18);
             break;
         default:
             printf("Error: D unknown opcode %04x\n", secondHalfByte);
@@ -556,6 +562,9 @@ void Gameboy::callEXInstructions(unsigned char secondHalfByte) {
         case 0x0C:
         case 0x0D:
             // Undefined
+            break;
+        case 0x0F:
+            restart(0x28);
             break;
         default:
             printf("Error: E unknown opcode %04x\n", secondHalfByte);
@@ -593,6 +602,9 @@ void Gameboy::callFXInstructions(unsigned char secondHalfByte) {
         case 0x0C:
         case 0x0D:
             // Unused
+            break;
+        case 0x0F:
+            restart(0x38);
             break;
         default:
             printf("Error: F unknown opcode %04x\n", secondHalfByte);
