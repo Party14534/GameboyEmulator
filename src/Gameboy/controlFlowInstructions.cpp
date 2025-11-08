@@ -71,3 +71,17 @@ void Gameboy::restart(unsigned char addr) {
 
     PC = addr;
 }
+
+// 4 cycles
+void Gameboy::jumpNN() {
+    unsigned char lsb = mem[PC];
+    PC++;
+    unsigned char msb = mem[PC];
+    PC++;
+    
+    unsigned short int addr = msb;
+    addr = addr << 8;
+    addr |= lsb;
+
+    PC = addr;
+}

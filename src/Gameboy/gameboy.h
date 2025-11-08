@@ -280,6 +280,7 @@ struct Gameboy {
 
     // Control Flow
     void callFunction();
+    void jumpNN();
     void ret(std::optional<Flag> flag, bool notFlag);
     void restart(unsigned char addr);
 

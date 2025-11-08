@@ -43,7 +43,7 @@ void Gameboy::writeBootRom() {
 }
 
 void Gameboy::writeRom() {
-    std::ifstream file ("../tests/cpu_instrs.gb", std::ios::binary);
+    std::ifstream file ("../roms/tetris.gb", std::ios::binary);
     std::stringstream buff;
     buff << file.rdbuf();
 
@@ -321,6 +321,12 @@ void Gameboy::call2XInstructions(unsigned char secondHalfByte) {
         case 0x0E:
             loadToRegister(L);
             break;
+        case 0x0F:
+            r.registers[A] = ~r.registers[A];
+            r.subtract = true;
+            r.halfCarry = true;
+            r.modifiedFlags = true;
+            break;
         default:
             printf("Error: 2 unknown opcode %04x\n", secondHalfByte);
             exit(1);
@@ -370,6 +376,12 @@ void Gameboy::call3XInstructions(unsigned char secondHalfByte) {
             break;
         case 0x0E:
             loadToRegister(A);
+            break;
+        case 0x0F:
+            r.subtract = false;
+            r.halfCarry = false;
+            r.carry = !r.carry;
+            r.modifiedFlags = true;
             break;
         default:
             printf("Error: 3 unknown opcode %04x\n", secondHalfByte);
@@ -484,6 +496,9 @@ void Gameboy::callCXInstructions(unsigned char secondHalfByte) {
         case 0x01:
             popToRegisterPair(BC);
             break;
+        case 0x03:
+            jumpNN();
+            break;
         case 0x05:
             pushRegisterPair(BC);
             break;
@@ -549,6 +564,10 @@ void Gameboy::callEXInstructions(unsigned char secondHalfByte) {
             break;
         case 0x05:
             pushRegisterPair(HL);
+            break;
+        case 0x09:
+            // Jump to HL
+            PC = r.getHL();
             break;
         case 0x0A:
             loadAccToMemory();
