@@ -59,9 +59,11 @@ void Gameboy::addFromMemory(bool carry) {
     r.modifiedFlags = true;
 }
 
-void Gameboy::addImmediate() {
+void Gameboy::addImmediate(bool carry) {
     unsigned char value = mem[PC];
     PC++;
+
+    value += carry;
 
     unsigned char oldVal = r.registers[RegisterIndex::A];
     r.registers[RegisterIndex::A] += value;
@@ -397,3 +399,21 @@ void Gameboy::compareN() {
     r.modifiedFlags = true;
 }
 
+void Gameboy::DAA() {
+    unsigned char offset;
+    unsigned char oldVal = r.registers[A];
+
+    if ((!r.subtract && (oldVal & 0x0F) > 0x09) || r.halfCarry) {
+        offset |= 0x06;
+    }
+
+    if ((!r.subtract && oldVal > 0x99) || r.carry) {
+        offset |= 0x60;
+    }
+
+    r.registers[A] += (r.subtract * -1) * offset;
+
+    r.zero = oldVal == 0;
+    r.halfCarry = 0;
+    r.carry = (oldVal > r.registers[A]);
+}

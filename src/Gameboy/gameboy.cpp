@@ -300,6 +300,9 @@ void Gameboy::call2XInstructions(unsigned char secondHalfByte) {
         case 0x06:
             loadToRegister(H);
             break;
+        case 0x07:
+            DAA();
+            break;
         case 0x08:
             relativeJump(ZF, false);
             break;
@@ -503,7 +506,7 @@ void Gameboy::callCXInstructions(unsigned char secondHalfByte) {
             pushRegisterPair(BC);
             break;
         case 0x06:
-            addImmediate();
+            addImmediate(false);
             break;
         case 0x07:
             restart(0x00);
@@ -519,6 +522,9 @@ void Gameboy::callCXInstructions(unsigned char secondHalfByte) {
             break;
         case 0x0D:
             callFunction();
+            break;
+        case 0x0E:
+            addImmediate(true);
             break;
         case 0x0F:
             restart(0x08);

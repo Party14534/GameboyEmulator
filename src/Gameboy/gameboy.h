@@ -269,7 +269,7 @@ struct Gameboy {
     // 8bit arithmetic
     void incRegister(RegisterIndex target, char val);
     void incMemory(char val);
-    void addImmediate();
+    void addImmediate(bool carry);
 
     // 16bit arithmetic
     void incRegisterPair(RegisterPair pair, short int val);
@@ -285,6 +285,9 @@ struct Gameboy {
     void jumpNN();
     void ret(std::optional<Flag> flag, bool notFlag);
     void restart(unsigned char addr);
+
+    // MISC
+    void DAA();
 
     // CB
     void loadCBInstruction();
