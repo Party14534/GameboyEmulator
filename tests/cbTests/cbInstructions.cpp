@@ -204,3 +204,46 @@ TEST(CBSwapTest, HandlesZeroPath) {
     assert(g.r.carry == false);
     assert(g.r.registers[F] == 0x80);
 }
+
+TEST(CBSrlTest, HandlesHappyPath) {
+    Gameboy g("");
+
+    // Set instruction
+    g.mem[0x0000] = 0xCB; // CB prefix
+    g.mem[0x0001] = 0x3E; // bit operation
+    g.mem[0xFF44] = 0b10000001; // bit operation
+
+    g.r.registers[H] = 0xFF;
+    g.r.registers[L] = 0x44;
+
+    // Run Code
+    g.FDE();
+
+    // Assert value is correct
+    assert(g.mem[0xFF44] == 0b01000000);
+    assert(g.r.zero == false);
+    assert(g.r.subtract == false);
+    assert(g.r.halfCarry == false);
+    assert(g.r.carry == true);
+    assert(g.r.registers[F] == 0x10);
+}
+
+TEST(CBSrlTest, HandlesZeroPath) {
+    Gameboy g("");
+
+    // Set instruction
+    g.mem[0x0000] = 0xCB; // CB prefix
+    g.mem[0x0001] = 0x38; // bit operation
+    g.r.registers[B] = 0b00000001; // bit operation
+
+    // Run Code
+    g.FDE();
+
+    // Assert value is correct
+    assert(g.r.registers[B] == 0b00000000);
+    assert(g.r.zero == true);
+    assert(g.r.subtract == false);
+    assert(g.r.halfCarry == false);
+    assert(g.r.carry == true);
+    assert(g.r.registers[F] == 0x90);
+}
