@@ -1,4 +1,5 @@
 #include "gameboy.h"
+#include <optional>
 
 Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize) : 
     romPath(_romPath),
@@ -477,14 +478,20 @@ void Gameboy::callBXInstructions(unsigned char secondHalfByte) {
 
 void Gameboy::callCXInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
+        case 0x00:
+            ret(ZF, true);
+            break;
         case 0x01:
             popToRegisterPair(BC);
             break;
         case 0x05:
             pushRegisterPair(BC);
             break;
+        case 0x08:
+            ret(ZF, false);
+            break;
         case 0x09:
-            ret();
+            ret(std::nullopt, false);
             break;
         case 0x0B:
             loadCBInstruction();
@@ -500,11 +507,22 @@ void Gameboy::callCXInstructions(unsigned char secondHalfByte) {
 
 void Gameboy::callDXInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
+        case 0x00:
+            ret(CF, true);
+            break;
         case 0x01:
             popToRegisterPair(DE);
             break;
         case 0x05:
             pushRegisterPair(DE);
+            break;
+        case 0x08:
+            ret(CF, false);
+            break;
+        case 0x09:
+            // RETI
+            ret(std::nullopt, false);
+            IME = true;
             break;
         default:
             printf("Error: D unknown opcode %04x\n", secondHalfByte);

@@ -280,7 +280,7 @@ struct Gameboy {
 
     // Control Flow
     void callFunction();
-    void ret();
+    void ret(std::optional<Flag> flag, bool notFlag);
 
     // CB
     void loadCBInstruction();

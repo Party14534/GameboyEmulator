@@ -24,7 +24,29 @@ void Gameboy::callFunction() {
     PC = addr;
 }
 
-void Gameboy::ret() {
+void Gameboy::ret(std::optional<Flag> flag, bool notFlag) {
+    if (LOGGING) printf("RET FUNCTION: ");
+    if (flag.has_value()) {
+        switch (flag.value()) {
+            case ZF:
+                if (r.zero == notFlag) {
+                    if (LOGGING) printf("RET FUNCTION: Z DID NOT RETURN\n");
+                    return;
+                }
+                break;
+            case CF:
+                if (r.carry == notFlag) {
+                    if (LOGGING) printf("RET FUNCTION: C DID NOT RETURN\n");
+                    return;
+                }
+                break;
+            default:
+                printf("Unhandled return flag\n");
+                exit(1);
+                break;
+        }
+    }
+
     unsigned char lsb = mem[SP];
     SP++;
 
@@ -37,5 +59,5 @@ void Gameboy::ret() {
 
     PC = addr;
 
-    if (LOGGING) printf("RETURN: SET PC TO ADDR 0x%04x\n", addr);
+    if (LOGGING) printf("SET PC TO ADDR 0x%04x\n", addr);
 }
