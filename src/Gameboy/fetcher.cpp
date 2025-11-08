@@ -7,6 +7,8 @@ void Fetcher::setup(unsigned char* _mem) {
     cycles = 0;
     state = ReadTileID;
     videoBuffer = std::vector<sf::Color>(160 * 144);
+
+    BGP = &mem[0xff47];
 }
 
 void Fetcher::Start(unsigned short int _mapAddr, unsigned short int _tileLine) {
@@ -59,9 +61,6 @@ void Fetcher::readTileData(unsigned short int addrOffset) {
 
     // Finally read the first byte of graphical data
     unsigned char data = mem[addr + addrOffset];
-    if (data != 0) {
-        printf("here\n");
-    }
     for (unsigned short int bitPos = 0; bitPos <= 7; bitPos++) {
         if (!addrOffset) {
             tileData[bitPos] = (data >> bitPos) & 1;
@@ -76,7 +75,7 @@ void Fetcher::pushToFIFO() {
     // We stored pixels least significant to most significant so we push in
     // reverse order
 
-    for (int i = 7; i >= 0; i--) {
+    for (int i = 0; i < 8; i++) {
         Pixel p;
         p.color = tileData[i];
         FIFO.push_back(p);
@@ -102,7 +101,9 @@ void Fetcher::pushToVBuffer() {
     Pixel pixel = FIFO.back();
     FIFO.pop_back();
 
-    sf::Color c = paletteOne[pixel.color];
+    // BGP contains four 2bit values
+    unsigned char paletteIndex = (*BGP >> (pixel.color * 2)) & 3;
+    sf::Color c = paletteOne[paletteIndex];
 
     videoBuffer[vBufferIndex] = c;
     vBufferIndex = (vBufferIndex + 1) % (160 * 144);

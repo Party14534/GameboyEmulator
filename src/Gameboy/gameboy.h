@@ -13,7 +13,7 @@
 #include <fstream>
 #include <sstream>
 
-#define LOGGING true
+#define LOGGING false
 #define LOGFLAGS true
 #define WRITEHEADER true
 
@@ -63,6 +63,8 @@ struct Fetcher {
     unsigned short int tileLine;
     unsigned short int tileID;
     unsigned int vBufferIndex = 0;
+
+    unsigned char* BGP;
 
     void setup(unsigned char* _mem);
     void Start(unsigned short int mapAddr, unsigned short int tileLine);
@@ -125,7 +127,7 @@ struct PPU {
     sf::RectangleShape test;
     bool readyToDraw = false;
     
-    PPU(std::vector<unsigned char>& gameboyMem);
+    PPU(std::vector<unsigned char>& gameboyMem, sf::Vector2u winSize);
     void main();
 
     void mode0();
@@ -186,6 +188,7 @@ struct Gameboy {
     /*
      * Function Definitions
      */
+    Gameboy(std::string _romPath, sf::Vector2u winSize);
     Gameboy(std::string _romPath);
     void writeBootRom();
     void writeRom();

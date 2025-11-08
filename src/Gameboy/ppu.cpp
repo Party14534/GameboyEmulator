@@ -1,6 +1,6 @@
 #include "gameboy.h"
 
-PPU::PPU(std::vector<unsigned char>& gameboyMem) :
+PPU::PPU(std::vector<unsigned char>& gameboyMem, sf::Vector2u winSize) :
     display(sf::Image({160, 144}, sf::Color::Black)),
     displayTexture(display),
     displaySprite(displayTexture)
@@ -15,6 +15,8 @@ PPU::PPU(std::vector<unsigned char>& gameboyMem) :
     backgroundMap2 = &gameboyMem[0x9C00];
     OAMemory = &gameboyMem[0xFE00];
 
+    SCY = &gameboyMem[0xFF42];
+    SCX = &gameboyMem[0xFF43];
     LY = &gameboyMem[0xFF44];
     WX = &gameboyMem[0xFF4B];
     WY = &gameboyMem[0xFF4A];
@@ -29,7 +31,10 @@ PPU::PPU(std::vector<unsigned char>& gameboyMem) :
 
     displaySprite.setOrigin({80, 72});
     displaySprite.setScale({3.f, 3.f});
-    displaySprite.setPosition({1000, 500});
+
+    sf::Vector2f midPoint = {(winSize.x / 2.f),
+                            (winSize.y / 2.f)};
+    displaySprite.setPosition(midPoint);
 
     state = OAMSearch;
 }
@@ -84,8 +89,9 @@ void PPU::mode2() {
     // TODO: wait for 80 T-Cycles
     if (cycles == 80) {
         x = 0;
-        unsigned short int tileLine = *LY % 8;
-        unsigned short int tileMapRowAddr = 0x9800 + ((*LY / 8) * 32);
+        unsigned short int y = *SCY + *LY;
+        unsigned short int tileLine = y % 8;
+        unsigned short int tileMapRowAddr = 0x9800 + ((y / 8) * 32);
         fetcher.Start(tileMapRowAddr, tileLine);
         state = PixelTransfer;
     }
@@ -108,11 +114,15 @@ void PPU::mode3() {
 
 void PPU::drawToScreen(sf::RenderWindow& win) {
     sf::Vector2u coords;
+
+    // TODO: test which is faster
+    display = sf::Image({160, 144}, reinterpret_cast<std::uint8_t*>(fetcher.videoBuffer.data()));
+    /*
     for (int i = 0; i < 160 * 144; i++) {
         coords.x = i % 160;
         coords.y = i / 160;
         display.setPixel(coords, fetcher.videoBuffer[i]);
-    }
+    }*/
 
     bool worked = displayTexture.loadFromImage(display);
     if (!worked) {
@@ -121,7 +131,6 @@ void PPU::drawToScreen(sf::RenderWindow& win) {
     }
     displaySprite.setTexture(displayTexture);
     win.draw(displaySprite);
-    win.draw(test);
 
     readyToDraw = false;
 }

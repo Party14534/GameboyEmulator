@@ -97,26 +97,26 @@ void Gameboy::RLC(RegisterIndex target) {
 }
 
 void Gameboy::RRC(RegisterIndex target) {
-    unsigned char b1 = r.registers[target] & 0b00000001;
-    b1 = b1 << 7;
+    unsigned char b0 = r.registers[target] & 0b00000001;
+    b0 = b0 << 7;
 
     r.registers[target] = r.registers[target] >> 1;
-    r.registers[target] |= b1;
+    r.registers[target] |= b0;
 
     r.zero = (r.registers[target] == 0);
     r.subtract = false;
     r.halfCarry = false;
-    r.carry = b1 >> 7;
+    r.carry = b0 >> 7;
 
     r.modifiedFlags = true;    
 }
 
 void Gameboy::rotateRegisterLeft(RegisterIndex target) {
-    unsigned char carryBit = r.carry;
+    unsigned char carryBit = (r.carry) ? 0b00000001 : 0;
     unsigned char newCarryBit = (r.registers[target] & 0b10000000) >> 7;
 
     r.registers[target] = (r.registers[target] << 1) | carryBit;
-    r.carry = newCarryBit;
+    r.carry = newCarryBit != 0;
 
     r.zero = (r.registers[target] == 0);
     r.subtract = false;
@@ -126,11 +126,11 @@ void Gameboy::rotateRegisterLeft(RegisterIndex target) {
 }
 
 void Gameboy::rotateRegisterRight(RegisterIndex target) {
-    unsigned char carryBit = (r.carry) << 7;
+    unsigned char carryBit = (r.carry) ? 0b10000000 : 0;
     unsigned char newCarryBit = r.registers[target] & 0b00000001;
 
     r.registers[target] = (r.registers[target] >> 1) | carryBit;
-    r.carry = newCarryBit;
+    r.carry = newCarryBit != 0;
 
     r.zero = (r.registers[target] == 0);
     r.subtract = false;

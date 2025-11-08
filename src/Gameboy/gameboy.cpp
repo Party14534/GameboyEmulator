@@ -1,9 +1,9 @@
 #include "gameboy.h"
 
-Gameboy::Gameboy(std::string _romPath) : 
+Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize) : 
     romPath(_romPath),
     mem(std::vector<unsigned char>(0xFFFF)), // 65535
-    ppu(mem)
+    ppu(mem, winSize)
 {
     r.registers = std::vector<unsigned char>(8);
     
@@ -11,10 +11,28 @@ Gameboy::Gameboy(std::string _romPath) :
     //writeRom();
 
     paletteOne = std::vector<sf::Color>{
-        sf::Color::Green,
-        sf::Color(70,70,70),
-        sf::Color(140,140,140),
-        sf::Color(225,225,225)
+        sf::Color(155, 188, 15),
+        sf::Color(139, 172, 15),
+        sf::Color(48, 98, 48),
+        sf::Color(15, 56, 15)
+    };
+}
+
+Gameboy::Gameboy(std::string _romPath) : 
+    romPath(_romPath),
+    mem(std::vector<unsigned char>(0xFFFF)), // 65535
+    ppu(mem, {160, 144})
+{
+    r.registers = std::vector<unsigned char>(8);
+    
+    writeBootRom();
+    //writeRom();
+
+    paletteOne = std::vector<sf::Color>{
+        sf::Color(155, 188, 15),
+        sf::Color(139, 172, 15),
+        sf::Color(48, 98, 48),
+        sf::Color(15, 56, 15)
     };
 }
 
@@ -27,9 +45,9 @@ void Gameboy::writeBootRom() {
     // Read entire file into vector
     mem.assign(std::istreambuf_iterator<char>(file),
                std::istreambuf_iterator<char>());
-    for (int i = 0; i <= 256; i++) {
+    /*for (int i = 0; i <= 256; i++) {
         printf("%d: %02x\n", i, mem[i]);
-    }
+    }*/
 
     // Write cartridge header
     if (!WRITEHEADER) return;
