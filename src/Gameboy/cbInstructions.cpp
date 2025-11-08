@@ -168,6 +168,7 @@ void Gameboy::swap(RegisterIndex target) {
     unsigned char* data;
     
     if (target == RegisterIndex::F) {
+        printf("0x%04x\n", r.getHL());
         data = &mem[r.getHL()];
     } else {
         data = &r.registers[target];

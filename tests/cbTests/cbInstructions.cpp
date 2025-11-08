@@ -89,7 +89,6 @@ TEST(CBRLTest, HandlesHappyPath) {
     g.FDE();
 
     // Assert value is correct
-    printf("%04x\n", g.r.registers[F]);
     assert(g.r.registers[B] == 0b00011110);
     assert(g.r.zero == false);
     assert(g.r.subtract == false);
@@ -112,7 +111,6 @@ TEST(CBRRTest, HandlesHappyPath) {
     g.FDE();
 
     // Assert value is correct
-    printf("%04x\n", g.r.registers[F]);
     assert(g.r.registers[B] == 0b11000111);
     assert(g.r.zero == false);
     assert(g.r.subtract == false);
@@ -134,7 +132,6 @@ TEST(CBRLCTest, HandlesHappyPath) {
     g.FDE();
 
     // Assert value is correct
-    printf("%04x\n", g.r.registers[F]);
     assert(g.r.registers[B] == 0b00011111);
     assert(g.r.zero == false);
     assert(g.r.subtract == false);
@@ -156,11 +153,54 @@ TEST(CBRRCTest, HandlesHappyPath) {
     g.FDE();
 
     // Assert value is correct
-    printf("%04x\n", g.r.registers[F]);
     assert(g.r.registers[B] == 0b01000111);
     assert(g.r.zero == false);
     assert(g.r.subtract == false);
     assert(g.r.halfCarry == false);
     assert(g.r.carry == false);
     assert(g.r.registers[F] == 0x00);
+}
+
+TEST(CBSwapTest, HandlesHappyPath) {
+    Gameboy g("");
+
+    // Set instruction
+    g.mem[0x0000] = 0xCB; // CB prefix
+    g.mem[0x0001] = 0x36; // bit operation
+    g.mem[0xFF44] = 0b10010110; // bit operation
+
+    g.r.registers[H] = 0xFF;
+    g.r.registers[L] = 0x44;
+
+    // Run Code
+    g.FDE();
+
+    // Assert value is correct
+    assert(g.mem[0xFF44] == 0b01101001);
+    assert(g.r.zero == false);
+    assert(g.r.subtract == false);
+    assert(g.r.halfCarry == false);
+    assert(g.r.carry == false);
+    assert(g.r.registers[F] == 0x00);
+}
+
+TEST(CBSwapTest, HandlesZeroPath) {
+    Gameboy g("");
+
+    // Set instruction
+    g.mem[0x0000] = 0xCB; // CB prefix
+    g.mem[0x0001] = 0x30; // bit operation
+
+    g.r.registers[B] = 0b00000000;
+
+    // Run Code
+    g.FDE();
+
+    // Assert value is correct
+    assert(g.r.registers[B] == 0b00000000);
+    assert(g.r.zero == true);
+    assert(g.r.subtract == false);
+    assert(g.r.halfCarry == false);
+    assert(g.r.carry == false);
+    assert(g.r.registers[F] == 0x80);
 }
