@@ -8,11 +8,15 @@ int main() {
     unsigned int frameCount = 0;
 
     while (win.isOpen()) {
-        g.FDE();
         if (LOGGING) printf("LY 0xFF44: %d 0x%02x\n", g.mem[0xFF44], g.mem[0xFF44]);
-        g.ppu.main();
+
+        for (int i = 0; i < 3; i++) {
+            g.FDE();
+            g.ppu.main();
+        }
+
         frameCount++;
-        //if (frameCount & 1) continue;
+        if (frameCount & 1) continue;
 
         // Event handling
         handleEvents(win);
