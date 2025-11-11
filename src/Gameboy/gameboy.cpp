@@ -546,6 +546,9 @@ void Gameboy::callDXInstructions(unsigned char secondHalfByte) {
         case 0x05:
             pushRegisterPair(DE);
             break;
+        case 0x06:
+            subtractImmediate(false);
+            break;
         case 0x07:
             restart(0x10);
             break;
@@ -556,6 +559,9 @@ void Gameboy::callDXInstructions(unsigned char secondHalfByte) {
             // RETI
             ret(std::nullopt, false);
             IME = true;
+            break;
+        case 0x0E:
+            subtractImmediate(true);
             break;
         case 0x0F:
             restart(0x18);

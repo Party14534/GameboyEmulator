@@ -140,6 +140,32 @@ void Gameboy::subtractFromMemory(bool carry) {
     r.modifiedFlags = true;
 }
 
+void Gameboy::subtractImmediate(bool carry) {
+    unsigned char value = mem[PC];
+    PC++;
+
+    if (carry) {
+        value += r.carry;
+    }
+
+    unsigned char oldVal = r.registers[RegisterIndex::A];
+    r.registers[RegisterIndex::A] -= value;
+
+    if (LOGGING) printf("SUB %d GOTTEN FROM IMMEDIATE TO REGISTER A\n", value);
+    
+    // Set flags
+    r.zero = (r.registers[RegisterIndex::A] == 0);
+    r.subtract = true;
+    r.carry = (oldVal < r.registers[RegisterIndex::A]); // Overflow
+    // Half Carry is set if adding the lower nibbles of the value and register
+    // A together result in a value bigger than 0xF. If the result is larger 
+    // than 0xF then the addition caused a carry from the lower nibble to the
+    // upper nibble.
+    r.halfCarry = (((oldVal & 0x0F) - (value & 0x0F)) & 0x10);
+
+    r.modifiedFlags = true;
+}
+
 // Misc arithmetic functions
 
 void Gameboy::incRegister(RegisterIndex target, char val) {

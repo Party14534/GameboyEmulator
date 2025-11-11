@@ -270,6 +270,7 @@ struct Gameboy {
     void incRegister(RegisterIndex target, char val);
     void incMemory(char val);
     void addImmediate(bool carry);
+    void subtractImmediate(bool carry);
 
     // 16bit arithmetic
     void incRegisterPair(RegisterPair pair, short int val);
