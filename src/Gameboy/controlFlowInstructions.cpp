@@ -116,7 +116,29 @@ void Gameboy::restart(unsigned char addr) {
 }
 
 // 4 cycles
-void Gameboy::jumpNN() {
+void Gameboy::jumpNN(std::optional<Flag> flag, bool notFlag) {
+    if (LOGGING) printf("JUMP FUNCTION: ");
+    if (flag.has_value()) {
+        switch (flag.value()) {
+            case ZF:
+                if (r.zero == notFlag) {
+                    if (LOGGING) printf("JUMP FUNCTION: Z DID NOT RETURN\n");
+                    return;
+                }
+                break;
+            case CF:
+                if (r.carry == notFlag) {
+                    if (LOGGING) printf("JUMP FUNCTION: C DID NOT RETURN\n");
+                    return;
+                }
+                break;
+            default:
+                printf("Unhandled return flag\n");
+                exit(1);
+                break;
+        }
+    }
+
     unsigned char lsb = mem[PC];
     PC++;
     unsigned char msb = mem[PC];

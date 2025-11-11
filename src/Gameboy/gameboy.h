@@ -271,6 +271,7 @@ struct Gameboy {
     void incMemory(char val);
     void addImmediate(bool carry);
     void subtractImmediate(bool carry);
+    void bitwiseOrImmediate();
 
     // 16bit arithmetic
     void incRegisterPair(RegisterPair pair, short int val);
@@ -284,7 +285,7 @@ struct Gameboy {
     // Control Flow
     void callFunction();
     void callNN(Flag flag, bool notFlag);
-    void jumpNN();
+    void jumpNN(std::optional<Flag> flag, bool notFlag);
     void ret(std::optional<Flag> flag, bool notFlag);
     void restart(unsigned char addr);
 

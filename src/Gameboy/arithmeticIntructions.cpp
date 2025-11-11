@@ -356,6 +356,20 @@ void Gameboy::bitwiseOrFromMemory() {
     r.modifiedFlags = true;
 }
 
+void Gameboy::bitwiseOrImmediate() {
+    r.registers[RegisterIndex::A] |= mem[PC];
+    PC++;
+
+    if (LOGGING) printf("OR REGISTER A WITH IMMEDIATE\n");
+
+    r.zero = (r.registers[RegisterIndex::A] == 0);
+    r.subtract = 0;
+    r.halfCarry = 0;
+    r.carry = 0;
+
+    r.modifiedFlags = true;
+}
+
 // 0xB8 - 0xBD, 0xBF
 void Gameboy::compare(RegisterIndex target) {
     unsigned char value = r.registers[target];
