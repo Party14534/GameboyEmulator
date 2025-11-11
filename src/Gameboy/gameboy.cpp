@@ -638,6 +638,9 @@ void Gameboy::callFXInstructions(unsigned char secondHalfByte) {
         case 0x07:
             restart(0x30);
             break;
+        case 0x09:
+            SP = r.getHL();
+            break;
         case 0x0A:
             loadMemoryToAcc();
             break;
@@ -647,13 +650,13 @@ void Gameboy::callFXInstructions(unsigned char secondHalfByte) {
         case 0x0E:
             compareN();
             break;
+        case 0x0F:
+            restart(0x38);
+            break;
         case 0x04:
         case 0x0C:
         case 0x0D:
             // Unused
-            break;
-        case 0x0F:
-            restart(0x38);
             break;
         default:
             printf("Error: F unknown opcode %04x\n", secondHalfByte);
