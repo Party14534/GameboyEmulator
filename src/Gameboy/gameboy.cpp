@@ -226,6 +226,10 @@ void Gameboy::call0XInstructions(unsigned char secondHalfByte) {
 
 void Gameboy::call1XInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
+        case 0x00:
+            IME = 0;
+            // TODO: cancul any scheduled effects of EI if any
+            break;
         case 0x01:
             loadToRegisterPair(DE);
             break;
@@ -664,6 +668,9 @@ void Gameboy::callFXInstructions(unsigned char secondHalfByte) {
             break;
         case 0x07:
             restart(0x30);
+            break;
+        case 0x08:
+            addImmediateAndSPToHL();
             break;
         case 0x09:
             SP = r.getHL();

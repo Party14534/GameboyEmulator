@@ -276,6 +276,7 @@ struct Gameboy {
     // 16bit arithmetic
     void incRegisterPair(RegisterPair pair, short int val);
     void addRegisterPairs(RegisterPair target, RegisterPair source);
+    void addImmediateAndSPToHL();
 
     // 16bit loads
     void loadToRegisterPair(RegisterPair target);
