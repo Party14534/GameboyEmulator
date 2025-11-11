@@ -283,6 +283,7 @@ struct Gameboy {
 
     // Control Flow
     void callFunction();
+    void callNN(Flag flag, bool notFlag);
     void jumpNN();
     void ret(std::optional<Flag> flag, bool notFlag);
     void restart(unsigned char addr);

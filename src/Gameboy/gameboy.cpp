@@ -502,6 +502,9 @@ void Gameboy::callCXInstructions(unsigned char secondHalfByte) {
         case 0x03:
             jumpNN();
             break;
+        case 0x04:
+            callNN(Flag::ZF, true);
+            break;
         case 0x05:
             pushRegisterPair(BC);
             break;
@@ -519,6 +522,9 @@ void Gameboy::callCXInstructions(unsigned char secondHalfByte) {
             break;
         case 0x0B:
             loadCBInstruction();
+            break;
+        case 0x0C:
+            callNN(Flag::ZF, false);
             break;
         case 0x0D:
             callFunction();
@@ -543,6 +549,9 @@ void Gameboy::callDXInstructions(unsigned char secondHalfByte) {
         case 0x01:
             popToRegisterPair(DE);
             break;
+        case 0x04:
+            callNN(Flag::CF, true);
+            break;
         case 0x05:
             pushRegisterPair(DE);
             break;
@@ -559,6 +568,9 @@ void Gameboy::callDXInstructions(unsigned char secondHalfByte) {
             // RETI
             ret(std::nullopt, false);
             IME = true;
+            break;
+        case 0x0C:
+            callNN(Flag::CF, false);
             break;
         case 0x0E:
             subtractImmediate(true);
