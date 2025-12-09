@@ -35,7 +35,7 @@ void Gameboy::addFromMemory(bool carry) {
     unsigned short int addr = r.registers[RegisterIndex::L];
     
     addr += (r.registers[RegisterIndex::H] << 8);
-    unsigned char value = mem[addr];
+    unsigned char value = mem.read(addr);
     if (carry) {
         value += r.carry;
     }
@@ -60,7 +60,7 @@ void Gameboy::addFromMemory(bool carry) {
 }
 
 void Gameboy::addImmediate(bool carry) {
-    unsigned char value = mem[PC];
+    unsigned char value = mem.read(PC);
     PC++;
 
     value += carry;
@@ -118,7 +118,7 @@ void Gameboy::subtractFromMemory(bool carry) {
     unsigned short int addr = r.registers[RegisterIndex::L];
     addr += (r.registers[RegisterIndex::H] << 8);
 
-    unsigned char value = mem[addr];
+    unsigned char value = mem.read(addr);
     if (carry) {
         value += r.carry;
     }
@@ -141,7 +141,7 @@ void Gameboy::subtractFromMemory(bool carry) {
 }
 
 void Gameboy::subtractImmediate(bool carry) {
-    unsigned char value = mem[PC];
+    unsigned char value = mem.read(PC);
     PC++;
 
     if (carry) {
@@ -201,7 +201,7 @@ void Gameboy::incRegister(RegisterIndex target, char val) {
 
 void Gameboy::incMemory(char val) {
     unsigned short int addr = r.getHL();
-    unsigned char oldVal = mem[addr];
+    unsigned char oldVal = mem.read(addr);
 
     unsigned char result = (unsigned char)(oldVal + val);
 
@@ -220,7 +220,7 @@ void Gameboy::incMemory(char val) {
         r.halfCarry = (((oldVal & 0x0F) + (val & 0x0F)) > 0x0F);
     }
 
-    mem[addr] = result;
+    mem.write(addr, result);
 
     r.modifiedFlags = true;
 }
@@ -243,7 +243,7 @@ void Gameboy::bitwiseAnd(RegisterIndex target) {
 
 // 2 cycles
 void Gameboy::bitwiseAndImmediate() {
-    unsigned char n = mem[PC];
+    unsigned char n = mem.read(PC);
     PC++;
 
     r.registers[RegisterIndex::A] &= n;
@@ -261,7 +261,7 @@ void Gameboy::bitwiseAndFromMemory() {
     unsigned short int addr = r.registers[RegisterIndex::L];
     addr += (r.registers[RegisterIndex::H] << 8);
     
-    unsigned char value = mem[addr];
+    unsigned char value = mem.read(addr);
 
     r.registers[RegisterIndex::A] &= value;
 
@@ -292,7 +292,7 @@ void Gameboy::bitwiseXorFromMemory() {
     unsigned short int addr = r.registers[RegisterIndex::L];
     addr += (r.registers[RegisterIndex::H] << 8);
     
-    unsigned char value = mem[addr];
+    unsigned char value = mem.read(addr);
 
     if (LOGGING) printf("XOR REGISTER A WITH ADDR 0x%04x\n", addr);
 
@@ -308,7 +308,7 @@ void Gameboy::bitwiseXorFromMemory() {
 
 // 0xEE
 void Gameboy::bitwiseXorImmediate() {
-    unsigned char value = mem[PC];
+    unsigned char value = mem.read(PC);
     PC++;
 
     if (LOGGING) printf("XOR REGISTER A WITH VALUE 0x%02x\n", value);
@@ -342,7 +342,7 @@ void Gameboy::bitwiseOrFromMemory() {
     unsigned short int addr = r.registers[RegisterIndex::L];
     addr += (r.registers[RegisterIndex::H] << 8);
     
-    unsigned char value = mem[addr];
+    unsigned char value = mem.read(addr);
 
     if (LOGGING) printf("OR REGISTER A WITH ADDR 0x%04x\n", addr);
 
@@ -357,7 +357,7 @@ void Gameboy::bitwiseOrFromMemory() {
 }
 
 void Gameboy::bitwiseOrImmediate() {
-    r.registers[RegisterIndex::A] |= mem[PC];
+    r.registers[RegisterIndex::A] |= mem.read(PC);
     PC++;
 
     if (LOGGING) printf("OR REGISTER A WITH IMMEDIATE\n");
@@ -397,7 +397,7 @@ void Gameboy::compareFromMemory() {
     unsigned short int addr = r.registers[RegisterIndex::L];
     addr += (r.registers[RegisterIndex::H] << 8);
 
-    unsigned char value = mem[addr];
+    unsigned char value = mem.read(addr);
 
     unsigned char oldVal = r.registers[RegisterIndex::A];
     unsigned char result = oldVal - value;
@@ -418,7 +418,7 @@ void Gameboy::compareFromMemory() {
 }
 
 void Gameboy::compareN() {
-    unsigned char value = mem[PC];
+    unsigned char value = mem.read(PC);
     PC++;
 
     unsigned char oldVal = r.registers[RegisterIndex::A];

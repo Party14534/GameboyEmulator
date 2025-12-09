@@ -9,7 +9,7 @@ void Fetcher::setup() {
     state = ReadTileID;
     videoBuffer = std::vector<sf::Color>(160 * 144);
 
-    BGP = &mem[0xff47];
+    BGP = &mem.read(0xff47);
 }
 
 void Fetcher::Start(unsigned short int _mapAddr, unsigned short int _tileLine) {
@@ -33,7 +33,7 @@ void Fetcher::Tick() {
     switch (state) {
         case ReadTileID:
             // Read tile's number from background
-            tileID = mem[mapAddr + tileIndex];
+            tileID = mem.read(mapAddr + tileIndex);
             state = ReadTileData0;
             break;
         case ReadTileData0:
@@ -61,7 +61,7 @@ void Fetcher::readTileData(unsigned short int addrOffset) {
     unsigned short int addr = offset + (tileLine * 2);
 
     // Finally read the first byte of graphical data
-    unsigned char data = mem[addr + addrOffset];
+    unsigned char data = mem.read(addr + addrOffset);
     for (unsigned short int bitPos = 0; bitPos <= 7; bitPos++) {
         if (!addrOffset) {
             tileData[bitPos] = (data >> bitPos) & 1;

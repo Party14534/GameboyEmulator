@@ -2,9 +2,9 @@
 
 // 3 cycles
 void Gameboy::loadToRegisterPair(RegisterPair target) {
-    unsigned char lsb = mem[PC];
+    unsigned char lsb = mem.read(PC);
     PC++;
-    unsigned short int msb = mem[PC];
+    unsigned short int msb = mem.read(PC);
     PC++;
 
     unsigned short int nn = (msb << 8) + lsb;
@@ -33,9 +33,9 @@ void Gameboy::loadToRegisterPair(RegisterPair target) {
 
 // 3 cycles
 void Gameboy::popToRegisterPair(RegisterPair target) {
-    unsigned char lsb = mem[SP];
+    unsigned char lsb = mem.read(SP);
     SP++;
-    unsigned short int msb = mem[SP];
+    unsigned short int msb = mem.read(SP);
     SP++;
 
     unsigned short int nn = (msb << 8) + lsb;
@@ -89,18 +89,18 @@ void Gameboy::pushRegisterPair(RegisterPair target) {
     
     SP--;
     unsigned char msb = data >> 8;
-    mem[SP] = msb;
+    mem.write(SP, msb);
     
     SP--;
     unsigned char lsb = data & 0x00FF;
-    mem[SP] = lsb;
+    mem.write(SP, lsb);
 }
 
 // 5 cycles
 void Gameboy::loadFromStack() {
-    unsigned char lsb = mem[PC];
+    unsigned char lsb = mem.read(PC);
     PC++;
-    unsigned char msb = mem[PC];
+    unsigned char msb = mem.read(PC);
     PC++;
 
     unsigned short int addr = msb << 8;
@@ -109,8 +109,8 @@ void Gameboy::loadFromStack() {
     unsigned char dataLsb = SP & 0x00FF;
     unsigned char dataMsb = SP & 0xFF00;
 
-    mem[addr] = dataLsb;
-    mem[addr + 1] = dataMsb;
+    mem.write(addr, dataLsb);
+    mem.write(addr, dataMsb);
 
     if (LOGGING) printf("LOAD STACK TO ADDR: 0x%04x\n", addr);
 }

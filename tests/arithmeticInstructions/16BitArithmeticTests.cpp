@@ -6,24 +6,29 @@ TEST(Inc16BitTest, HandlesBCPair) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0x03; // INC BC
+    g.mem.write(0x0000, 0x03); // INC BC
+    printf("Hello\n");
 
     // Set register values
     short unsigned int val = 100;
     g.r.setBC(val);
+    printf("Hello again\n");
 
     // Run Code
     g.FDE();
+    printf("Hello again\n");
 
     // Assert value is correct
     assert(g.r.getBC() == (unsigned short int)101);
+    printf("Hello again again\n");
 }
 
 TEST(Inc16BitTest, HandlesSP) {
+    printf("Hello again again\n");
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0x33; // INC SP
+    g.mem.write(0x0000, 0x33); // INC SP
 
     // Set register values
     g.SP = 100;
@@ -39,7 +44,7 @@ TEST(Dec16BitTest, HandlesBCPair) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0x0B; // DEC BC
+    g.mem.write(0x0000, 0x0B); // DEC BC
 
     // Set register values
     short unsigned int val = 100;
@@ -56,7 +61,7 @@ TEST(Dec16BitTest, HandlesSP) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0x3B; // DEC SP
+    g.mem.write(0x0000, 0x3B); // DEC SP
 
     // Set register values
     g.SP = 100;
@@ -72,7 +77,7 @@ TEST(Add16BitTest, HandlesHLBCPair) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0x09; // Add BC to HL
+    g.mem.write(0x0000, 0x09); // Add BC to HL
 
     // Set register values
     g.r.setBC(100);
@@ -91,7 +96,7 @@ TEST(Add16BitTest, HandlesCarryPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0x09; // Add BC to HL
+    g.mem.write(0x0000, 0x09); // Add BC to HL
 
     // Set register values
     g.r.setBC(0x1000);
@@ -110,7 +115,7 @@ TEST(Add16BitTest, HandlesHalfCarryPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0x09; // Add BC to HL
+    g.mem.write(0x0000, 0x09); // Add BC to HL
 
     // Set register values
     g.r.setBC(62);

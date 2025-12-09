@@ -47,9 +47,13 @@ inline std::vector<sf::Color> paletteOne;
 
 struct GameboyMem {
     std::vector<unsigned char> mem;
+    std::vector<unsigned char> bootRomMem;
+    unsigned char* bootFinished;
+    unsigned short int* PC;
 
-    GameboyMem();
-    unsigned char& operator[](int);
+    GameboyMem(unsigned short int& PC);
+    unsigned char& read(unsigned short int addr);
+    void write(unsigned short int addr, unsigned char val);
 };
 
 struct Pixel {
@@ -198,7 +202,7 @@ struct Gameboy {
     /*
      * Function Definitions
      */
-    Gameboy(std::string _romPath, sf::Vector2u winSize = {160, 144});
+    Gameboy(std::string _romPath, sf::Vector2u winSize = {160, 144}, bool bootRom = false);
     void writeBootRom();
     void writeRom();
     void FDE();

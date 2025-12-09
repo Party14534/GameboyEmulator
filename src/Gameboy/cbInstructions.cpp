@@ -36,7 +36,7 @@ RegisterIndex Gameboy::operandToIndex(unsigned char op) {
 
 void Gameboy::loadCBInstruction() {
     // Load next byte
-    unsigned char byte = mem[PC];
+    unsigned char byte = mem.read(PC);
     PC++;
 
     unsigned char firstHalfByte = (byte & 0xF0) >> 4;
@@ -170,7 +170,7 @@ void Gameboy::bit(RegisterIndex target, unsigned short int bitOffset) {
 
     //printf("%04x %d\n", mask, bitOffset);
     if (target == F) {
-        val = mem[r.getHL()] & mask;
+        val = mem.read(r.getHL()) & mask;
     } else {
         val = r.registers[target] & mask;
     }
@@ -187,7 +187,7 @@ void Gameboy::swap(RegisterIndex target) {
     
     if (target == RegisterIndex::F) {
         printf("0x%04x\n", r.getHL());
-        data = &mem[r.getHL()];
+        data = &mem.read(r.getHL());
     } else {
         data = &r.registers[target];
     }
@@ -208,7 +208,7 @@ void Gameboy::srl(RegisterIndex target) {
     unsigned char* data;
     
     if (target == RegisterIndex::F) {
-        data = &mem[r.getHL()];
+        data = &mem.read(r.getHL());
     } else {
         data = &r.registers[target];
     }
@@ -229,7 +229,7 @@ void Gameboy::resetBit(RegisterIndex target, unsigned short bitOffset) {
 
     unsigned char* data;
     if (target == RegisterIndex::F) {
-        data = &mem[r.getHL()];
+        data = &mem.read(r.getHL());
     } else {
         data = &r.registers[target];
     }
@@ -242,7 +242,7 @@ void Gameboy::setBit(RegisterIndex target, unsigned short bitOffset) {
 
     unsigned char* data;
     if (target == RegisterIndex::F) {
-        data = &mem[r.getHL()];
+        data = &mem.read(r.getHL());
     } else {
         data = &r.registers[target];
     }

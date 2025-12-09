@@ -1,10 +1,10 @@
 #include "gameboy.h"
 
 void Gameboy::callFunction() {
-    unsigned char lsb = mem[PC];
+    unsigned char lsb = mem.read(PC);
     PC++;
 
-    unsigned char msb = mem[PC];
+    unsigned char msb = mem.read(PC);
     PC++;
 
     unsigned short int addr = msb;
@@ -15,9 +15,9 @@ void Gameboy::callFunction() {
     unsigned char lsbPC = PC & 0x00FF;
 
     SP--;
-    mem[SP] = msbPC;
+    mem.write(SP, msbPC);
     SP--;
-    mem[SP] = lsbPC;
+    mem.write(SP, lsbPC);
 
     if (LOGGING) printf("CALL FUNCTION: SET PC TO ADDR 0x%04x\n", addr);
 
@@ -25,10 +25,10 @@ void Gameboy::callFunction() {
 }
 
 void Gameboy::callNN(Flag flag, bool notFlag) {
-    unsigned char lsb = mem[PC];
+    unsigned char lsb = mem.read(PC);
     PC++;
 
-    unsigned char msb = mem[PC];
+    unsigned char msb = mem.read(PC);
     PC++;
 
     unsigned short int addr = msb;
@@ -59,9 +59,9 @@ void Gameboy::callNN(Flag flag, bool notFlag) {
     unsigned char lsbPC = PC & 0x00FF;
 
     SP--;
-    mem[SP] = msbPC;
+    mem.write(SP, msbPC);
     SP--;
-    mem[SP] = lsbPC;
+    mem.write(SP, lsbPC);
 
     if (LOGGING) printf("SET PC TO ADDR 0x%04x\n", addr);
     PC = addr;
@@ -90,10 +90,10 @@ void Gameboy::ret(std::optional<Flag> flag, bool notFlag) {
         }
     }
 
-    unsigned char lsb = mem[SP];
+    unsigned char lsb = mem.read(SP);
     SP++;
 
-    unsigned char msb = mem[SP];
+    unsigned char msb = mem.read(SP);
     SP++;
 
     unsigned short int addr = msb;
@@ -108,9 +108,9 @@ void Gameboy::ret(std::optional<Flag> flag, bool notFlag) {
 // 4 cycles
 void Gameboy::restart(unsigned char addr) {
     SP--;
-    mem[SP] = PC >> 8; // MSB
+    mem.write(SP, PC >> 8); // MSB
     SP--;
-    mem[SP] = PC & 0x00FF; // LSB
+    mem.write(SP, PC & 0x00FF); // LSB
 
     PC = addr;
 }
@@ -139,9 +139,9 @@ void Gameboy::jumpNN(std::optional<Flag> flag, bool notFlag) {
         }
     }
 
-    unsigned char lsb = mem[PC];
+    unsigned char lsb = mem.read(PC);
     PC++;
-    unsigned char msb = mem[PC];
+    unsigned char msb = mem.read(PC);
     PC++;
     
     unsigned short int addr = msb;

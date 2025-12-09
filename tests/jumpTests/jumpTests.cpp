@@ -5,8 +5,8 @@ TEST(JumpNZTest, HandlesHappyPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0x20;
-    g.mem[0x0001] = 20;
+    g.mem.write(0x0000, 0x20);
+    g.mem.write(0x0001, 20);
 
     g.r.zero = false;
 
@@ -22,8 +22,8 @@ TEST(JumpNCTest, HandlesHappyPath) {
 
     // Set instruction
     g.PC = 18;
-    g.mem[18] = 0x30;
-    g.mem[19] = -20;
+    g.mem.write(18, 0x30);
+    g.mem.write(19, -20);
 
     g.r.carry = false;
 
@@ -38,8 +38,8 @@ TEST(JumpZTest, HandlesHappyPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0x28;
-    g.mem[0x0001] = 20;
+    g.mem.write(0x0000, 0x28);
+    g.mem.write(0x0001, 20);
 
     g.r.zero = true;
 
@@ -55,8 +55,8 @@ TEST(JumpCTest, HandlesHappyPath) {
 
     // Set instruction
     g.PC = 18;
-    g.mem[18] = 0x38;
-    g.mem[19] = -20;
+    g.mem.write(18, 0x38);
+    g.mem.write(19, -20);
 
     g.r.carry = false;
 

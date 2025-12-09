@@ -6,9 +6,9 @@ TEST(Load16BitTest, HandlesHappyPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0x01;
-    g.mem[0x0001] = 0x31;
-    g.mem[0x0002] = 0xA3;
+    g.mem.write(0x0000, 0x01);
+    g.mem.write(0x0001, 0x31);
+    g.mem.write(0x0002, 0xA3);
 
     // Run Code
     g.FDE();
@@ -22,9 +22,9 @@ TEST(Load16BitTest, HandlesSPPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0x31;
-    g.mem[0x0001] = 0x31;
-    g.mem[0x0002] = 0xA3;
+    g.mem.write(0x0000, 0x31);
+    g.mem.write(0x0001, 0x31);
+    g.mem.write(0x0002, 0xA3);
 
     // Run Code
     g.FDE();
@@ -38,9 +38,9 @@ TEST(Pop16BitTest, HandlesHappyPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0xC1;
-    g.mem[0x0001] = 0x31;
-    g.mem[0x0002] = 0xA3;
+    g.mem.write(0x0000, 0xC1);
+    g.mem.write(0x0001, 0x31);
+    g.mem.write(0x0002, 0xA3);
     g.SP = 0x0001;
 
     // Run Code
@@ -55,9 +55,9 @@ TEST(Pop16BitTest, HandlesAFPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0xF1;
-    g.mem[0x0001] = 0xA0; // F's value
-    g.mem[0x0002] = 0xFE;
+    g.mem.write(0x0000, 0xF1);
+    g.mem.write(0x0001, 0xA0); // F's value
+    g.mem.write(0x0002, 0xFE);
     g.SP = 0x0001;
     g.PC = 0x0000;
 
@@ -77,7 +77,7 @@ TEST(Push16BitTest, HandlesHappyPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0xC5;
+    g.mem.write(0x0000, 0xC5);
     g.r.setBC(0xFEA0);
     g.SP = 0x0003;
     g.PC = 0x0000;
@@ -87,6 +87,6 @@ TEST(Push16BitTest, HandlesHappyPath) {
 
     // Assert value is correct
     assert(g.SP == 0x0001);
-    assert(g.mem[0x0001] == 0xA0);
-    assert(g.mem[0x0002] == 0xFE);
+    assert(g.mem.read(0x0001) == 0xA0);
+    assert(g.mem.read(0x0002) == 0xFE);
 }

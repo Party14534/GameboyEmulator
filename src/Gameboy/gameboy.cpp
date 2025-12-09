@@ -1,17 +1,21 @@
 #include "gameboy.h"
-#include <optional>
 
-Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize) : 
+Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom) : 
     romPath(_romPath),
-    mem(), // 65535
+    mem(PC), // 65535
     ppu(mem, winSize)
 {
     r.registers = std::vector<unsigned char>(8);
     
-    writeBootRom();
     writeRom();
+    writeBootRom();
 
-    IE = &mem[0xFFFF];
+    if (!bootRom) { 
+        mem.write(0xFF50, 1);
+        PC = 0;
+    }
+
+    IE = &mem.read(0xFFFF);
 
     paletteOne = std::vector<sf::Color>{
         sf::Color(155, 188, 15),
@@ -22,12 +26,13 @@ Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize) :
 }
 
 void Gameboy::writeBootRom() {
+    printf("Writing boot rom\n");
     std::ifstream file ("../src/res/dmg_boot.bin", std::ios::binary);
     printf("%ld\n", file.gcount());
     
 
     // Read entire file into vector
-    mem.mem.assign(std::istreambuf_iterator<char>(file),
+    mem.bootRomMem.assign(std::istreambuf_iterator<char>(file),
                std::istreambuf_iterator<char>());
 
     // Write cartridge header
@@ -38,7 +43,7 @@ void Gameboy::writeBootRom() {
     };
     
     for (int i = 0x104; i <= 0x133; i++) {
-        mem[i] = header[i - 0x104];
+        mem.write(i, header[i - 0x104]);
     }
 }
 
@@ -47,9 +52,9 @@ void Gameboy::writeRom() {
     std::stringstream buff;
     buff << file.rdbuf();
 
-    int i = 0x0;
+    int i = 0x100;
     for (unsigned char byte : buff.str()) {
-        mem[i] = byte;
+        mem.write(i, byte);
         i++;
     }
     printf("%d\n", i);
@@ -68,7 +73,7 @@ void Gameboy::FDE() {
 }
 
 unsigned char Gameboy::fetch() {
-    unsigned char instruction = mem[PC];
+    unsigned char instruction = mem.read(PC);
 
     PC++;
 
@@ -424,7 +429,7 @@ void Gameboy::call7XInstructions(unsigned char secondHalfByte) {
         return;
     } else if (secondHalfByte == 0x06) { 
         if(LOGGING) printf("HALT\n");
-        printf("Haven't implemented HALT");
+        printf("Haven't implemented HALT %02x %d\n", PC, PC);
         exit(1);
         return; // TODO: Implement HALT
     }

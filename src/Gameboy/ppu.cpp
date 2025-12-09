@@ -11,18 +11,18 @@ PPU::PPU(GameboyMem& gameboyMem, sf::Vector2u winSize) :
     viewport = std::vector<unsigned char>(160 * 144);
     fetcher.setup();
 
-    graphicsData = &gameboyMem[0x8000];
-    backgroundMap1 = &gameboyMem[0x9800];
-    backgroundMap2 = &gameboyMem[0x9C00];
-    OAMemory = &gameboyMem[0xFE00];
+    graphicsData = &gameboyMem.read(0x8000);
+    backgroundMap1 = &gameboyMem.read(0x9800);
+    backgroundMap2 = &gameboyMem.read(0x9C00);
+    OAMemory = &gameboyMem.read(0xFE00);
 
-    SCY = &gameboyMem[0xFF42];
-    SCX = &gameboyMem[0xFF43];
-    LY = &gameboyMem[0xFF44];
-    WX = &gameboyMem[0xFF4B];
-    WY = &gameboyMem[0xFF4A];
-    LCDC = &gameboyMem[0xFF40];
-    STAT = &gameboyMem[0xFF41];
+    SCY = &gameboyMem.read(0xFF42);
+    SCX = &gameboyMem.read(0xFF43);
+    LY = &gameboyMem.read(0xFF44);
+    WX = &gameboyMem.read(0xFF4B);
+    WY = &gameboyMem.read(0xFF4A);
+    LCDC = &gameboyMem.read(0xFF40);
+    STAT = &gameboyMem.read(0xFF41);
 
     test = sf::RectangleShape({160, 144});
     test.setFillColor(sf::Color::Red);
@@ -116,14 +116,7 @@ void PPU::mode3() {
 void PPU::drawToScreen(sf::RenderWindow& win) {
     sf::Vector2u coords;
 
-    // TODO: test which is faster
     display = sf::Image({160, 144}, reinterpret_cast<std::uint8_t*>(fetcher.videoBuffer.data()));
-    /*
-    for (int i = 0; i < 160 * 144; i++) {
-        coords.x = i % 160;
-        coords.y = i / 160;
-        display.setPixel(coords, fetcher.videoBuffer[i]);
-    }*/
 
     bool worked = displayTexture.loadFromImage(display);
     if (!worked) {

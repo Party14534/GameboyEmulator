@@ -6,8 +6,8 @@ TEST(CBBitTest, HandlesHappyPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0xCB; // CB prefix
-    g.mem[0x0001] = 0x40; // bit operation
+    g.mem.write(0x0000, 0xCB); // CB prefix
+    g.mem.write(0x0001, 0x40); // bit operation
 
     g.r.registers[RegisterIndex::B] = 0b10000000;
 
@@ -24,8 +24,8 @@ TEST(CBBitTest, HandlesZeroPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0xCB; // CB prefix
-    g.mem[0x0001] = 0x40; // bit operation
+    g.mem.write(0x0000, 0xCB); // CB prefix
+    g.mem.write(0x0001, 0x40); // bit operation
 
     g.r.registers[RegisterIndex::B] = 0b00000000;
 
@@ -42,8 +42,8 @@ TEST(CBBitTest, HandlesOddPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0xCB; // CB prefix
-    g.mem[0x0001] = 0x48; // bit operation
+    g.mem.write(0x0000, 0xCB); // CB prefix
+    g.mem.write(0x0001, 0x48); // bit operation
 
     g.r.registers[RegisterIndex::B] = 0b01000000;
 
@@ -60,11 +60,11 @@ TEST(CBBitTest, HandlesHLPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0xCB; // CB prefix
-    g.mem[0x0001] = 0x76; // bit operation
+    g.mem.write(0x0000, 0xCB); // CB prefix
+    g.mem.write(0x0001, 0x76); // bit operation
 
     g.r.setHL(0xFF0F);
-    g.mem[0xFF0F] = 0b00000010;
+    g.mem.write(0xFF0F, 0b00000010);
 
     // Run Code
     g.FDE();
@@ -79,8 +79,8 @@ TEST(CBRLTest, HandlesHappyPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0xCB; // CB prefix
-    g.mem[0x0001] = 0x10; // bit operation
+    g.mem.write(0x0000, 0xCB); // CB prefix
+    g.mem.write(0x0001, 0x10); // bit operation
 
     g.r.registers[B] = 0b10001111;
     g.r.carry = false;
@@ -101,8 +101,8 @@ TEST(CBRRTest, HandlesHappyPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0xCB; // CB prefix
-    g.mem[0x0001] = 0x18; // bit operation
+    g.mem.write(0x0000, 0xCB); // CB prefix
+    g.mem.write(0x0001, 0x18); // bit operation
 
     g.r.registers[B] = 0b10001111;
     g.r.carry = true;
@@ -123,8 +123,8 @@ TEST(CBRLCTest, HandlesHappyPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0xCB; // CB prefix
-    g.mem[0x0001] = 0x00; // bit operation
+    g.mem.write(0x0000, 0xCB); // CB prefix
+    g.mem.write(0x0001, 0x00); // bit operation
 
     g.r.registers[B] = 0b10001111;
 
@@ -144,8 +144,8 @@ TEST(CBRRCTest, HandlesHappyPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0xCB; // CB prefix
-    g.mem[0x0001] = 0x08; // bit operation
+    g.mem.write(0x0000, 0xCB); // CB prefix
+    g.mem.write(0x0001, 0x08); // bit operation
 
     g.r.registers[B] = 0b10001110;
 
@@ -165,9 +165,9 @@ TEST(CBSwapTest, HandlesHappyPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0xCB; // CB prefix
-    g.mem[0x0001] = 0x36; // bit operation
-    g.mem[0xFF44] = 0b10010110; // bit operation
+    g.mem.write(0x0000, 0xCB); // CB prefix
+    g.mem.write(0x0001, 0x36); // bit operation
+    g.mem.write(0xFF44, 0b10010110); // bit operation
 
     g.r.registers[H] = 0xFF;
     g.r.registers[L] = 0x44;
@@ -176,7 +176,7 @@ TEST(CBSwapTest, HandlesHappyPath) {
     g.FDE();
 
     // Assert value is correct
-    assert(g.mem[0xFF44] == 0b01101001);
+    assert(g.mem.read(0xFF44) == 0b01101001);
     assert(g.r.zero == false);
     assert(g.r.subtract == false);
     assert(g.r.halfCarry == false);
@@ -188,8 +188,8 @@ TEST(CBSwapTest, HandlesZeroPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0xCB; // CB prefix
-    g.mem[0x0001] = 0x30; // bit operation
+    g.mem.write(0x0000, 0xCB); // CB prefix
+    g.mem.write(0x0001, 0x30); // bit operation
 
     g.r.registers[B] = 0b00000000;
 
@@ -209,9 +209,9 @@ TEST(CBSrlTest, HandlesHappyPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0xCB; // CB prefix
-    g.mem[0x0001] = 0x3E; // bit operation
-    g.mem[0xFF44] = 0b10000001; // bit operation
+    g.mem.write(0x0000, 0xCB); // CB prefix
+    g.mem.write(0x0001, 0x3E); // bit operation
+    g.mem.write(0xFF44, 0b10000001); // bit operation
 
     g.r.registers[H] = 0xFF;
     g.r.registers[L] = 0x44;
@@ -220,7 +220,7 @@ TEST(CBSrlTest, HandlesHappyPath) {
     g.FDE();
 
     // Assert value is correct
-    assert(g.mem[0xFF44] == 0b01000000);
+    assert(g.mem.read(0xFF44) == 0b01000000);
     assert(g.r.zero == false);
     assert(g.r.subtract == false);
     assert(g.r.halfCarry == false);
@@ -232,8 +232,8 @@ TEST(CBSrlTest, HandlesZeroPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0000] = 0xCB; // CB prefix
-    g.mem[0x0001] = 0x38; // bit operation
+    g.mem.write(0x0000, 0xCB); // CB prefix
+    g.mem.write(0x0001, 0x38); // bit operation
     g.r.registers[B] = 0b00000001; // bit operation
 
     // Run Code

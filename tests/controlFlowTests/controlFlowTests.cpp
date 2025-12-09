@@ -5,11 +5,11 @@ TEST(CallFunctionTest, HappyPath) {
     Gameboy g("");
 
     // Set instruction
-    g.mem[0x0110] = 0xCD;
+    g.mem.write(0x0110, 0xCD);
 
     // Memory location
-    g.mem[0x0111] = 0xAF;
-    g.mem[0x0112] = 0xFB;
+    g.mem.write(0x0111, 0xAF);
+    g.mem.write(0x0112, 0xFB);
 
     // Set SP
     g.SP = 0x0055;
@@ -21,6 +21,6 @@ TEST(CallFunctionTest, HappyPath) {
     // Assert value is correct
     assert(g.PC == 0xFBAF);
     assert(g.SP == 0x0053);
-    assert(g.mem[g.SP] == 0x13); // lsb of PC
-    assert(g.mem[g.SP + 1] == 0x01); // msb of pC
+    assert(g.mem.read(g.SP) == 0x13); // lsb of PC
+    assert(g.mem.read(g.SP + 1) == 0x01); // msb of pC
 }

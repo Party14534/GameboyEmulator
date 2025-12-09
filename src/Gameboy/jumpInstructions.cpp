@@ -1,7 +1,7 @@
 #include "gameboy.h"
 
 void Gameboy::relativeJump(Flag f, bool n) {
-    char eChar = mem[PC];
+    char eChar = mem.read(PC);
     short int e = eChar;
     PC++;
 

@@ -86,7 +86,7 @@ void Gameboy::addRegisterPairs(RegisterPair target, RegisterPair source) {
 }
 
 void Gameboy::addImmediateAndSPToHL() {
-    signed char e = mem[PC];
+    signed char e = mem.read(PC);
     PC++;
     
     unsigned short int oldVal = SP;
