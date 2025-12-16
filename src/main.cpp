@@ -11,7 +11,7 @@ int main() {
         //printf("PC:%d\n", g.mem.read(0xFF50));
         if (LOGGING) printf("LY 0xFF44: %d 0x%02x\n", g.mem.read(0xFF44), g.mem.read(0xFF44));
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 1; i++) {
             g.FDE();
             g.ppu.main();
         }

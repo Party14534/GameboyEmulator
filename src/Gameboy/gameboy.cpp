@@ -48,7 +48,7 @@ void Gameboy::writeBootRom() {
 }
 
 void Gameboy::writeRom() {
-    std::ifstream file ("../tests/cpu_instrs.gb", std::ios::binary);
+    std::ifstream file ("../roms/tetris.gb", std::ios::binary);
     std::stringstream buff;
     buff << file.rdbuf();
 
@@ -76,6 +76,9 @@ unsigned char Gameboy::fetch() {
     unsigned char instruction = mem.read(PC);
 
     PC++;
+    if (PC == 0xFA) { 
+        PC = 0xFC; 
+    }
 
     return instruction;
 }
