@@ -76,6 +76,7 @@ unsigned char Gameboy::fetch() {
     unsigned char instruction = mem.read(PC);
 
     PC++;
+    // TODO: Find actual problem
     if (PC == 0xFA) { 
         PC = 0xFC; 
     }
