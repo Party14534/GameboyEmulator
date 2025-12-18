@@ -14,8 +14,12 @@
 #include <sstream>
 
 #define LOGGING false
+#define DOCTOR_LOGGING false
+#define LOG_SERIAL false
 #define LOGFLAGS true
 #define WRITEHEADER true
+#define LY_ADDR 0xFF44
+#define LCDC_ADDR 0xFF40
 
 enum RegisterIndex {
     A = 0, B, C, D, E, F, H, L
@@ -40,10 +44,37 @@ enum FetcherState {
     ReadTileID,
     ReadTileData0,
     ReadTileData1,
-    PushToFIFO
+    PushToFIFO,
+    ReadObjectID,
+    ReadObjectFlags,
+    ReadObjectData0,
+    ReadObjectData1,
+    MixFIFO
 };
 
 inline std::vector<sf::Color> paletteOne;
+
+struct OAMProperties {
+    bool priority;
+    bool flipY;
+    bool flipX;
+    bool palette;
+    bool bank;
+};
+
+struct OAMObject {
+    unsigned char yPos;
+    unsigned char xPos;
+    unsigned char tileIndex;
+    unsigned short int addr;
+    OAMProperties attributes;
+    bool fetched = false;
+};
+
+enum OAMState {
+    ReadSpriteY,
+    ReadSpriteX
+};
 
 struct GameboyMem {
     std::vector<unsigned char> mem;
@@ -56,34 +87,61 @@ struct GameboyMem {
     void write(unsigned short int addr, unsigned char val);
 };
 
+struct OAM {
+    unsigned short int index;
+    GameboyMem& mem;
+    std::vector<OAMObject> objects;
+    OAMObject object; // Current object
+    OAMState state;
+    OAM(GameboyMem& mem);
+    
+    bool tick();
+    void start();
+};
+
 struct Pixel {
     unsigned char color;
     bool palette;
     bool priority; // only used for sprites
+    bool isObject = false;
 };
 
 struct Fetcher {
     std::vector<Pixel> FIFO;
     std::vector<unsigned char> tileData;
+    std::vector<unsigned char> objectData;
     std::vector<sf::Color> videoBuffer;
     GameboyMem& mem;
     FetcherState state;
+    FetcherState oldState;
+    OAMObject object;
     int cycles;
-    unsigned short int tileIndex;
     unsigned short int mapAddr;
+    unsigned short int dataAddr;
     unsigned short int tileLine;
     unsigned short int tileID;
+    bool signedId;
+    unsigned char tileOffset;
+    unsigned char objectOffset;
+    unsigned char objectLine;
+    unsigned char objectId;
     unsigned int vBufferIndex = 0;
 
     unsigned char* BGP;
+    unsigned char* OBP0;
+    unsigned char* OBP1;
 
     Fetcher(GameboyMem& _mem);
 
     void setup();
-    void Start(unsigned short int mapAddr, unsigned short int tileLine);
+    void Start(unsigned short int mapAddr, unsigned short int dataAddr, unsigned char tileOffset, unsigned short int tileLine, bool signedId);
+    void FetchObject(OAMObject object, unsigned char offset, unsigned char line);
     void Tick();
     void readTileData(unsigned short int addrOffset);
+    void readObjectData(unsigned short int addrOffset);
+    void MixInFifo();
     void pushToFIFO();
+    void popFIFO();
     void pushToVBuffer();
 };
 
@@ -132,21 +190,27 @@ struct PPU {
     unsigned char* LY = 0; // Line currently being displayed
     unsigned short int cycles = 0; // T-Cycles for current line
     unsigned short int x = 0; // Num pixels already output in current line
+    unsigned short int pixelsToDrop = 0;
 
     Fetcher fetcher;
+    OAM oam;
     sf::Image display;
     sf::Texture displayTexture;
     sf::Sprite displaySprite;
     sf::RectangleShape test;
     bool readyToDraw = false;
+    bool drawWindow = false;
     
     PPU(GameboyMem& gameboyMem, sf::Vector2u winSize);
     void main();
 
-    void mode0();
-    void mode1();
-    void mode2();
-    void mode3();
+    void DoHBlank();
+    void DoVBlank();
+    void OAMScan();
+    void TransferPixels();
+    bool IsFetchingSprites();
+
+    void drop();
 
     void drawToScreen(sf::RenderWindow& win);
 };

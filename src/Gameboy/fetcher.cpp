@@ -1,25 +1,41 @@
 #include "gameboy.h"
+#include <algorithm>
 
 Fetcher::Fetcher(GameboyMem& _mem) : mem(_mem) { }
 
 void Fetcher::setup() {
     FIFO = std::vector<Pixel>(16);
     tileData = std::vector<unsigned char>(8);
+    objectData = std::vector<unsigned char>(8);
     cycles = 0;
     state = ReadTileID;
     videoBuffer = std::vector<sf::Color>(160 * 144);
 
     BGP = &mem.read(0xff47);
+    OBP0 = &mem.read(0xff48);
+    OBP1 = &mem.read(0xff49);
 }
 
-void Fetcher::Start(unsigned short int _mapAddr, unsigned short int _tileLine) {
-    tileIndex = 0;
+void Fetcher::Start(unsigned short int _mapAddr, unsigned short int _dataAddr,
+        unsigned char _tileOffset,
+        unsigned short int _tileLine, bool _signedId) {
+    tileOffset = _tileOffset;
     mapAddr = _mapAddr;
+    dataAddr = _dataAddr;
     tileLine = _tileLine;
+    signedId = _signedId;
     state = ReadTileID;
-
+    
     // Clear FIFO between calls
     FIFO.clear();
+}
+
+void Fetcher::FetchObject(OAMObject _object, unsigned char offset, unsigned char line) {
+    object = _object;
+    objectOffset = offset;
+    objectLine = line;
+    oldState = state;
+    state = ReadObjectID;
 }
 
 // Runs at half the clock speed of the PPU
@@ -29,24 +45,88 @@ void Fetcher::Tick() {
         return;
     }
     cycles = 0;
+    unsigned char flags;
 
     switch (state) {
         case ReadTileID:
             // Read tile's number from background
-            tileID = mem.read(mapAddr + tileIndex);
+            tileID = mem.read(mapAddr + tileOffset);
             state = ReadTileData0;
             break;
+
         case ReadTileData0:
             readTileData(0);
             state = ReadTileData1;
             break;
+
         case ReadTileData1:
             readTileData(1);
             state = PushToFIFO;
             break;
+
         case PushToFIFO:
             pushToFIFO();
             state = ReadTileID;
+            break;
+
+        case ReadObjectID:
+            objectId = mem.read(object.addr + 2);
+            state = ReadObjectFlags;
+            break;
+
+        case ReadObjectFlags:
+            flags = mem.read(object.addr + 3);
+            object.attributes.priority = (flags & (1 << 7)) != 0;
+            object.attributes.flipY = (flags & (1 << 6)) != 0;
+            object.attributes.flipX = (flags & (1 << 5)) != 0;
+            object.attributes.palette = (flags & (1 << 4)) != 0;
+            object.attributes.bank = (flags & (1 << 3)) != 0;
+
+            state = ReadObjectData0;
+
+            /*
+            if (oamState.flipY) {
+                tileLine = 7 - tileLine;
+            }*/
+
+            // In 8×16 mode (LCDC bit 2 = 1), the memory area at $8000-$8FFF is
+            // still interpreted as a series of 8×8 tiles, where every 2 tiles form
+            // an object. In this mode, this byte specifies the index of the first
+            // (top) tile of the object. This is enforced by the hardware: the least
+            // significant bit of the tile index is ignored; that is, the top 8×8
+            // tile is “NN & $FE”, and the bottom 8×8 tile is “NN | $01”.
+            if ((mem.read(LCDC_ADDR) & 4) != 0) {
+                if (objectLine < 8) {
+                    if (object.attributes.flipY) {
+                        objectId |= 1;
+                    } else {
+                        objectId &= 0xfe;
+                    }
+                } else {
+                    if (object.attributes.flipY) {
+                        objectId &= 0xfe;
+                    } else {
+                        objectId |= 1;
+                    }
+                    objectLine -= 8;
+                }
+            }
+
+            break;
+
+        case ReadObjectData0:
+            readObjectData(0);            
+            state = ReadObjectData1;
+            break;
+
+        case ReadObjectData1:
+            readObjectData(1);
+            state = MixFIFO;
+            break;
+
+        case MixFIFO:
+            MixInFifo();
+            state = oldState;
             break;
     }
 }
@@ -54,7 +134,17 @@ void Fetcher::Tick() {
 void Fetcher::readTileData(unsigned short int addrOffset) {
     // A tile's graphical data takes 16 bytes so we compute an offset
     // to find data for desired tile is
-    unsigned short int offset = 0x8000 + (tileID * 16);
+    unsigned short int offset;
+    if (signedId) {
+        if ((short)tileID < 0) {
+            //printf("Yup it works\n");
+        } else {
+            //printf("Dont works\n");
+        }
+        offset = dataAddr +(static_cast<signed char>(tileID) * 16);
+    } else {
+        offset = dataAddr + (tileID * 16);
+    }
 
     // Compute final address to read by finding out which of the
     // 8-pixel rows of the tile we want.
@@ -62,7 +152,7 @@ void Fetcher::readTileData(unsigned short int addrOffset) {
 
     // Finally read the first byte of graphical data
     unsigned char data = mem.read(addr + addrOffset);
-    for (unsigned short int bitPos = 0; bitPos <= 7; bitPos++) {
+    for (unsigned short int bitPos = 0; bitPos < 8; bitPos++) {
         if (!addrOffset) {
             tileData[bitPos] = (data >> bitPos) & 1;
         } else {
@@ -71,39 +161,118 @@ void Fetcher::readTileData(unsigned short int addrOffset) {
     }
 }
 
+void Fetcher::readObjectData(unsigned short int addrOffset) {
+    unsigned char objHeight = 8;
+    if ((mem.read(LCDC_ADDR) & 4) != 0) { objHeight = 16; }
+
+    if (object.attributes.flipY) {
+        objectLine = objHeight - 1 - objectLine; 
+    }
+
+    // A tile's graphical data takes 16 bytes so we compute an offset
+    // to find data for desired tile is
+    unsigned short int offset = 0x8000 + (objectId * 16);
+
+    // Compute final address to read by finding out which of the
+    // 8-pixel rows of the tile we want.
+    unsigned short int addr = offset + (objectLine * 2);
+
+    // Finally read the first byte of graphical data
+    unsigned char data = mem.read(addr + addrOffset);
+    for (unsigned short int bitPos = 0; bitPos < 8; bitPos++) {
+        unsigned short int dataIndex;
+        if (!object.attributes.flipX) {
+            dataIndex = 7 - bitPos;
+        } else {
+            dataIndex = bitPos;
+        }
+
+        if (!addrOffset) {
+            objectData[dataIndex] = (data >> bitPos) & 1;
+        } else {
+            objectData[dataIndex] |= ((data >> bitPos) & 1) << 1;
+        }
+    }
+}
+
+void Fetcher::MixInFifo() {
+    if (FIFO.size() < 8) { return; } 
+
+    bool bgCover = object.attributes.priority != 0; // TODO: Comeback to this
+
+    for (unsigned char i = objectOffset; i < 8; i++) {
+        int testIndex = 7 - (i - objectOffset);
+        Pixel pixel = {objectData[testIndex], object.attributes.palette, bgCover, true};
+        // MIXING
+        unsigned char offset = i - objectOffset;
+        unsigned char size = FIFO.size();
+        if (size > 8) { size = 8; }
+
+        unsigned char index = size - offset - 1;
+        Pixel current = FIFO[index];
+
+        if (pixel.color == 0) {
+            continue;
+        }
+
+        if (current.palette == 0) { // 0 is the Background transparency color
+            if (current.color != 0 && bgCover) {
+                continue;
+            }
+
+            FIFO[index] = pixel;
+        }
+    }
+
+}
+
 void Fetcher::pushToFIFO() {
     if (FIFO.size() > 8) { return; }
-    // We stored pixels least significant to most significant so we push in
-    // reverse order
 
-    for (int i = 0; i < 8; i++) {
+    for (int i = 7; i >= 0; i--) {
         Pixel p;
         p.color = tileData[i];
+        p.palette = 0;
+        p.priority = false;
+
+        if ((mem.read(LCDC_ADDR) & 1) == 0) { // BG/WINDOW enable
+            p.color = 0;
+        }
+
         FIFO.push_back(p);
     }
 
-    // Push to video buffer separately cause it's an experiment
-    /*for (int i = 0; i < 8; i++) {
-        Pixel pixel = FIFO.back();
-        FIFO.pop_back();
+    tileOffset = (tileOffset + 1) % 32;
+}
 
-        sf::Color c = paletteOne[pixel.color];
+void Fetcher::popFIFO() {
+    if (FIFO.size() < 8) {
+        printf("FIFO Underrun\n");
+        exit(1);
+    }
 
-        videoBuffer[vBufferIndex] = c;
-        vBufferIndex = (vBufferIndex + 1) % (160 * 144);
-    }*/
-
-    tileIndex++;
+    FIFO.erase(FIFO.begin());
+    //FIFO.pop_back();
 }
 
 
 void Fetcher::pushToVBuffer() {
     // Push to video buffer 
-    Pixel pixel = FIFO.back();
-    FIFO.pop_back();
+    Pixel pixel = FIFO.front();
+    FIFO.erase(FIFO.begin());
 
     // BGP contains four 2bit values
-    unsigned char paletteIndex = (*BGP >> (pixel.color * 2)) & 3;
+    // TODO: Choose palette
+
+    unsigned char paletteIndex;
+    if (!pixel.isObject) {
+        paletteIndex = (*BGP >> (pixel.color * 2)) & 3;
+    } else if (pixel.palette == 0) {
+        paletteIndex = (*OBP0 >> (pixel.color * 2)) & 3;
+    } else {
+        paletteIndex = (*OBP1 >> (pixel.color * 2)) & 3;
+    }
+
     sf::Color c = paletteOne[paletteIndex];
 
     videoBuffer[vBufferIndex] = c;

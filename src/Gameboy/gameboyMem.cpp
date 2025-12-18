@@ -18,8 +18,24 @@ unsigned char& GameboyMem::read(unsigned short int addr) {
 void GameboyMem::write(unsigned short int addr, unsigned char val) {
     mem[addr] = val;
 
-    if (addr == 0xFF50) {
-        printf("lol\n");
+    switch(addr) {
+        case 0xFF01:
+        case 0xFF02:
+            if (LOG_SERIAL) {
+                printf("SERIAL: %04x %d\n", val, val);
+            }
+            break;
+        case LCDC_ADDR:
+            // TODO: Start OAM here
+            break;
+        case 0xFF50:
+            if (val == 0) { return; }
+            break;
+
+            *PC = 0x100;
+            return;
+        default:
+            break;
     }
     if (addr == 0xFF50 && val != 0) {
         *PC = 0x100;

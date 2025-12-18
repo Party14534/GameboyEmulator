@@ -12,7 +12,18 @@ Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom) :
 
     if (!bootRom) { 
         mem.write(0xFF50, 1);
-        PC = 0;
+
+        // Correct state after boot rom
+        r.registers[A] = 0x01;
+        r.registers[F] = 0xB0;
+        r.registers[B] = 0x00;
+        r.registers[C] = 0x13;
+        r.registers[D] = 0x00;
+        r.registers[E] = 0xD8;
+        r.registers[H] = 0x01;
+        r.registers[L] = 0x4D;
+        SP = 0xFFFE;
+        PC = 0x100;
     }
 
     IE = &mem.read(0xFFFF);
@@ -48,11 +59,16 @@ void Gameboy::writeBootRom() {
 }
 
 void Gameboy::writeRom() {
-    std::ifstream file ("../roms/tetris.gb", std::ios::binary);
+    std::ifstream file ("../tests/dmg-acid2.gb", std::ios::binary);
+    //std::ifstream file ("../roms/tetris.gb", std::ios::binary);
+    if (!file.good()) { 
+        printf("file doesn't exist\n");
+        exit(1);
+    }
     std::stringstream buff;
     buff << file.rdbuf();
 
-    int i = 0x100;
+    int i = 0x000;
     for (unsigned char byte : buff.str()) {
         mem.write(i, byte);
         i++;
@@ -61,6 +77,21 @@ void Gameboy::writeRom() {
 }
 
 void Gameboy::FDE() {
+    if (DOCTOR_LOGGING) {
+        printf("A:%02x F:%02x B:%02x C:%02x D:%02x E:%02x H:%02x L:%02x SP:%04x PC:%04x PCMEM:%02x,%02x,%02x,%02x\n",
+                r.registers[A], 
+                r.registers[F],
+                r.registers[B],
+                r.registers[C],
+                r.registers[D],
+                r.registers[E],
+                r.registers[H],
+                r.registers[L],
+                SP, PC,
+                mem.read(PC), mem.read(PC+1), mem.read(PC+2),
+                mem.read(PC+3));
+    }
+
     unsigned char instruction = fetch();
 
     decode(instruction);
@@ -433,8 +464,9 @@ void Gameboy::call7XInstructions(unsigned char secondHalfByte) {
         return;
     } else if (secondHalfByte == 0x06) { 
         if(LOGGING) printf("HALT\n");
-        printf("Haven't implemented HALT %02x %d\n", PC, PC);
-        exit(1);
+        PC--;
+        //printf("Haven't implemented HALT %02x %d\n", PC, PC);
+        //exit(1);
         return; // TODO: Implement HALT
     }
 
@@ -604,7 +636,7 @@ void Gameboy::callDXInstructions(unsigned char secondHalfByte) {
             restart(0x18);
             break;
         default:
-            printf("Error: D unknown opcode %04x\n", secondHalfByte);
+            printf("Error: D unknown opcode %04x PC %04x:%d\n", secondHalfByte, PC, PC);
             exit(1);
     }
 }
