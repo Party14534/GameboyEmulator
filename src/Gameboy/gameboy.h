@@ -266,7 +266,7 @@ struct Gameboy {
     /*
      * Function Definitions
      */
-    Gameboy(std::string _romPath, sf::Vector2u winSize = {160, 144}, bool bootRom = false);
+    Gameboy(std::string _romPath, sf::Vector2u winSize = {160, 144}, bool bootRom = false, bool testing = false);
     void writeBootRom();
     void writeRom();
     void FDE();

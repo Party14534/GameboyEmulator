@@ -2,14 +2,14 @@
 #include "../../src/Gameboy/gameboy.h"
 
 TEST(CallFunctionTest, HappyPath) {
-    Gameboy g("");
+    Gameboy g("", {0,0}, false, true);
 
     // Set instruction
-    g.mem.write(0x0110, 0xCD);
+    g.mem.mem[0x0110] = 0xCD;
 
     // Memory location
-    g.mem.write(0x0111, 0xAF);
-    g.mem.write(0x0112, 0xFB);
+    g.mem.mem[0x0111] = 0xAF;
+    g.mem.mem[0x0112] = 0xFB;
 
     // Set SP
     g.SP = 0x0055;

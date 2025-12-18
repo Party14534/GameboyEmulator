@@ -3,6 +3,7 @@
 // 2 cycles
 void Gameboy::incRegisterPair(RegisterPair pair, short int amount) {
     unsigned short int val;
+    printf("Here BC\n");
     switch (pair) {
         case AF:
             printf("Error: Cannot inc AF");
@@ -13,6 +14,7 @@ void Gameboy::incRegisterPair(RegisterPair pair, short int amount) {
             val = r.getBC();
             val += amount;
             r.setBC(val);
+            printf("Here BC\n");
             break;
         case DE:
             if (LOGGING) printf("INC REGISTER PAIR DE BY %d\n", amount);

@@ -1,11 +1,17 @@
 #include "gameboy.h"
 
-Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom) : 
+Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom, bool testing) : 
     romPath(_romPath),
     mem(PC), // 65535
     ppu(mem, winSize)
 {
     r.registers = std::vector<unsigned char>(8);
+
+    // Used for unit tests
+    if (testing) { 
+        mem.mem[0xFF50] = 1;
+        return; 
+    }
     
     writeRom();
     writeBootRom();
@@ -37,10 +43,7 @@ Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom) :
 }
 
 void Gameboy::writeBootRom() {
-    printf("Writing boot rom\n");
     std::ifstream file ("../src/res/dmg_boot.bin", std::ios::binary);
-    printf("%ld\n", file.gcount());
-    
 
     // Read entire file into vector
     mem.bootRomMem.assign(std::istreambuf_iterator<char>(file),
@@ -59,12 +62,14 @@ void Gameboy::writeBootRom() {
 }
 
 void Gameboy::writeRom() {
-    std::ifstream file ("../tests/dmg-acid2.gb", std::ios::binary);
+    //std::ifstream file ("../tests/dmg-acid2.gb", std::ios::binary);
+    std::ifstream file ("../tests/01-special.gb", std::ios::binary);
     //std::ifstream file ("../roms/tetris.gb", std::ios::binary);
     if (!file.good()) { 
         printf("file doesn't exist\n");
         exit(1);
     }
+
     std::stringstream buff;
     buff << file.rdbuf();
 
@@ -73,7 +78,6 @@ void Gameboy::writeRom() {
         mem.write(i, byte);
         i++;
     }
-    printf("%d\n", i);
 }
 
 void Gameboy::FDE() {
@@ -208,6 +212,7 @@ RegisterIndex Gameboy::byteToIndex(unsigned char secondHalfByte) {
  * Instruction calling
  */
 void Gameboy::call0XInstructions(unsigned char secondHalfByte) {
+    printf("%d\n", secondHalfByte);
     switch (secondHalfByte) {
         case 0x00:
             if (LOGGING) printf("NOOP\n");

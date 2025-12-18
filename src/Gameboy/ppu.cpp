@@ -104,7 +104,6 @@ void PPU::DoVBlank() {
     if (cycles == 456) {
         cycles = 0;
         if (*LY == 0) {
-            printf("We made it\n");
             oam.start();
             readyToDraw = true;
             state = OAMSearch;
@@ -122,7 +121,7 @@ void PPU::OAMScan() {
         unsigned short int tileLine = y % 8;
         unsigned short int baseAddr = 0x9800;
         unsigned char tileOffset = *SCX / 8;
-        if (*LCDC & LCDCBGTileMapDisplaySelect) {
+        if ((*LCDC & LCDCBGTileMapDisplaySelect) != 0) {
             baseAddr = 0x9C00;
         }
         unsigned short int tileMapRowAddr = baseAddr + ((y / 8) * 32);
@@ -159,7 +158,7 @@ void PPU::TransferPixels() {
 
     // Window
     if (!drawWindow && (*LCDC & LCDCWindowDisplayEnable) > 0 && 
-            *LY >= *WY && x + 7 >= *WX && (*LCDC & LCDCBGDisplay) != 0) {
+            *LY >= *WY && x + 7 >= *WX) {
         drawWindow = true;
         pixelsToDrop = 0;
 
@@ -183,7 +182,7 @@ void PPU::TransferPixels() {
     }
 
     // Sprites
-    if ((*LCDC & LCDCSpriteDisplayEnable) != 0) {
+    //if ((*LCDC & LCDCSpriteDisplayEnable) != 0) {
         for (auto& obj : oam.objects) {
             if (obj.fetched) { 
                 continue; 
@@ -204,7 +203,7 @@ void PPU::TransferPixels() {
                 return;
             }
         }
-    }
+    //}
 
     x++;
     fetcher.pushToVBuffer();

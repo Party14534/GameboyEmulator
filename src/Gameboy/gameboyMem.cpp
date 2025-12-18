@@ -12,6 +12,10 @@ unsigned char& GameboyMem::read(unsigned short int addr) {
         return bootRomMem[addr];
     }
 
+    if (DOCTOR_LOGGING && addr == LY_ADDR) {
+        mem[addr] = 0x90;
+    }
+
     return mem[addr];
 }
 
@@ -26,7 +30,7 @@ void GameboyMem::write(unsigned short int addr, unsigned char val) {
             }
             break;
         case LCDC_ADDR:
-            // TODO: Start OAM here
+            printf("%x\n", val);
             break;
         case 0xFF50:
             if (val == 0) { return; }

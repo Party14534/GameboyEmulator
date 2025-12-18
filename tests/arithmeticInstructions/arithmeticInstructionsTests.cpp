@@ -3,10 +3,10 @@
 #include "../../src/Gameboy/gameboy.h"
 
 TEST(AdditionTest, HandlesHappyPath) {
-    Gameboy g("");
+    Gameboy g("", {0,0}, false, true);
 
     // Set instruction
-    g.mem.write(0x0000, 0x80);
+    g.mem.mem[0x0000] = 0x80;
 
     // Set register values
     g.r.registers[RegisterIndex::A] = 0x0010;
@@ -26,10 +26,10 @@ TEST(AdditionTest, HandlesHappyPath) {
 }
 
 TEST(AdditionTest, HandlesHalfCarryPath) {
-    Gameboy g("");
+    Gameboy g("", {0,0}, false, true);
 
     // Set instruction
-    g.mem.write(0x0000, 0x80);
+    g.mem.mem[0x0000] = 0x80;
 
     // Set register values
     g.r.registers[RegisterIndex::A] = (unsigned char)62;
@@ -49,10 +49,10 @@ TEST(AdditionTest, HandlesHalfCarryPath) {
 }
 
 TEST(AdditionTest, HandlesCarryPath) {
-    Gameboy g("");
+    Gameboy g("", {0,0}, false, true);
 
     // Set instruction
-    g.mem.write(0x0000, 0x80);
+    g.mem.mem[0x0000] = 0x80;
 
     // Set register values
     g.r.registers[RegisterIndex::A] = 0xF0;
@@ -75,10 +75,10 @@ TEST(AdditionTest, HandlesCarryPath) {
 }
 
 TEST(IncTest, HandlesHappyPath) {
-    Gameboy g("");
+    Gameboy g("", {0,0}, false, true);
 
     // Set instruction
-    g.mem.write(0x0000, 0x04);
+    g.mem.mem[0x0000] = 0x04;
 
     // Set register values
     g.r.registers[RegisterIndex::B] = 0x10;
@@ -96,10 +96,10 @@ TEST(IncTest, HandlesHappyPath) {
 }
 
 TEST(IncTest, HandlesZeroAndCarryPath) {
-    Gameboy g("");
+    Gameboy g("", {0,0}, false, true);
 
     // Set instruction
-    g.mem.write(0x0000, 0x04);
+    g.mem.mem[0x0000] = 0x04;
 
     // Set register values
     g.r.registers[RegisterIndex::B] = 0xFF;
@@ -117,10 +117,10 @@ TEST(IncTest, HandlesZeroAndCarryPath) {
 }
 
 TEST(DecTest, HandlesHappyPath) {
-    Gameboy g("");
+    Gameboy g("", {0,0}, false, true);
 
     // Set instruction
-    g.mem.write(0x0000, 0x05);
+    g.mem.mem[0x0000] = 0x05;
 
     // Set register values
     g.r.registers[RegisterIndex::B] = 0x0F;
@@ -138,10 +138,10 @@ TEST(DecTest, HandlesHappyPath) {
 }
 
 TEST(DecTest, HandlesZeroPath) {
-    Gameboy g("");
+    Gameboy g("", {0,0}, false, true);
 
     // Set instruction
-    g.mem.write(0x0000, 0x05);
+    g.mem.mem[0x0000] = 0x05;
 
     // Set register values
     g.r.registers[RegisterIndex::B] = 0x01;
@@ -163,10 +163,10 @@ TEST(DecTest, HandlesZeroPath) {
  */
 
 TEST(OrTest, HappyPath) {
-    Gameboy g("");
+    Gameboy g("", {0,0}, false, true);
 
     // Set instruction
-    g.mem.write(0x0000, 0xB0);
+    g.mem.mem[0x0000] = 0xB0;
 
     // Set register values
     g.r.registers[RegisterIndex::A] = 0xF0;
@@ -186,10 +186,10 @@ TEST(OrTest, HappyPath) {
 }
 
 TEST(OrTest, ZeroPath) {
-    Gameboy g("");
+    Gameboy g("", {0,0}, false, true);
 
     // Set instruction
-    g.mem.write(0x0000, 0xB0);
+    g.mem.mem[0x0000] = 0xB0;
 
     // Set register values
     g.r.registers[RegisterIndex::A] = 0x00;
@@ -209,10 +209,10 @@ TEST(OrTest, ZeroPath) {
 }
 
 TEST(CompareNTest, HappyPath) {
-    Gameboy g("");
+    Gameboy g("", {0,0}, false, true);
 
     // Set instruction
-    g.mem.write(0x0000, 0xFE); // CP n
+    g.mem.mem[0x0000] = 0xFE; // CP n
 
     // Set register values
     g.r.registers[A] = 0x01;
@@ -233,10 +233,10 @@ TEST(CompareNTest, HappyPath) {
 }
 
 TEST(CompareNTest, ZeroPath) {
-    Gameboy g("");
+    Gameboy g("", {0,0}, false, true);
 
     // Set instruction
-    g.mem.write(0x0000, 0xFE); // CP n
+    g.mem.mem[0x0000] = 0xFE; // CP n
 
     // Set register values
     g.r.registers[A] = 0x01;

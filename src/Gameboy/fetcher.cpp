@@ -1,5 +1,4 @@
 #include "gameboy.h"
-#include <algorithm>
 
 Fetcher::Fetcher(GameboyMem& _mem) : mem(_mem) { }
 
@@ -46,6 +45,7 @@ void Fetcher::Tick() {
     }
     cycles = 0;
     unsigned char flags;
+    unsigned char adjustedLine;
 
     switch (state) {
         case ReadTileID:
@@ -82,36 +82,26 @@ void Fetcher::Tick() {
             object.attributes.palette = (flags & (1 << 4)) != 0;
             object.attributes.bank = (flags & (1 << 3)) != 0;
 
-            state = ReadObjectData0;
-
-            /*
-            if (oamState.flipY) {
-                tileLine = 7 - tileLine;
-            }*/
-
-            // In 8×16 mode (LCDC bit 2 = 1), the memory area at $8000-$8FFF is
-            // still interpreted as a series of 8×8 tiles, where every 2 tiles form
-            // an object. In this mode, this byte specifies the index of the first
-            // (top) tile of the object. This is enforced by the hardware: the least
-            // significant bit of the tile index is ignored; that is, the top 8×8
-            // tile is “NN & $FE”, and the bottom 8×8 tile is “NN | $01”.
+            adjustedLine = objectLine;
             if ((mem.read(LCDC_ADDR) & 4) != 0) {
-                if (objectLine < 8) {
-                    if (object.attributes.flipY) {
-                        objectId |= 1;
-                    } else {
-                        objectId &= 0xfe;
-                    }
-                } else {
-                    if (object.attributes.flipY) {
-                        objectId &= 0xfe;
-                    } else {
-                        objectId |= 1;
-                    }
-                    objectLine -= 8;
+                if (object.attributes.flipY) {
+                    adjustedLine = 15 - objectLine;
                 }
+
+                // Now select tile based on adjusted line
+                if (adjustedLine < 8) {
+                    objectId &= 0xfe;  // Top tile
+                } else {
+                    objectId |= 1;     // Bottom tile
+                    adjustedLine -= 8;
+                }
+
+                objectLine = adjustedLine;
+            } else if (object.attributes.flipY) {
+                objectLine = 7 - objectLine;
             }
 
+            state = ReadObjectData0;
             break;
 
         case ReadObjectData0:
@@ -141,7 +131,7 @@ void Fetcher::readTileData(unsigned short int addrOffset) {
         } else {
             //printf("Dont works\n");
         }
-        offset = dataAddr +(static_cast<signed char>(tileID) * 16);
+        offset = dataAddr + (static_cast<signed char>(tileID) * 16);
     } else {
         offset = dataAddr + (tileID * 16);
     }
@@ -164,10 +154,6 @@ void Fetcher::readTileData(unsigned short int addrOffset) {
 void Fetcher::readObjectData(unsigned short int addrOffset) {
     unsigned char objHeight = 8;
     if ((mem.read(LCDC_ADDR) & 4) != 0) { objHeight = 16; }
-
-    if (object.attributes.flipY) {
-        objectLine = objHeight - 1 - objectLine; 
-    }
 
     // A tile's graphical data takes 16 bytes so we compute an offset
     // to find data for desired tile is
@@ -211,7 +197,7 @@ void Fetcher::MixInFifo() {
         unsigned char index = size - offset - 1;
         Pixel current = FIFO[index];
 
-        if (pixel.color == 0) {
+        if (pixel.color == 0 || (mem.read(LCDC_ADDR) & 2) == 0) {
             continue;
         }
 
@@ -234,6 +220,7 @@ void Fetcher::pushToFIFO() {
         p.color = tileData[i];
         p.palette = 0;
         p.priority = false;
+        p.isObject = false;
 
         if ((mem.read(LCDC_ADDR) & 1) == 0) { // BG/WINDOW enable
             p.color = 0;

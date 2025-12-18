@@ -2,11 +2,11 @@
 #include "../../src/Gameboy/gameboy.h"
 
 TEST(JumpNZTest, HandlesHappyPath) {
-    Gameboy g("");
+    Gameboy g("", {0,0}, false, true);
 
     // Set instruction
-    g.mem.write(0x0000, 0x20);
-    g.mem.write(0x0001, 20);
+    g.mem.mem[0x0000] = 0x20;
+    g.mem.mem[0x0001] = 20;
 
     g.r.zero = false;
 
@@ -18,12 +18,12 @@ TEST(JumpNZTest, HandlesHappyPath) {
 }
 
 TEST(JumpNCTest, HandlesHappyPath) {
-    Gameboy g("");
+    Gameboy g("", {0,0}, false, true);
 
     // Set instruction
     g.PC = 18;
-    g.mem.write(18, 0x30);
-    g.mem.write(19, -20);
+    g.mem.mem[18] = 0x30;
+    g.mem.mem[19] = -20;
 
     g.r.carry = false;
 
@@ -35,11 +35,11 @@ TEST(JumpNCTest, HandlesHappyPath) {
 }
 
 TEST(JumpZTest, HandlesHappyPath) {
-    Gameboy g("");
+    Gameboy g("", {0,0}, false, true);
 
     // Set instruction
-    g.mem.write(0x0000, 0x28);
-    g.mem.write(0x0001, 20);
+    g.mem.mem[0x0000] = 0x28;
+    g.mem.mem[0x0001] = 20;
 
     g.r.zero = true;
 
@@ -51,12 +51,12 @@ TEST(JumpZTest, HandlesHappyPath) {
 }
 
 TEST(JumpCTest, HandlesHappyPath) {
-    Gameboy g("");
+    Gameboy g("", {0,0}, false, true);
 
     // Set instruction
     g.PC = 18;
-    g.mem.write(18, 0x38);
-    g.mem.write(19, -20);
+    g.mem.mem[18] = 0x38;
+    g.mem.mem[19] = -20;
 
     g.r.carry = false;
 
