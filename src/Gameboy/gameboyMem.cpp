@@ -30,7 +30,6 @@ void GameboyMem::write(unsigned short int addr, unsigned char val) {
             }
             break;
         case LCDC_ADDR:
-            printf("%x\n", val);
             break;
         case 0xFF50:
             if (val == 0) { return; }

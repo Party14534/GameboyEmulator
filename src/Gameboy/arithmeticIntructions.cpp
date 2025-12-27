@@ -63,7 +63,9 @@ void Gameboy::addImmediate(bool carry) {
     unsigned char value = mem.read(PC);
     PC++;
 
-    value += carry;
+    if (carry) {
+        value += r.carry;
+    }
 
     unsigned char oldVal = r.registers[RegisterIndex::A];
     r.registers[RegisterIndex::A] += value;
@@ -168,6 +170,7 @@ void Gameboy::subtractImmediate(bool carry) {
 
 // Misc arithmetic functions
 
+// 1 Cycle
 void Gameboy::incRegister(RegisterIndex target, char val) {
     unsigned char oldVal = r.registers[target];
 
@@ -215,6 +218,7 @@ void Gameboy::incMemory(char val) {
     // than 0xF then the addition caused a carry from the lower nibble to the
     // upper nibble.
     if (val < 0) {
+        val *= -1;
         r.halfCarry = (((oldVal & 0x0F) - (val & 0x0F)) & 0x10);
     } else {
         r.halfCarry = (((oldVal & 0x0F) + (val & 0x0F)) > 0x0F);
@@ -440,7 +444,7 @@ void Gameboy::compareN() {
 }
 
 void Gameboy::DAA() {
-    unsigned char offset;
+    signed char offset = 0;
     unsigned char oldVal = r.registers[A];
 
     if ((!r.subtract && (oldVal & 0x0F) > 0x09) || r.halfCarry) {
@@ -449,11 +453,20 @@ void Gameboy::DAA() {
 
     if ((!r.subtract && oldVal > 0x99) || r.carry) {
         offset |= 0x60;
+        r.carry = true;
     }
 
-    r.registers[A] += (r.subtract * -1) * offset;
+    if (r.subtract) {
+        oldVal -= offset;
+    } else {
+        oldVal += offset;
+    }
+    oldVal &= 0xff;
 
-    r.zero = oldVal == 0;
+    r.registers[A] = oldVal;
+
+    r.zero = (oldVal == 0);
     r.halfCarry = 0;
-    r.carry = (oldVal > r.registers[A]);
+
+    r.modifiedFlags = true;
 }

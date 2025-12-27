@@ -16,7 +16,7 @@
 #define LOGGING false
 #define DOCTOR_LOGGING false
 #define LOG_SERIAL false
-#define LOGFLAGS true
+#define LOGFLAGS false
 #define WRITEHEADER true
 #define LY_ADDR 0xFF44
 #define LCDC_ADDR 0xFF40

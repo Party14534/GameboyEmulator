@@ -37,16 +37,30 @@ void Gameboy::callNN(Flag flag, bool notFlag) {
 
     if (LOGGING) printf("CALL FUNCTION: ");
     switch (flag) {
-        case Flag::CF:
-            if (r.carry == notFlag) {
-                if (LOGGING) printf("RET FUNCTION: C DID NOT RETURN\n");
-                return;
+        case ZF:
+            if (notFlag) {
+                if (r.zero) {
+                    if (LOGGING) printf("JUMP FUNCTION: Z DID NOT RETURN\n");
+                    return;
+                }
+            } else {
+                if (!r.zero) {
+                    if (LOGGING) printf("JUMP FUNCTION: Z DID NOT RETURN\n");
+                    return;
+                }
             }
             break;
-        case Flag::ZF:
-            if (r.zero == notFlag) {
-                if (LOGGING) printf("RET FUNCTION: Z DID NOT RETURN\n");
-                return;
+        case CF:
+            if (notFlag) {
+                if (r.carry) {
+                    if (LOGGING) printf("JUMP FUNCTION: C DID NOT RETURN\n");
+                    return;
+                }
+            } else {
+                if (!r.carry) {
+                    if (LOGGING) printf("JUMP FUNCTION: C DID NOT RETURN\n");
+                    return;
+                }
             }
             break;
         default:
@@ -72,15 +86,29 @@ void Gameboy::ret(std::optional<Flag> flag, bool notFlag) {
     if (flag.has_value()) {
         switch (flag.value()) {
             case ZF:
-                if (r.zero == notFlag) {
-                    if (LOGGING) printf("RET FUNCTION: Z DID NOT RETURN\n");
-                    return;
+                if (notFlag) {
+                    if (r.zero) {
+                        if (LOGGING) printf("JUMP FUNCTION: Z DID NOT RETURN\n");
+                        return;
+                    }
+                } else {
+                    if (!r.zero) {
+                        if (LOGGING) printf("JUMP FUNCTION: Z DID NOT RETURN\n");
+                        return;
+                    }
                 }
                 break;
             case CF:
-                if (r.carry == notFlag) {
-                    if (LOGGING) printf("RET FUNCTION: C DID NOT RETURN\n");
-                    return;
+                if (notFlag) {
+                    if (r.carry) {
+                        if (LOGGING) printf("JUMP FUNCTION: C DID NOT RETURN\n");
+                        return;
+                    }
+                } else {
+                    if (!r.carry) {
+                        if (LOGGING) printf("JUMP FUNCTION: C DID NOT RETURN\n");
+                        return;
+                    }
                 }
                 break;
             default:
@@ -121,15 +149,33 @@ void Gameboy::jumpNN(std::optional<Flag> flag, bool notFlag) {
     if (flag.has_value()) {
         switch (flag.value()) {
             case ZF:
-                if (r.zero == notFlag) {
-                    if (LOGGING) printf("JUMP FUNCTION: Z DID NOT RETURN\n");
-                    return;
+                if (notFlag) {
+                    if (r.zero) {
+                        PC += 2;
+                        if (LOGGING) printf("JUMP FUNCTION: Z DID NOT RETURN\n");
+                        return;
+                    }
+                } else {
+                    if (!r.zero) {
+                        PC += 2;
+                        if (LOGGING) printf("JUMP FUNCTION: Z DID NOT RETURN\n");
+                        return;
+                    }
                 }
                 break;
             case CF:
-                if (r.carry == notFlag) {
-                    if (LOGGING) printf("JUMP FUNCTION: C DID NOT RETURN\n");
-                    return;
+                if (notFlag) {
+                    if (r.carry) {
+                        PC += 2;
+                        if (LOGGING) printf("JUMP FUNCTION: C DID NOT RETURN\n");
+                        return;
+                    }
+                } else {
+                    if (!r.carry) {
+                        PC += 2;
+                        if (LOGGING) printf("JUMP FUNCTION: C DID NOT RETURN\n");
+                        return;
+                    }
                 }
                 break;
             default:

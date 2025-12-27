@@ -3,7 +3,6 @@
 // 2 cycles
 void Gameboy::incRegisterPair(RegisterPair pair, short int amount) {
     unsigned short int val;
-    printf("Here BC\n");
     switch (pair) {
         case AF:
             printf("Error: Cannot inc AF");
@@ -14,7 +13,6 @@ void Gameboy::incRegisterPair(RegisterPair pair, short int amount) {
             val = r.getBC();
             val += amount;
             r.setBC(val);
-            printf("Here BC\n");
             break;
         case DE:
             if (LOGGING) printf("INC REGISTER PAIR DE BY %d\n", amount);
@@ -81,7 +79,7 @@ void Gameboy::addRegisterPairs(RegisterPair target, RegisterPair source) {
 
     r.subtract = 0;
     r.carry = (oldVal > result);
-    r.halfCarry = (((oldVal & 0x0F) + (val & 0x0F)) > 0x0F);
+    r.halfCarry = (((oldVal & 0xFFF) + (val & 0xFFF)) > 0xFFF);
     r.modifiedFlags = true;
 
     r.setHL(result);
@@ -96,7 +94,7 @@ void Gameboy::addImmediateAndSPToHL() {
     
     r.zero = 0;
     r.subtract = 0;
-    r.halfCarry = (((oldVal & 0x0F) + (e & 0x0F)) > 0x0F);
+    r.halfCarry = (((oldVal & 0xFFF) + (e & 0xFFF)) > 0xFFF);
     r.carry = (oldVal > result);
     r.modifiedFlags = true;
 

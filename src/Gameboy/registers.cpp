@@ -20,7 +20,7 @@ void Registers::setF() {
 // 16 bit functions
 void Registers::setAF(short unsigned int val) {
     registers[RegisterIndex::A] = (0xFF00 & val) >> 8;
-    registers[RegisterIndex::F] = 0x00FF & val;
+    registers[RegisterIndex::F] = 0x00F0 & val; // F register has no lower nibble
 
     // Set the boolean flags after setting F register
     setFlags();

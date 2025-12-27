@@ -30,6 +30,7 @@ Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom, bool 
         r.registers[L] = 0x4D;
         SP = 0xFFFE;
         PC = 0x100;
+        r.setFlags();
     }
 
     IE = &mem.read(0xFFFF);
@@ -40,6 +41,21 @@ Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom, bool 
         sf::Color(48, 98, 48),
         sf::Color(15, 56, 15)
     };
+
+    if (DOCTOR_LOGGING) {
+        printf("A:%02x F:%02x B:%02x C:%02x D:%02x E:%02x H:%02x L:%02x SP:%04x PC:%04x PCMEM:%02x,%02x,%02x,%02x\n",
+                r.registers[A], 
+                r.registers[F],
+                r.registers[B],
+                r.registers[C],
+                r.registers[D],
+                r.registers[E],
+                r.registers[H],
+                r.registers[L],
+                SP, PC,
+                mem.read(PC), mem.read(PC+1), mem.read(PC+2),
+                mem.read(PC+3));
+    }
 }
 
 void Gameboy::writeBootRom() {
@@ -62,8 +78,8 @@ void Gameboy::writeBootRom() {
 }
 
 void Gameboy::writeRom() {
-    //std::ifstream file ("../tests/dmg-acid2.gb", std::ios::binary);
-    std::ifstream file ("../tests/01-special.gb", std::ios::binary);
+    std::ifstream file ("../tests/dmg-acid2.gb", std::ios::binary);
+    //std::ifstream file ("../tests/01-special.gb", std::ios::binary);
     //std::ifstream file ("../roms/tetris.gb", std::ios::binary);
     if (!file.good()) { 
         printf("file doesn't exist\n");
@@ -81,6 +97,17 @@ void Gameboy::writeRom() {
 }
 
 void Gameboy::FDE() {
+
+    unsigned char instruction = fetch();
+
+    decode(instruction);
+
+    if (r.modifiedFlags) { r.setF(); }
+    r.modifiedFlags = false;
+
+    if(LOGFLAGS && LOGGING) printf("zero: %d, sub: %d, half: %d, carry: %d\n",
+            r.zero, r.subtract, r.halfCarry, r.carry);
+
     if (DOCTOR_LOGGING) {
         printf("A:%02x F:%02x B:%02x C:%02x D:%02x E:%02x H:%02x L:%02x SP:%04x PC:%04x PCMEM:%02x,%02x,%02x,%02x\n",
                 r.registers[A], 
@@ -95,16 +122,6 @@ void Gameboy::FDE() {
                 mem.read(PC), mem.read(PC+1), mem.read(PC+2),
                 mem.read(PC+3));
     }
-
-    unsigned char instruction = fetch();
-
-    decode(instruction);
-
-    if (r.modifiedFlags) { r.setF(); }
-    r.modifiedFlags = false;
-
-    if(LOGFLAGS && LOGGING) printf("zero: %d, sub: %d, half: %d, carry: %d\n",
-            r.zero, r.subtract, r.halfCarry, r.carry);
 }
 
 unsigned char Gameboy::fetch() {
@@ -212,7 +229,6 @@ RegisterIndex Gameboy::byteToIndex(unsigned char secondHalfByte) {
  * Instruction calling
  */
 void Gameboy::call0XInstructions(unsigned char secondHalfByte) {
-    printf("%d\n", secondHalfByte);
     switch (secondHalfByte) {
         case 0x00:
             if (LOGGING) printf("NOOP\n");
@@ -319,6 +335,7 @@ void Gameboy::call1XInstructions(unsigned char secondHalfByte) {
             break;
         case 0x0F:
             rotateRegisterRight(A);
+            r.zero = 0;
             break;
         default:
             printf("Error: 1 unknown opcode %04x\n", secondHalfByte);
@@ -445,6 +462,10 @@ void Gameboy::call4X6XInstructions(RegisterIndex target, unsigned char secondHal
     RegisterIndex value = byteToIndex(secondHalfByte);
     
     if (value == RegisterIndex::F) {
+        if (secondHalfByte > 0x07) {
+            target = (RegisterIndex)((int)target + 1);
+        }
+
         loadFromMemory(target);
         return;
     }
