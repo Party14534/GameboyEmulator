@@ -271,7 +271,10 @@ struct Gameboy {
     unsigned char R = 0; // Memory Refresh register
     unsigned char* IE = 0; // Interrupt Enable 0xFFFF
     bool IME = false;
+    bool testing = false;
     Registers r;
+
+    unsigned short int cycles;
 
     // Emulator variables
     std::string romPath;
@@ -281,7 +284,7 @@ struct Gameboy {
     /*
      * Function Definitions
      */
-    Gameboy(std::string _romPath, sf::Vector2u winSize = {160, 144}, bool bootRom = false, bool testing = false);
+    Gameboy(std::string _romPath, sf::Vector2u winSize = {160, 144}, bool bootRom = false, bool _testing = false);
     void writeBootRom();
     void writeRom();
     void FDE();
@@ -355,6 +358,7 @@ struct Gameboy {
     void addImmediate(bool carry);
     void subtractImmediate(bool carry);
     void bitwiseOrImmediate();
+    void addEToSP();
 
     // 16bit arithmetic
     void incRegisterPair(RegisterPair pair, short int val);
@@ -381,9 +385,13 @@ struct Gameboy {
     RegisterIndex operandToIndex(unsigned char op);
     void rotateRegisterLeft(RegisterIndex target);
     void rotateRegisterRight(RegisterIndex target);
+    void rotateRegisterLeftHL();
+    void rotateRegisterRightHL();
 
     void RLC(RegisterIndex target);
     void RRC(RegisterIndex target);
+    void RLCHL();
+    void RRCHL();
     void bit(RegisterIndex target, unsigned short int bitOffset);
     void swap(RegisterIndex target);
     void srl(RegisterIndex target);

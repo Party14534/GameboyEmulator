@@ -1,6 +1,7 @@
 #include "gameboy.h"
 
-Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom, bool testing) : 
+Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom, bool _testing) : 
+    testing(_testing),
     romPath(_romPath),
     mem(PC), // 65535
     ppu(mem, winSize)
@@ -79,7 +80,7 @@ void Gameboy::writeBootRom() {
 
 void Gameboy::writeRom() {
     std::ifstream file ("../tests/dmg-acid2.gb", std::ios::binary);
-    //std::ifstream file ("../tests/01-special.gb", std::ios::binary);
+    //std::ifstream file ("../tests/04.gb", std::ios::binary);
     //std::ifstream file ("../roms/tetris.gb", std::ios::binary);
     if (!file.good()) { 
         printf("file doesn't exist\n");
@@ -97,6 +98,9 @@ void Gameboy::writeRom() {
 }
 
 void Gameboy::FDE() {
+    cycles--;
+    if (cycles > 0 && !testing) { return; }
+
     unsigned char instruction = fetch();
 
     decode(instruction);
@@ -165,6 +169,7 @@ void Gameboy::FDE() {
         }
 
         PC = addr;
+        cycles += 20;
         // TODO I think there's other stuff
         // IE handling takes 20 cycles
     }
@@ -279,51 +284,67 @@ void Gameboy::call0XInstructions(unsigned char secondHalfByte) {
         case 0x00:
             if (LOGGING) printf("NOOP\n");
             // NO-OP
+            cycles = 1;
             break;
         case 0x01:
             loadToRegisterPair(BC);
+            cycles = 3;
             break;
         case 0x02:
             loadFromAcc(BC, false);
+            cycles = 2;
             break;
         case 0x03:
             incRegisterPair(RegisterPair::BC, 1);            
+            cycles = 2;
             break;
         case 0x04:
             incRegister(RegisterIndex::B, 1);
+            cycles = 1;
             break;
         case 0x05:
             incRegister(RegisterIndex::B, -1);
+            cycles = 1;
             break;
         case 0x06:
             loadToRegister(B);
+            cycles = 2;
             break;
         case 0x07:
             RLC(A);
+            cycles = 1;
             break;
         case 0x08:
             loadFromStack();
+            cycles = 5;
             break;
         case 0x09:
             addRegisterPairs(RegisterPair::HL, RegisterPair::BC);
+            cycles = 2;
             break;
         case 0x0A:
             loadToAcc(RegisterPair::BC, 0);
+            cycles = 2;
             break;
         case 0x0B:
             incRegisterPair(RegisterPair::BC, -1);
+            cycles = 2;
             break;
         case 0x0C:
             incRegister(RegisterIndex::C, 1);
+            cycles = 1;
             break;
         case 0x0D:
             incRegister(RegisterIndex::C, -1);
+            cycles = 1;
             break;
         case 0x0E:
             loadToRegister(C);
+            cycles = 2;
             break;
         case 0x0F:
             RRC(A); 
+            cycles = 1;
             break;
         default:
             printf("Error: 0 unknown opcode %04x\n", secondHalfByte);
@@ -336,52 +357,68 @@ void Gameboy::call1XInstructions(unsigned char secondHalfByte) {
         case 0x00:
             IME = 0;
             // TODO: cancel any scheduled effects of EI if any
+            cycles = 1;
             break;
         case 0x01:
             loadToRegisterPair(DE);
+            cycles = 3;
             break;
         case 0x02:
             loadFromAcc(DE, false);
+            cycles = 2;
             break;
         case 0x03:
             incRegisterPair(RegisterPair::DE, 1);            
+            cycles = 2;
             break;
         case 0x04:
             incRegister(RegisterIndex::D, 1);
+            cycles = 1;
             break;
         case 0x05:
             incRegister(RegisterIndex::D, -1);
+            cycles = 1;
             break;
         case 0x06:
             loadToRegister(D);
+            cycles = 2;
             break;
         case 0x07:
             rotateRegisterLeft(A);
+            cycles = 1;
             break;
         case 0x08:
             relativeJump(TF, false);
+            cycles = 3;
             break;
         case 0x09:
             addRegisterPairs(RegisterPair::HL, RegisterPair::DE);
+            cycles = 2;
             break;
         case 0x0A:
             loadToAcc(RegisterPair::DE, 0);
+            cycles = 2;
             break;
         case 0x0B:
             incRegisterPair(RegisterPair::DE, -1);
+            cycles = 2;
             break;
         case 0x0C:
             incRegister(RegisterIndex::E, 1);
+            cycles = 1;
             break;
         case 0x0D:
             incRegister(RegisterIndex::E, -1);
+            cycles = 1;
             break;
         case 0x0E:
             loadToRegister(E);
+            cycles = 2;
             break;
         case 0x0F:
             rotateRegisterRight(A);
             r.zero = 0;
+            cycles = 1;
             break;
         default:
             printf("Error: 1 unknown opcode %04x\n", secondHalfByte);
@@ -393,54 +430,70 @@ void Gameboy::call2XInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
         case 0x00:
             relativeJump(ZF, true);
+            // Cycles set in function
             break;
         case 0x01:
             loadToRegisterPair(HL);
+            cycles = 3;
             break;
         case 0x02:
             loadFromAcc(HL, true);
+            cycles = 2;
             break;
         case 0x03:
             incRegisterPair(RegisterPair::HL, 1);            
+            cycles = 2;
             break;
         case 0x04:
             incRegister(RegisterIndex::H, 1);
+            cycles = 1;
             break;
         case 0x05:
             incRegister(RegisterIndex::H, -1);
+            cycles = 1;
             break;
         case 0x06:
             loadToRegister(H);
+            cycles = 2;
             break;
         case 0x07:
             DAA();
+            cycles = 1;
             break;
         case 0x08:
             relativeJump(ZF, false);
+            // Cycles set in function
             break;
         case 0x09:
             addRegisterPairs(RegisterPair::HL, RegisterPair::HL);
+            cycles = 2;
             break;
         case 0x0A:
             loadToAcc(RegisterPair::HL, 1);
+            cycles = 2;
             break;
         case 0x0B:
             incRegisterPair(RegisterPair::HL, -1);
+            cycles = 2;
             break;
         case 0x0C:
             incRegister(RegisterIndex::L, 1);
+            cycles = 1;
             break;
         case 0x0D:
             incRegister(RegisterIndex::L, -1);
+            cycles = 1;
             break;
         case 0x0E:
             loadToRegister(L);
+            cycles = 2;
             break;
         case 0x0F:
             r.registers[A] = ~r.registers[A];
             r.subtract = true;
             r.halfCarry = true;
             r.modifiedFlags = true;
+            cycles = 1;
             break;
         default:
             printf("Error: 2 unknown opcode %04x\n", secondHalfByte);
@@ -452,51 +505,72 @@ void Gameboy::call3XInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
         case 0x00:
             relativeJump(CF, true);
+            // Cycles set in function
             break;
         case 0x01:
             loadToRegisterPair(RegisterPair::SP);
+            cycles = 3;
             break;
         case 0x02:
             loadFromAcc(HL, false);
+            cycles = 2;
             break;
         case 0x03:
             incRegisterPair(RegisterPair::SP, 1);
+            cycles = 2;
             break;
         case 0x04:
             incMemory(1);
+            cycles = 3;
             break;
         case 0x05:
             incMemory(-1);
+            cycles = 3;
             break;
         case 0x06:
             loadImmediateDataToMemory();
+            cycles = 3;
+            break;
+        case 0x07:
+            r.subtract = 0;
+            r.halfCarry = 0;
+            r.carry = 1;
+            cycles = 1;
             break;
         case 0x08:
             relativeJump(CF, false);
+            // Cycles set in function
             break;
         case 0x09:
             addRegisterPairs(RegisterPair::HL, RegisterPair::SP);
+            cycles = 2;
             break;
         case 0x0A:
             loadToAcc(RegisterPair::HL, -1);
+            cycles = 2;
             break;
         case 0x0B:
             incRegisterPair(RegisterPair::SP, -1);
+            cycles = 2;
             break;
         case 0x0C:
             incRegister(RegisterIndex::A, 1);
+            cycles = 1;
             break;
         case 0x0D:
             incRegister(RegisterIndex::A, -1);
+            cycles = 1;
             break;
         case 0x0E:
             loadToRegister(A);
+            cycles = 2;
             break;
         case 0x0F:
             r.subtract = false;
             r.halfCarry = false;
             r.carry = !r.carry;
             r.modifiedFlags = true;
+            cycles = 1;
             break;
         default:
             printf("Error: 3 unknown opcode %04x\n", secondHalfByte);
@@ -513,6 +587,7 @@ void Gameboy::call4X6XInstructions(RegisterIndex target, unsigned char secondHal
         }
 
         loadFromMemory(target);
+        cycles = 2;
         return;
     }
 
@@ -521,6 +596,7 @@ void Gameboy::call4X6XInstructions(RegisterIndex target, unsigned char secondHal
     }
 
     load(target, value);
+    cycles = 1;
 }
 
 void Gameboy::call7XInstructions(unsigned char secondHalfByte) {
@@ -529,21 +605,25 @@ void Gameboy::call7XInstructions(unsigned char secondHalfByte) {
         
         if (value == RegisterIndex::F) {
             loadFromMemory(A);
+            cycles = 2;
             return;
         }
 
         load(A, value);
+        cycles = 1;
         return;
     } else if (secondHalfByte == 0x06) { 
         if(LOGGING) printf("HALT\n");
         PC--;
         //printf("Haven't implemented HALT %02x %d\n", PC, PC);
         //exit(1);
+        cycles = 1;
         return; // TODO: Implement HALT
     }
 
     RegisterIndex index = byteToIndex(secondHalfByte);
     loadToMemory(index);
+    cycles = 2;
 }
 
 void Gameboy::call8XInstructions(unsigned char secondHalfByte) {
@@ -552,10 +632,12 @@ void Gameboy::call8XInstructions(unsigned char secondHalfByte) {
 
     if (index == RegisterIndex::F) {
         addFromMemory(carry);
+        cycles = 2;
         return;
     }
 
     add(index, carry);
+    cycles = 1;
 }
 
 void Gameboy::call9XInstructions(unsigned char secondHalfByte) {
@@ -564,15 +646,19 @@ void Gameboy::call9XInstructions(unsigned char secondHalfByte) {
 
     if (index == RegisterIndex::F) {
         subtractFromMemory(carry);
+        cycles = 2;
         return;
     }
 
     subtract(index, carry);
+    cycles = 1;
 }
 
 void Gameboy::callAXInstructions(unsigned char secondHalfByte) { 
     RegisterIndex index = byteToIndex(secondHalfByte);
     if (index == RegisterIndex::F) {
+        cycles = 2;
+
         if (secondHalfByte > 0x07) {
             bitwiseXorFromMemory();
             return;
@@ -580,6 +666,8 @@ void Gameboy::callAXInstructions(unsigned char secondHalfByte) {
         bitwiseAndFromMemory();
         return;
     }
+
+    cycles = 1;
 
     if (secondHalfByte > 0x07) {
         bitwiseXor(index);
@@ -592,6 +680,8 @@ void Gameboy::callAXInstructions(unsigned char secondHalfByte) {
 void Gameboy::callBXInstructions(unsigned char secondHalfByte) {
     RegisterIndex index = byteToIndex(secondHalfByte);
     if (index == RegisterIndex::F) {
+        cycles = 2;
+
         if (secondHalfByte > 0x07) {
             compareFromMemory();
             return;
@@ -599,6 +689,8 @@ void Gameboy::callBXInstructions(unsigned char secondHalfByte) {
         bitwiseOrFromMemory();
         return;
     }
+
+    cycles = 1;
 
     if (secondHalfByte > 0x07) {
         compare(index);
@@ -612,51 +704,67 @@ void Gameboy::callCXInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
         case 0x00:
             ret(ZF, true);
+            // Cycles set in function
             break;
         case 0x01:
             popToRegisterPair(BC);
+            cycles = 3;
             break;
         case 0x02:
             jumpNN(Flag::ZF, true);
+            // Cycles set in function
             break;
         case 0x03:
             jumpNN(std::nullopt, false);
+            // Cycles set in function
             break;
         case 0x04:
             callNN(Flag::ZF, true);
+            // Cycles set in function
             break;
         case 0x05:
             pushRegisterPair(BC);
+            cycles = 4;
             break;
         case 0x06:
             addImmediate(false);
+            cycles = 2;
             break;
         case 0x07:
             restart(0x00);
+            cycles = 4;
             break;
         case 0x08:
             ret(ZF, false);
+            // Cycles set in function
             break;
         case 0x09:
             ret(std::nullopt, false);
+            // Cycles set in function
             break;
         case 0x0A:
             jumpNN(Flag::ZF, false);
+            // Cycles set in function
             break;
         case 0x0B:
             loadCBInstruction();
+            // TODO
             break;
         case 0x0C:
             callNN(Flag::ZF, false);
+            // Cycles set in function
             break;
         case 0x0D:
             callFunction();
+            cycles = 6;
             break;
         case 0x0E:
             addImmediate(true);
+            cycles = 2;
             break;
         case 0x0F:
             restart(0x08);
+            cycles = 4;
             break;
         default:
             printf("Error: C unknown opcode %04x\n", secondHalfByte);
@@ -668,44 +776,57 @@ void Gameboy::callDXInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
         case 0x00:
             ret(CF, true);
+            // Cycles set in function
             break;
         case 0x01:
             popToRegisterPair(DE);
+            cycles = 3;
             break;
         case 0x02:
             jumpNN(Flag::CF, true);
+            // Cycles set in function
             break;
         case 0x04:
             callNN(Flag::CF, true);
+            // Cycles set in function
             break;
         case 0x05:
             pushRegisterPair(DE);
+            cycles = 4;
             break;
         case 0x06:
             subtractImmediate(false);
+            cycles = 2;
             break;
         case 0x07:
             restart(0x10);
+            cycles = 4;
             break;
         case 0x08:
             ret(CF, false);
+            // Cycles set in function
             break;
         case 0x09:
             // RETI
             ret(std::nullopt, false);
             IME = true;
+            cycles = 4;
             break;
         case 0x0A:
             jumpNN(Flag::CF, false);
+            // Cycles set in function
             break;
         case 0x0C:
             callNN(Flag::CF, false);
+            // Cycles set in function
             break;
         case 0x0E:
             subtractImmediate(true);
+            cycles = 2;
             break;
         case 0x0F:
             restart(0x18);
+            cycles = 4;
             break;
         default:
             printf("Error: D unknown opcode %04x PC %04x:%d\n", secondHalfByte, PC, PC);
@@ -717,31 +838,44 @@ void Gameboy::callEXInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
         case 0x00:
             loadFromAcc(false);
+            cycles = 3;
             break;
         case 0x01:
             popToRegisterPair(HL);
+            cycles = 3;
             break;
         case 0x02:
             loadFromAcc(true);
+            cycles = 2;
             break;
         case 0x05:
             pushRegisterPair(HL);
+            cycles = 4;
             break;
         case 0x06:
             bitwiseAndImmediate();
+            cycles = 2;
             break;
         case 0x07:
             restart(0x20);
+            cycles = 4;
+            break;
+        case 0x08:
+            addEToSP();
+            cycles = 4;
             break;
         case 0x09:
             // Jump to HL
             PC = r.getHL();
+            cycles = 1;
             break;
         case 0x0A:
             loadAccToMemory();
+            cycles = 4;
             break;
         case 0x0E:
             bitwiseXorImmediate();
+            cycles = 2;
             break;
         case 0x03:
         case 0x04:
@@ -749,9 +883,11 @@ void Gameboy::callEXInstructions(unsigned char secondHalfByte) {
         case 0x0C:
         case 0x0D:
             // Undefined
+            printf("Undefined E opcode executed\n");
             break;
         case 0x0F:
             restart(0x28);
+            cycles = 4;
             break;
         default:
             printf("Error: E unknown opcode %04x\n", secondHalfByte);
@@ -763,47 +899,61 @@ void Gameboy::callFXInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
         case 0x00:
             loadToAcc(false);
+            cycles = 3;
             break;
         case 0x01:
             popToRegisterPair(AF);
+            cycles = 3;
             break;
         case 0x02:
             loadToAcc(true);
+            cycles = 2;
             break;
         case 0x03:
             IME = false;
+            cycles = 1;
             break;
         case 0x05:
             pushRegisterPair(AF);
+            cycles = 4;
             break;
         case 0x06:
             bitwiseOrImmediate();
+            cycles = 2;
             break;
         case 0x07:
             restart(0x30);
+            cycles = 4;
             break;
         case 0x08:
             addImmediateAndSPToHL();
+            cycles = 3;
             break;
         case 0x09:
             SP = r.getHL();
+            cycles = 2;
             break;
         case 0x0A:
             loadMemoryToAcc();
+            cycles = 4;
             break;
         case 0x0B:
             IME = true;
+            cycles = 1;
             break;
         case 0x0E:
             compareN();
+            cycles = 2;
             break;
         case 0x0F:
             restart(0x38);
+            cycles = 4;
             break;
         case 0x04:
         case 0x0C:
         case 0x0D:
             // Unused
+            printf("Undefined F opcode executed\n");
             break;
         default:
             printf("Error: F unknown opcode %04x\n", secondHalfByte);

@@ -152,8 +152,8 @@ void Fetcher::readTileData(unsigned short int addrOffset) {
 }
 
 void Fetcher::readObjectData(unsigned short int addrOffset) {
-    unsigned char objHeight = 8;
-    if ((mem.read(LCDC_ADDR) & 4) != 0) { objHeight = 16; }
+    /*unsigned char objHeight = 8;
+    if ((mem.read(LCDC_ADDR) & 4) != 0) { objHeight = 16; }*/
 
     // A tile's graphical data takes 16 bytes so we compute an offset
     // to find data for desired tile is

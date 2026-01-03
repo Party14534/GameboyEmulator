@@ -82,7 +82,7 @@ short unsigned int Registers::getHL() {
 
 // Flag register functions
 unsigned char Registers::fRtoU8() {
-    unsigned char byte;
+    unsigned char byte = 0;
 
     byte |= zero << 7;
     byte |= subtract << 6;

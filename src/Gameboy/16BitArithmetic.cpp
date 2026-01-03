@@ -88,14 +88,17 @@ void Gameboy::addRegisterPairs(RegisterPair target, RegisterPair source) {
 void Gameboy::addImmediateAndSPToHL() {
     signed char e = mem.read(PC);
     PC++;
+
+    unsigned char lowByte = SP & 0xFF;
+    unsigned char unsignedE = (unsigned char)e;  // Cast to unsigned
     
     unsigned short int oldVal = SP;
     unsigned short int result = SP + e;
     
     r.zero = 0;
     r.subtract = 0;
-    r.halfCarry = (((oldVal & 0xFFF) + (e & 0xFFF)) > 0xFFF);
-    r.carry = (oldVal > result);
+    r.halfCarry = (((lowByte & 0x0F) + (unsignedE & 0x0F)) & 0x10) != 0;
+    r.carry = (((lowByte) + (unsignedE)) & 0x100) != 0;
     r.modifiedFlags = true;
 
     r.setHL(result);

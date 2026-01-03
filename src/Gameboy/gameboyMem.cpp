@@ -13,7 +13,7 @@ unsigned char& GameboyMem::read(unsigned short int addr) {
     }
 
     if (addr == IE_ADDR) {
-        printf("Trying to read IE\n");
+        //printf("Trying to read IE\n");
     }
 
     if (DOCTOR_LOGGING && addr == LY_ADDR) {
@@ -30,14 +30,14 @@ void GameboyMem::write(unsigned short int addr, unsigned char val) {
         case 0xFF01:
         case 0xFF02:
             if (LOG_SERIAL) {
-                printf("SERIAL: %04x %d\n", val, val);
+                //printf("SERIAL: %04x %d\n", val, val);
             }
             break;
         case LCDC_ADDR:
-            printf("LCDC WRITTEN: 0x%02x\n", mem[addr]);
+            //printf("LCDC WRITTEN: 0x%02x\n", mem[addr]);
             break;
         case STAT_ADDR:
-            printf("STAT WRITTEN: 0x%02x\n", mem[addr]);
+            //printf("STAT WRITTEN: 0x%02x\n", mem[addr]);
             break;
         case 0xFF50:
             if (val == 0) { return; }

@@ -113,14 +113,14 @@ TEST(Add16BitTest, HandlesHalfCarryPath) {
     g.mem.mem[0x0000] = 0x09; // Add BC to HL
 
     // Set register values
-    g.r.setBC(62);
-    g.r.setHL(34);
+    g.r.setBC(1);
+    g.r.setHL(4095);
 
     // Run Code
     g.FDE();
 
     // Assert value is correct
-    assert(g.r.getHL() == (unsigned short int)96);
+    assert(g.r.getHL() == (unsigned short int)4096);
     assert(!g.r.carry);
     assert(g.r.halfCarry);
 }

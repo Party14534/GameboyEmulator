@@ -110,6 +110,8 @@ void Gameboy::loadFromAcc(RegisterPair src, bool inc) {
             addr = r.getHL();
             break;
         default:
+            printf("Register pair not set to valid pair\n");
+            exit(1);
             break;
     }
 
@@ -153,7 +155,8 @@ void Gameboy::loadMemoryToAcc() {
     PC++;
 
     unsigned short int addr = msb;
-    addr = (addr << 8) | lsb;
+    addr = addr << 8;
+    addr |= lsb;
 
     r.registers[A] = mem.read(addr);
 

@@ -1,5 +1,7 @@
 #include "gameboy.h"
 
+// TODO: SRL
+
 RegisterIndex Gameboy::operandToIndex(unsigned char op) {
     if (op > 7) { op -= 8; }
 
@@ -41,10 +43,10 @@ void Gameboy::loadCBInstruction() {
 
     unsigned char firstHalfByte = (byte & 0xF0) >> 4;
     unsigned char secondHalfByte = byte & 0x0F;
-    unsigned char twoBits = (byte & 0b11000000) >> 6;
-    unsigned char fiveBits = (byte & 0b11111000) >> 3;
+    //unsigned char twoBits = (byte & 0b11000000) >> 6;
+    //unsigned char fiveBits = (byte & 0b11111000) >> 3;
     unsigned char op = byte & 0b00000111;
-    unsigned char bitIndex = (byte & 0b00111000) >> 3;
+    //unsigned char bitIndex = (byte & 0b00111000) >> 3;
     unsigned short bitOffset;
 
     RegisterIndex r = operandToIndex(op);
@@ -107,6 +109,11 @@ void Gameboy::loadCBInstruction() {
 }
 
 void Gameboy::RLC(RegisterIndex target) {
+    if (target == F) {
+        RLCHL();
+        return;
+    }
+
     unsigned char b7 = r.registers[target] & 0b10000000;
     b7 = b7 >> 7;
 
@@ -122,6 +129,11 @@ void Gameboy::RLC(RegisterIndex target) {
 }
 
 void Gameboy::RRC(RegisterIndex target) {
+    if (target == F) {
+        RRCHL();
+        return;
+    }
+
     unsigned char b0 = r.registers[target] & 0b00000001;
     b0 = b0 << 7;
 
@@ -136,7 +148,48 @@ void Gameboy::RRC(RegisterIndex target) {
     r.modifiedFlags = true;    
 }
 
+void Gameboy::RLCHL() {
+    unsigned char val = mem.read(r.getHL());
+    unsigned char b7 = val & 0b10000000;
+    b7 = b7 >> 7;
+
+    val = val << 1;
+    val |= b7;
+
+    mem.write(r.getHL(), val);
+
+    r.zero = (val == 0);
+    r.subtract = false;
+    r.halfCarry = false;
+    r.carry = b7;
+
+    r.modifiedFlags = true;    
+}
+
+void Gameboy::RRCHL() {
+    unsigned char val = mem.read(r.getHL());
+    unsigned char b0 = val & 0b00000001;
+    b0 = b0 << 7;
+
+    val = val >> 1;
+    val |= b0;
+
+    mem.write(r.getHL(), val);
+
+    r.zero = (val == 0);
+    r.subtract = false;
+    r.halfCarry = false;
+    r.carry = b0 >> 7;
+
+    r.modifiedFlags = true;    
+}
+
 void Gameboy::rotateRegisterLeft(RegisterIndex target) {
+    if (target == F) {
+        rotateRegisterLeftHL();
+        return;
+    }
+
     unsigned char carryBit = (r.carry) ? 0b00000001 : 0;
     unsigned char newCarryBit = (r.registers[target] & 0b10000000) >> 7;
 
@@ -148,9 +201,15 @@ void Gameboy::rotateRegisterLeft(RegisterIndex target) {
     r.halfCarry = false;
 
     r.modifiedFlags = true;
+    cycles = 2;
 }
 
 void Gameboy::rotateRegisterRight(RegisterIndex target) {
+    if (target == F) {
+        rotateRegisterRightHL();
+        return;
+    }
+
     unsigned char carryBit = (r.carry) ? 0b10000000 : 0;
     unsigned char newCarryBit = r.registers[target] & 0b00000001;
 
@@ -162,6 +221,43 @@ void Gameboy::rotateRegisterRight(RegisterIndex target) {
     r.halfCarry = false;
 
     r.modifiedFlags = true;
+    cycles = 2;
+}
+
+void Gameboy::rotateRegisterLeftHL() {
+    unsigned char val = mem.read(r.getHL());
+    unsigned char carryBit = (r.carry) ? 0b00000001 : 0;
+    unsigned char newCarryBit = (val & 0b10000000) >> 7;
+
+    val = (val << 1) | carryBit;
+    r.carry = newCarryBit != 0;
+
+    mem.write(r.getHL(), val);
+
+    r.zero = (val == 0);
+    r.subtract = false;
+    r.halfCarry = false;
+
+    r.modifiedFlags = true;
+    cycles = 4;
+}
+
+void Gameboy::rotateRegisterRightHL() {
+    unsigned char val = mem.read(r.getHL());
+    unsigned char carryBit = (r.carry) ? 0b10000000 : 0;
+    unsigned char newCarryBit = val & 0b00000001;
+
+    val = (val >> 1) | carryBit;
+    r.carry = newCarryBit != 0;
+
+    mem.write(r.getHL(), val);
+
+    r.zero = (val == 0);
+    r.subtract = false;
+    r.halfCarry = false;
+
+    r.modifiedFlags = true;
+    cycles = 4;
 }
 
 void Gameboy::bit(RegisterIndex target, unsigned short int bitOffset) {
@@ -171,8 +267,10 @@ void Gameboy::bit(RegisterIndex target, unsigned short int bitOffset) {
     //printf("%04x %d\n", mask, bitOffset);
     if (target == F) {
         val = mem.read(r.getHL()) & mask;
+        cycles = 3;
     } else {
         val = r.registers[target] & mask;
+        cycles = 2;
     }
 
     r.zero = val == 0;
@@ -184,10 +282,13 @@ void Gameboy::bit(RegisterIndex target, unsigned short int bitOffset) {
 
 void Gameboy::swap(RegisterIndex target) {
     unsigned char* data;
+
+    cycles = 2;
     
     if (target == RegisterIndex::F) {
         printf("0x%04x\n", r.getHL());
         data = &mem.read(r.getHL());
+        cycles = 4;
     } else {
         data = &r.registers[target];
     }
@@ -209,8 +310,10 @@ void Gameboy::srl(RegisterIndex target) {
     
     if (target == RegisterIndex::F) {
         data = &mem.read(r.getHL());
+        cycles = 4;
     } else {
         data = &r.registers[target];
+        cycles = 2;
     }
     
     r.carry = (*data & 0x01) == 1;
@@ -230,8 +333,10 @@ void Gameboy::resetBit(RegisterIndex target, unsigned short bitOffset) {
     unsigned char* data;
     if (target == RegisterIndex::F) {
         data = &mem.read(r.getHL());
+        cycles = 4;
     } else {
         data = &r.registers[target];
+        cycles = 2;
     }
 
     *data &= mask;
@@ -243,8 +348,10 @@ void Gameboy::setBit(RegisterIndex target, unsigned short bitOffset) {
     unsigned char* data;
     if (target == RegisterIndex::F) {
         data = &mem.read(r.getHL());
+        cycles = 4;
     } else {
         data = &r.registers[target];
+        cycles = 2;
     }
 
     *data |= mask;

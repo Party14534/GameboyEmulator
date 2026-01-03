@@ -25,6 +25,8 @@ void Gameboy::callFunction() {
 }
 
 void Gameboy::callNN(Flag flag, bool notFlag) {
+    cycles = 3;
+
     unsigned char lsb = mem.read(PC);
     PC++;
 
@@ -79,9 +81,13 @@ void Gameboy::callNN(Flag flag, bool notFlag) {
 
     if (LOGGING) printf("SET PC TO ADDR 0x%04x\n", addr);
     PC = addr;
+
+    cycles = 6;
 }
 
 void Gameboy::ret(std::optional<Flag> flag, bool notFlag) {
+    cycles = 2;
+
     if (LOGGING) printf("RET FUNCTION: ");
     if (flag.has_value()) {
         switch (flag.value()) {
@@ -131,6 +137,7 @@ void Gameboy::ret(std::optional<Flag> flag, bool notFlag) {
     PC = addr;
 
     if (LOGGING) printf("SET PC TO ADDR 0x%04x\n", addr);
+    cycles = 5;
 }
 
 // 4 cycles
@@ -145,6 +152,7 @@ void Gameboy::restart(unsigned char addr) {
 
 // 4 cycles
 void Gameboy::jumpNN(std::optional<Flag> flag, bool notFlag) {
+    cycles = 3;
     if (LOGGING) printf("JUMP FUNCTION: ");
     if (flag.has_value()) {
         switch (flag.value()) {
@@ -195,4 +203,5 @@ void Gameboy::jumpNN(std::optional<Flag> flag, bool notFlag) {
     addr |= lsb;
 
     PC = addr;
+    cycles = 4;
 }

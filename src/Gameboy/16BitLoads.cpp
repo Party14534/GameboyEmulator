@@ -84,6 +84,8 @@ void Gameboy::pushRegisterPair(RegisterPair target) {
             data = r.getAF();
             break;
         default:
+            printf("Cannot use SP with this function\n");
+            exit(1);
             break;
     }
     
@@ -107,10 +109,10 @@ void Gameboy::loadFromStack() {
     addr |= lsb;
 
     unsigned char dataLsb = SP & 0x00FF;
-    unsigned char dataMsb = SP & 0xFF00;
+    unsigned char dataMsb = (SP & 0xFF00) >> 8;
 
     mem.write(addr, dataLsb);
-    mem.write(addr, dataMsb);
+    mem.write(addr+1, dataMsb);
 
     if (LOGGING) printf("LOAD STACK TO ADDR: 0x%04x\n", addr);
 }

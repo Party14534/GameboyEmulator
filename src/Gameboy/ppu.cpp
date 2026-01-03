@@ -18,11 +18,11 @@ unsigned char LCDCWindowTileMapDisplaySelect = 1 << 6;
 unsigned char LCDCDisplayEnable = 1 << 7;
 
 PPU::PPU(GameboyMem& gameboyMem, sf::Vector2u winSize) :
+    fetcher(gameboyMem),
+    oam(gameboyMem),
     display(sf::Image({160, 144}, sf::Color::Black)),
     displayTexture(display),
-    displaySprite(displayTexture),
-    oam(gameboyMem),
-    fetcher(gameboyMem)
+    displaySprite(displayTexture)
 {
     background = std::vector<unsigned char>(256 * 256);
     window = std::vector<unsigned char>(256 * 256);
@@ -62,11 +62,6 @@ PPU::PPU(GameboyMem& gameboyMem, sf::Vector2u winSize) :
 
 void PPU::main() {
     // Check for interrupts
-    unsigned char interrupt;
-    
-    //*STAT |= 0x1;
-
-    // Instead, update mode bits based on state
     *STAT &= 0xFC;  // Clear mode bits (0-1)
 
     switch (state) {
@@ -204,6 +199,7 @@ void PPU::OAMScan() {
         }
 
         fetcher.Start(tileMapRowAddr, tileDataAddr, tileOffset, tileLine, signedId);
+        fetcher.Tick();
 
         x = 0;
         pixelsToDrop = *SCX % 8;
@@ -290,8 +286,6 @@ void PPU::drop() {
 }
 
 void PPU::drawToScreen(sf::RenderWindow& win) {
-    sf::Vector2u coords;
-
     display = sf::Image({160, 144}, reinterpret_cast<std::uint8_t*>(fetcher.videoBuffer.data()));
 
     bool worked = displayTexture.loadFromImage(display);
@@ -301,7 +295,7 @@ void PPU::drawToScreen(sf::RenderWindow& win) {
     }
     displaySprite.setTexture(displayTexture);
     win.draw(displaySprite);
-    printf("0x%2x\n", *LCDC);
+    //printf("0x%2x\n", *LCDC);
 
     readyToDraw = false;
 }

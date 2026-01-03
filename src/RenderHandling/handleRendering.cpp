@@ -7,6 +7,7 @@ void handleRendering(sf::RenderWindow& win, Gameboy& g) {
 
     // Draw
     g.ppu.drawToScreen(win);
+    //printf("0x%02x\n", g.mem.mem[LCDC_ADDR]);
 
     win.display();
 }
