@@ -33,7 +33,7 @@ Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom, bool 
         r.setFlags();
     }
 
-    IE = &mem.read(0xFFFF);
+    IE = &mem.mem[0xFFFF];
 
     paletteOne = std::vector<sf::Color>{
         sf::Color(155, 188, 15),
@@ -97,7 +97,6 @@ void Gameboy::writeRom() {
 }
 
 void Gameboy::FDE() {
-
     unsigned char instruction = fetch();
 
     decode(instruction);
@@ -121,6 +120,53 @@ void Gameboy::FDE() {
                 SP, PC,
                 mem.read(PC), mem.read(PC+1), mem.read(PC+2),
                 mem.read(PC+3));
+    }
+    
+    // TODO: Check for interrupts
+    // TODO: IMPLEMENT OTHER INTERRUPTS
+    if (!IME) { return; } 
+    
+    unsigned char* IF = &mem.mem[IF_ADDR];
+
+    // Interrupt
+    if ((*IF & *IE & 0x1F) != 0) {
+        IME = 0;
+
+        SP--;
+        mem.write(SP, (PC >> 8) & 0xFF);
+        SP--;
+        mem.write(SP, PC & 0xFF);
+
+        unsigned char addr = 0;
+        if ((*IF & *IE & 1) != 0) {
+            addr = VBLANK_INTERRUPT_VECTOR;
+            *IF &= 0xFE;
+            //printf("VBLANK\n");
+        }
+        else if ((*IF & *IE & 2) != 0) {
+            addr = LCD_INTERRUPT_VECTOR;
+            *IF &= 0xFD;
+            //printf("LCD\n");
+        }
+        else if ((*IF & *IE & 4) != 0) {
+            addr = TIMER_INTERRUPT_VECTOR;
+            *IF &= 0xFB;
+            //printf("TIMER\n");
+        }
+        else if ((*IF & *IE & 8) != 0) {
+            addr = SERIAL_INTERRUPT_VECTOR;
+            *IF &= 0xF7;
+            //printf("SERIAL\n");
+        }
+        else if ((*IF * *IE & 0x10) != 0) {
+            addr = JOYPAD_INTERRUPT_VECTOR;
+            *IF &= 0xEF;
+            //printf("JOYPAD\n");
+        }
+
+        PC = addr;
+        // TODO I think there's other stuff
+        // IE handling takes 20 cycles
     }
 }
 
@@ -289,7 +335,7 @@ void Gameboy::call1XInstructions(unsigned char secondHalfByte) {
     switch (secondHalfByte) {
         case 0x00:
             IME = 0;
-            // TODO: cancul any scheduled effects of EI if any
+            // TODO: cancel any scheduled effects of EI if any
             break;
         case 0x01:
             loadToRegisterPair(DE);

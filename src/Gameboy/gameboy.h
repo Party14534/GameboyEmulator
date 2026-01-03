@@ -1,11 +1,7 @@
 #ifndef GAMEBOY_H
 #define GAMEBOY_H
 
-#include "SFML/Graphics/Image.hpp"
-#include "SFML/Graphics/RectangleShape.hpp"
-#include "SFML/Graphics/RenderWindow.hpp"
-#include "SFML/Graphics/Sprite.hpp"
-#include "SFML/Graphics/Texture.hpp"
+#include <SFML/Graphics.hpp>
 #include <string>
 #include <vector>
 #include <stdio.h>
@@ -19,7 +15,24 @@
 #define LOGFLAGS false
 #define WRITEHEADER true
 #define LY_ADDR 0xFF44
+#define LYC_ADDR 0xFF45
 #define LCDC_ADDR 0xFF40
+#define IF_ADDR 0xFF0F
+#define IE_ADDR 0xFFFF
+
+// STAT
+#define STAT_ADDR 0xFF41
+#define STAT_LYC_INTERRUPT 0x40
+#define STAT_MODE0_INTERRUPT 0x20
+#define STAT_MODE1_INTERRUPT 0x10
+#define STAT_MODE2_INTERRUPT 0x08
+
+// INTERRUPTS
+#define VBLANK_INTERRUPT_VECTOR 0x0040
+#define LCD_INTERRUPT_VECTOR 0x0048
+#define TIMER_INTERRUPT_VECTOR 0x0050
+#define SERIAL_INTERRUPT_VECTOR 0x0058
+#define JOYPAD_INTERRUPT_VECTOR 0x0060
 
 enum RegisterIndex {
     A = 0, B, C, D, E, F, H, L
@@ -185,9 +198,11 @@ struct PPU {
     unsigned char* STAT; // FF41
     unsigned char* WY; // FF4A
     unsigned char* WX; // FF4B
+    unsigned char* IF; // FF4B
+    unsigned char* LY = 0; // Line currently being displayed
+    unsigned char* LYC = 0; // Used to set STAT interrupts
 
     PPUState state = OAMSearch;
-    unsigned char* LY = 0; // Line currently being displayed
     unsigned short int cycles = 0; // T-Cycles for current line
     unsigned short int x = 0; // Num pixels already output in current line
     unsigned short int pixelsToDrop = 0;
@@ -201,7 +216,7 @@ struct PPU {
     bool readyToDraw = false;
     bool drawWindow = false;
     
-    PPU(GameboyMem& gameboyMem, sf::Vector2u winSize);
+    PPU(GameboyMem& ameboyMem, sf::Vector2u winSize);
     void main();
 
     void DoHBlank();

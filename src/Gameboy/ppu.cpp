@@ -37,10 +37,12 @@ PPU::PPU(GameboyMem& gameboyMem, sf::Vector2u winSize) :
     SCY = &gameboyMem.mem[0xFF42];
     SCX = &gameboyMem.mem[0xFF43];
     LY = &gameboyMem.mem[0xFF44];
+    LYC = &gameboyMem.mem[0xFF45];
     WX = &gameboyMem.mem[0xFF4B];
     WY = &gameboyMem.mem[0xFF4A];
-    LCDC = &gameboyMem.mem[0xFF40];
-    STAT = &gameboyMem.mem[0xFF41];
+    LCDC = &gameboyMem.mem[LCDC_ADDR];
+    STAT = &gameboyMem.mem[STAT_ADDR];
+    IF = &gameboyMem.mem[IF_ADDR];
 
     test = sf::RectangleShape({160, 144});
     test.setFillColor(sf::Color::Red);
@@ -59,7 +61,43 @@ PPU::PPU(GameboyMem& gameboyMem, sf::Vector2u winSize) :
 }
 
 void PPU::main() {
+    // Check for interrupts
+    unsigned char interrupt;
+    
+    //*STAT |= 0x1;
+
+    // Instead, update mode bits based on state
+    *STAT &= 0xFC;  // Clear mode bits (0-1)
+
+    switch (state) {
+        case OAMSearch:
+            *STAT |= 0x02;  // Mode 2
+            break;
+        case PixelTransfer:
+            *STAT |= 0x03;  // Mode 3
+            break;
+        case HBlank:
+            *STAT |= 0x00;  // Mode 0
+            break;
+        case VBlank:
+            *STAT |= 0x01;  // Mode 1
+            break;
+    }
+
+    // Set LYC==LY status
+    if (*LYC == *LY) {
+        *STAT |= 0x04;
+        if ((*STAT & STAT_LYC_INTERRUPT) != 0) {
+            *IF |= 2; // SET LCD interrupt
+        }
+    } else {
+        *STAT &= 0xFB; // 0b11111011
+    }
+
     cycles++;
+
+    PPUState oldState = state;
+
     switch (state) {
         case OAMSearch:
             OAMScan();
@@ -73,7 +111,31 @@ void PPU::main() {
         case VBlank:
             DoVBlank();
             break;
-    }  
+    }
+
+    // Fire interrupts only on state transitions
+    if (state != oldState) {
+        switch (state) {
+            case OAMSearch:
+                if ((*STAT & STAT_MODE2_INTERRUPT) != 0) {
+                    *IF |= 2;
+                }
+                break;
+            case HBlank:
+                if ((*STAT & STAT_MODE0_INTERRUPT) != 0) {
+                    *IF |= 2;
+                }
+                break;
+            case VBlank:
+                *IF |= 0x01;  // VBlank interrupt
+                if ((*STAT & STAT_MODE1_INTERRUPT) != 0) {
+                    *IF |= 2;
+                }
+                break;
+            default:
+                break;
+        }
+    }
 }
 
 // H-Blank
@@ -84,7 +146,10 @@ void PPU::DoHBlank() {
     if (cycles == 456) {
         cycles = 0;
         *LY = *LY + 1;
-        if (*LY == 144) { state = VBlank; }
+        if (*LY == 144) { 
+            state = VBlank; 
+            *IF |= 0x01;
+        }
         else { 
             oam.start();
             state = OAMSearch;
@@ -97,17 +162,18 @@ void PPU::DoVBlank() {
     // TODO: Takes place at end of every frame for 10 * 456 T-cycles
     
     // Special case for last line
-    if (cycles == 4 && *LY == 153) {
+    /*if (cycles == 4 && *LY == 153) {
         *LY = 0;
-    }
+    }*/
 
     if (cycles == 456) {
         cycles = 0;
-        if (*LY == 0) {
+        if (*LY == 153) {
+            *LY = 0;
+            fetcher.vBufferIndex = 0;
             oam.start();
             readyToDraw = true;
             state = OAMSearch;
-            // TODO: Set LCD interrupt
         } else {
             *LY = *LY + 1;
         }
@@ -117,6 +183,11 @@ void PPU::DoVBlank() {
 // OAM Scan
 void PPU::OAMScan() {
     if (oam.tick()) {
+        // Reset all objects
+        for (auto& obj : oam.objects) {
+            obj.fetched = false;
+        }
+
         unsigned short int y = *SCY + *LY;
         unsigned short int tileLine = y % 8;
         unsigned short int baseAddr = 0x9800;
@@ -182,7 +253,7 @@ void PPU::TransferPixels() {
     }
 
     // Sprites
-    //if ((*LCDC & LCDCSpriteDisplayEnable) != 0) {
+    if ((*LCDC & LCDCSpriteDisplayEnable) != 0) {
         for (auto& obj : oam.objects) {
             if (obj.fetched) { 
                 continue; 
@@ -203,7 +274,7 @@ void PPU::TransferPixels() {
                 return;
             }
         }
-    //}
+    }
 
     x++;
     fetcher.pushToVBuffer();
@@ -211,7 +282,6 @@ void PPU::TransferPixels() {
     if (x == 160) {
         drawWindow = false;
         state = HBlank;
-        // TODO: LCD Interrupt
     }
 }
 
@@ -231,6 +301,7 @@ void PPU::drawToScreen(sf::RenderWindow& win) {
     }
     displaySprite.setTexture(displayTexture);
     win.draw(displaySprite);
+    printf("0x%2x\n", *LCDC);
 
     readyToDraw = false;
 }

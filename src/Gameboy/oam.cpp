@@ -10,7 +10,7 @@ void OAM::start() {
     index = 0;
     state = ReadSpriteY;
     object = OAMObject{};
-    for (auto& obj : objects) { obj.fetched = false; }
+    //for (auto& obj : objects) { obj.fetched = false; }
     objects.clear();
 }
 

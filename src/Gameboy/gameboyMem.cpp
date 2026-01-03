@@ -12,6 +12,10 @@ unsigned char& GameboyMem::read(unsigned short int addr) {
         return bootRomMem[addr];
     }
 
+    if (addr == IE_ADDR) {
+        printf("Trying to read IE\n");
+    }
+
     if (DOCTOR_LOGGING && addr == LY_ADDR) {
         mem[addr] = 0x90;
     }
@@ -30,6 +34,10 @@ void GameboyMem::write(unsigned short int addr, unsigned char val) {
             }
             break;
         case LCDC_ADDR:
+            printf("LCDC WRITTEN: 0x%02x\n", mem[addr]);
+            break;
+        case STAT_ADDR:
+            printf("STAT WRITTEN: 0x%02x\n", mem[addr]);
             break;
         case 0xFF50:
             if (val == 0) { return; }
