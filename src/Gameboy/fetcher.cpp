@@ -197,17 +197,32 @@ void Fetcher::MixInFifo() {
         unsigned char index = size - offset - 1;
         Pixel current = FIFO[index];
 
+        // Skip transparent object pixels
         if (pixel.color == 0 || (mem.read(LCDC_ADDR) & 2) == 0) {
             continue;
         }
 
+        // Don't overwrite existing object pixels (first object wins)
+        if (current.isObject) {
+            continue;
+        }
+
+        // OBJ-to-BG Priority: If set and BG color != 0, don't draw object
+        if (bgCover && current.color != 0) {
+            continue;
+        }
+
+        // Draw the object pixel
+        FIFO[index] = pixel;
+
+        /*
         if (current.palette == 0) { // 0 is the Background transparency color
             if (current.color != 0 && bgCover) {
                 continue;
             }
 
             FIFO[index] = pixel;
-        }
+        }*/
     }
 
 }

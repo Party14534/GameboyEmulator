@@ -206,6 +206,7 @@ struct PPU {
     unsigned short int cycles = 0; // T-Cycles for current line
     unsigned short int x = 0; // Num pixels already output in current line
     unsigned short int pixelsToDrop = 0;
+    unsigned short int windowLineCounter = 0;
 
     Fetcher fetcher;
     OAM oam;

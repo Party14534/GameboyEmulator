@@ -79,7 +79,8 @@ void Gameboy::writeBootRom() {
 }
 
 void Gameboy::writeRom() {
-    std::ifstream file ("../tests/dmg-acid2.gb", std::ios::binary);
+    //std::ifstream file ("../tests/dmg-acid2.gb", std::ios::binary);
+    std::ifstream file ("../tests/m3_scy_change2.gb", std::ios::binary);
     //std::ifstream file ("../tests/04.gb", std::ios::binary);
     //std::ifstream file ("../roms/tetris.gb", std::ios::binary);
     if (!file.good()) { 
@@ -188,7 +189,7 @@ unsigned char Gameboy::fetch() {
 }
 
 void Gameboy::decode(unsigned char instruction) {
-    if(LOGGING) printf("---\nINSTRUCTION: %02x | PC: %d 0x%04x\n", instruction, PC - 1, PC - 1);
+    if(LOGGING && instruction != 0x76) printf("---\nINSTRUCTION: %02x | PC: %d 0x%04x\n", instruction, PC - 1, PC - 1);
     unsigned char firstHalfByte = instruction & 0xF0;
     unsigned char secondHalfByte = instruction & 0x0F;
 
@@ -613,7 +614,7 @@ void Gameboy::call7XInstructions(unsigned char secondHalfByte) {
         cycles = 1;
         return;
     } else if (secondHalfByte == 0x06) { 
-        if(LOGGING) printf("HALT\n");
+        //if(LOGGING) printf("HALT\n");
         PC--;
         //printf("Haven't implemented HALT %02x %d\n", PC, PC);
         //exit(1);

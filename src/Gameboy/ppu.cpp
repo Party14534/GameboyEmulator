@@ -80,9 +80,11 @@ void PPU::main() {
     }
 
     // Set LYC==LY status
+    bool lycAlreadyEqual = (*STAT & 0x04) != 0;  // Check previous state
+    
     if (*LYC == *LY) {
         *STAT |= 0x04;
-        if ((*STAT & STAT_LYC_INTERRUPT) != 0) {
+        if (!lycAlreadyEqual && (*STAT & STAT_LYC_INTERRUPT) != 0) {
             *IF |= 2; // SET LCD interrupt
         }
     } else {
@@ -166,6 +168,7 @@ void PPU::DoVBlank() {
         if (*LY == 153) {
             *LY = 0;
             fetcher.vBufferIndex = 0;
+            windowLineCounter = 0;
             oam.start();
             readyToDraw = true;
             state = OAMSearch;
@@ -183,7 +186,7 @@ void PPU::OAMScan() {
             obj.fetched = false;
         }
 
-        unsigned short int y = *SCY + *LY;
+        unsigned char y = *SCY + *LY;
         unsigned short int tileLine = y % 8;
         unsigned short int baseAddr = 0x9800;
         unsigned char tileOffset = *SCX / 8;
@@ -230,17 +233,18 @@ void PPU::TransferPixels() {
         pixelsToDrop = 0;
 
         // Reinitialize fetcher for window
-        unsigned char y = *LY - *WY;
-        unsigned char tileLine = y % 8;
+        //unsigned char y = *LY - *WY;
+        //unsigned char tileLine = y % 8;
+        unsigned char tileLine = windowLineCounter % 8;
         unsigned char tileOffset = (x - *WX + 7) / 8;
         unsigned short int baseAddr = 0x9800;
         if (*LCDC & LCDCWindowTileMapDisplaySelect) {
             baseAddr = 0x9C00;
         }
-        unsigned short int tileMapRowAddr = baseAddr + ((y / 8) * 32);
+        unsigned short int tileMapRowAddr = baseAddr + ((windowLineCounter / 8) * 32);
         unsigned short int tileDataAddr = 0x8000;
         bool signedId = false;
-        if (*LCDC & LCDCBGWindowTileDataSelect) {
+        if ((*LCDC & LCDCBGWindowTileDataSelect) == 0) {
             tileDataAddr = 0x9000;
             signedId = true;
         }
@@ -276,6 +280,10 @@ void PPU::TransferPixels() {
     fetcher.pushToVBuffer();
 
     if (x == 160) {
+        if (drawWindow) {
+            windowLineCounter++;
+        }
+
         drawWindow = false;
         state = HBlank;
     }

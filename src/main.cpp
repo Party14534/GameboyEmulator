@@ -3,7 +3,7 @@
 int main() {
     sf::RenderWindow win(sf::VideoMode::getDesktopMode(), "Template", sf::Style::Default);
     
-    Gameboy g("", win.getSize(), true);
+    Gameboy g("", win.getSize(), false);
 
     //unsigned int frameCount = 0;
 
