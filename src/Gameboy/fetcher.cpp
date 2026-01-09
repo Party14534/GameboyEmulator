@@ -24,6 +24,7 @@ void Fetcher::Start(unsigned short int _mapAddr, unsigned short int _dataAddr,
     tileLine = _tileLine;
     signedId = _signedId;
     state = ReadTileID;
+    cycles = 0;
     
     // Clear FIFO between calls
     FIFO.clear();
@@ -126,11 +127,6 @@ void Fetcher::readTileData(unsigned short int addrOffset) {
     // to find data for desired tile is
     unsigned short int offset;
     if (signedId) {
-        if ((short)tileID < 0) {
-            //printf("Yup it works\n");
-        } else {
-            //printf("Dont works\n");
-        }
         offset = dataAddr + (static_cast<signed char>(tileID) * 16);
     } else {
         offset = dataAddr + (tileID * 16);

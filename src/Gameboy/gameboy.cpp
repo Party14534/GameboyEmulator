@@ -32,6 +32,15 @@ Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom, bool 
         SP = 0xFFFE;
         PC = 0x100;
         r.setFlags();
+
+        
+        // ✓ Initialize I/O registers (post-boot state)
+        mem.write(0xFF40, 0x91);  // LCDC - LCD on, BG on
+        mem.write(0xFF47, 0xFC);  // BGP - palette
+        mem.write(0xFF48, 0xFF);  // OBP0
+        mem.write(0xFF49, 0xFF);  // OBP1
+        mem.write(0xFF0F, 0x00);  // IF - no interrupts
+        mem.write(0xFFFF, 0x00);  // IE - interrupts disabled
     }
 
     IE = &mem.mem[0xFFFF];
@@ -57,6 +66,11 @@ Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom, bool 
                 mem.read(PC), mem.read(PC+1), mem.read(PC+2),
                 mem.read(PC+3));
     }
+
+    DIV = &mem.mem[DIV_ADDR];
+    TIMA = &mem.mem[TIMA_ADDR];
+
+    cycles = 0;
 }
 
 void Gameboy::writeBootRom() {
@@ -80,9 +94,9 @@ void Gameboy::writeBootRom() {
 
 void Gameboy::writeRom() {
     //std::ifstream file ("../tests/dmg-acid2.gb", std::ios::binary);
-    std::ifstream file ("../tests/m3_scy_change2.gb", std::ios::binary);
-    //std::ifstream file ("../tests/04.gb", std::ios::binary);
-    //std::ifstream file ("../roms/tetris.gb", std::ios::binary);
+    //std::ifstream file ("../tests/m3_bgp_change_sprites.gb", std::ios::binary);
+    //std::ifstream file ("../tests/11.gb", std::ios::binary);
+    std::ifstream file ("../roms/tetris.gb", std::ios::binary);
     if (!file.good()) { 
         printf("file doesn't exist\n");
         exit(1);
@@ -99,8 +113,35 @@ void Gameboy::writeRom() {
 }
 
 void Gameboy::FDE() {
+    timer();
+
     cycles--;
     if (cycles > 0 && !testing) { return; }
+
+    if (halted) {
+        // Check if we should wake up
+        unsigned char* IF = &mem.mem[IF_ADDR];
+        if ((*IF & *IE & 0x1F) != 0) {
+            // Interrupt pending - wake up
+            halted = false;
+
+            // HALT bug: if IME=0, don't increment PC (next instruction executes twice)
+            if (!IME) {
+                //PC--;  // HALT bug
+            }
+        } else {
+            // Still halted - don't execute instructions
+            cycles = 1;  // Wait 1 M-cycle
+            return;
+        }
+    }
+
+    static int instrCount = 0;
+
+    instrCount++;
+    if (instrCount % 1000 == 0) {
+        //printf("Executed %d instructions, PC=0x%04x, cycles=%d\n", instrCount, PC, cycles);
+    }
 
     unsigned char instruction = fetch();
 
@@ -127,8 +168,6 @@ void Gameboy::FDE() {
                 mem.read(PC+3));
     }
     
-    // TODO: Check for interrupts
-    // TODO: IMPLEMENT OTHER INTERRUPTS
     if (!IME) { return; } 
     
     unsigned char* IF = &mem.mem[IF_ADDR];
@@ -163,7 +202,7 @@ void Gameboy::FDE() {
             *IF &= 0xF7;
             //printf("SERIAL\n");
         }
-        else if ((*IF * *IE & 0x10) != 0) {
+        else if ((*IF & *IE & 0x10) != 0) {
             addr = JOYPAD_INTERRUPT_VECTOR;
             *IF &= 0xEF;
             //printf("JOYPAD\n");
@@ -173,6 +212,50 @@ void Gameboy::FDE() {
         cycles += 20;
         // TODO I think there's other stuff
         // IE handling takes 20 cycles
+    }
+}
+
+void Gameboy::timer() {
+    cyclesSinceLastTima++;
+
+    // Timer work
+    *DIV = *DIV + 1; // TODO: Is this how often we should update this
+
+    unsigned char TAC = mem.mem[TAC_ADDR];
+    if ((TAC & 4) == 0) { return; }
+
+    unsigned char clockSelect = TAC & 3;
+    int timaTimer;
+    switch (clockSelect) {
+        case 0b00:
+            timaTimer = 256;
+            break;
+        case 0b01:
+            timaTimer = 4;
+            break;
+        case 0b10:
+            timaTimer = 16;
+            break;
+        case 0b11:
+            timaTimer = 64;
+            break;
+        default:
+            printf("Unknown clock select 0x%02x\n", TAC);
+            exit(1);
+            break;
+    }
+
+    if (cyclesSinceLastTima < timaTimer) { return; }
+
+    cyclesSinceLastTima = 0;
+    
+    unsigned char prevTima = *TIMA;
+    *TIMA = *TIMA + 1;
+
+    // When TIMA overflows reset to TMA
+    if (*TIMA < prevTima) {
+        *TIMA = mem.mem[TMA_ADDR];
+        mem.mem[IF_ADDR] |= 0x04; // Timer interrupt
     }
 }
 
@@ -313,6 +396,7 @@ void Gameboy::call0XInstructions(unsigned char secondHalfByte) {
             break;
         case 0x07:
             RLC(A);
+            r.zero = false;
             cycles = 1;
             break;
         case 0x08:
@@ -345,6 +429,7 @@ void Gameboy::call0XInstructions(unsigned char secondHalfByte) {
             break;
         case 0x0F:
             RRC(A); 
+            r.zero = false;
             cycles = 1;
             break;
         default:
@@ -386,6 +471,7 @@ void Gameboy::call1XInstructions(unsigned char secondHalfByte) {
             break;
         case 0x07:
             rotateRegisterLeft(A);
+            r.zero = false;
             cycles = 1;
             break;
         case 0x08:
@@ -536,6 +622,7 @@ void Gameboy::call3XInstructions(unsigned char secondHalfByte) {
             r.subtract = 0;
             r.halfCarry = 0;
             r.carry = 1;
+            r.modifiedFlags = true;
             cycles = 1;
             break;
         case 0x08:
@@ -615,9 +702,10 @@ void Gameboy::call7XInstructions(unsigned char secondHalfByte) {
         return;
     } else if (secondHalfByte == 0x06) { 
         //if(LOGGING) printf("HALT\n");
-        PC--;
+        //PC--;
         //printf("Haven't implemented HALT %02x %d\n", PC, PC);
         //exit(1);
+        halted = true;
         cycles = 1;
         return; // TODO: Implement HALT
     }

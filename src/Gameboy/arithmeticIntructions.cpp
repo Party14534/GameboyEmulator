@@ -8,25 +8,19 @@ void Gameboy::add(RegisterIndex target, bool carry) {
     }
 
     unsigned char value = r.registers[target];
-    if (carry) {
-        value += r.carry;
-    }
+    unsigned char carryVal = carry ? r.carry : 0;
 
     unsigned char oldVal = r.registers[RegisterIndex::A];
-    r.registers[RegisterIndex::A] += value;
+    r.registers[RegisterIndex::A] = oldVal + value + carryVal;
 
     if (LOGGING) printf("ADD %d FROM REGISTER %c TO REGISTER A\n", value, target + 65);
     
     // Set flags
     r.zero = (r.registers[RegisterIndex::A] == 0);
     r.subtract = false;
-    r.carry = (oldVal > r.registers[RegisterIndex::A]); // Overflow
-    // Half Carry is set if adding the lower nibbles of the value and register
-    // A together result in a value bigger than 0xF. If the result is larger 
-    // than 0xF then the addition caused a carry from the lower nibble to the
-    // upper nibble.
-    r.halfCarry = (((oldVal & 0x0F) + (value & 0x0F)) > 0x0F);
 
+    r.carry = ((unsigned int)oldVal + value + carryVal) > 0xFF;
+    r.halfCarry = (((oldVal & 0x0F) + (value & 0x0F) + carryVal) > 0x0F);
     r.modifiedFlags = true;
 }
 
@@ -36,25 +30,18 @@ void Gameboy::addFromMemory(bool carry) {
     
     addr += (r.registers[RegisterIndex::H] << 8);
     unsigned char value = mem.read(addr);
-    if (carry) {
-        value += r.carry;
-    }
+    unsigned char carryVal = (carry) ? r.carry : 0;
 
     unsigned char oldVal = r.registers[RegisterIndex::A];
-    r.registers[RegisterIndex::A] += value;
+    r.registers[RegisterIndex::A] = oldVal + value + carryVal;
 
     if (LOGGING) printf("ADD %d FROM ADDR: 0x%04x TO REGISTER A\n", value, addr);
     
     // Set flags
     r.zero = (r.registers[RegisterIndex::A] == 0);
     r.subtract = false;
-    r.carry = (oldVal > r.registers[RegisterIndex::A]); // Overflow
-    // Half Carry is set if adding the lower nibbles of the value and register
-    // A together result in a value bigger than 0xF. If the result is larger 
-    // than 0xF then the addition caused a carry from the lower nibble to the
-    // upper nibble.
-    r.halfCarry = (((oldVal & 0x0F) + 
-        (value & 0x0F)) > 0x0F);
+    r.carry = ((unsigned int)oldVal + value + carryVal) > 0xFF;
+    r.halfCarry = (((oldVal & 0x0F) + (value & 0x0F) + carryVal) > 0x0F);
 
     r.modifiedFlags = true;
 }
@@ -94,24 +81,20 @@ void Gameboy::subtract(RegisterIndex target, bool carry) {
     }
 
     unsigned char value = r.registers[target];
-    if (carry) {
-        value += r.carry;
-    }
+    unsigned char carryVal = carry ? r.carry : 0;
 
     unsigned char oldVal = r.registers[RegisterIndex::A];
-    r.registers[RegisterIndex::A] -= value;
+    r.registers[RegisterIndex::A] = oldVal - (value + carryVal);
 
     if (LOGGING) printf("SUB %d GOTTEN FROM REGISTER %c TO REGISTER A\n", value, target + 65);
     
     // Set flags
     r.zero = (r.registers[RegisterIndex::A] == 0);
     r.subtract = true;
-    r.carry = (oldVal < r.registers[RegisterIndex::A]); // Overflow
-    // Half Carry is set if adding the lower nibbles of the value and register
-    // A together result in a value bigger than 0xF. If the result is larger 
-    // than 0xF then the addition caused a carry from the lower nibble to the
-    // upper nibble.
-    r.halfCarry = (((oldVal & 0x0F) - (value & 0x0F)) & 0x10);
+    //r.carry = (oldVal < r.registers[RegisterIndex::A]); // Overflow
+    r.carry = (oldVal < (value + carryVal));
+    //r.halfCarry = (((oldVal & 0x0F) - (value & 0x0F)) & 0x10);
+    r.halfCarry = ((oldVal & 0x0F) < ((value & 0x0F) + carryVal));
 
     r.modifiedFlags = true;
 }
@@ -122,23 +105,21 @@ void Gameboy::subtractFromMemory(bool carry) {
     addr += (r.registers[RegisterIndex::H] << 8);
 
     unsigned char value = mem.read(addr);
-    if (carry) {
-        value += r.carry;
-    }
+    unsigned char carryVal = carry ? r.carry : 0;
 
     unsigned char oldVal = r.registers[RegisterIndex::A];
-    r.registers[RegisterIndex::A] -= value;
+    r.registers[RegisterIndex::A] = oldVal - (value + carryVal);
     if (LOGGING) printf("SUB %d GOTTEN FROM ADDR: 0x%04x TO REGISTER A\n", value, addr);
     
     // Set flags
     r.zero = (r.registers[RegisterIndex::A] == 0);
     r.subtract = true;
-    r.carry = (oldVal < r.registers[RegisterIndex::A]); // Overflow
+    r.carry = (oldVal < (value + carryVal));
     // Half Carry is set if adding the lower nibbles of the value and register
     // A together result in a value bigger than 0xF. If the result is larger 
     // than 0xF then the addition caused a carry from the lower nibble to the
     // upper nibble.
-    r.halfCarry = (((oldVal & 0x0F) - (value & 0x0F)) & 0x10);
+    r.halfCarry = ((oldVal & 0x0F) < ((value & 0x0F) + carryVal));
 
     r.modifiedFlags = true;
 }

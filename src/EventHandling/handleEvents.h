@@ -3,6 +3,8 @@
 
 #include <SFML/Graphics.hpp>
 
-void handleEvents(sf::RenderWindow& win);
+#include "../Gameboy/gameboy.h"
+
+void handleEvents(sf::RenderWindow& win, Gameboy& g);
 
 #endif

@@ -13,15 +13,18 @@ int main() {
 
         for (int i = 0; i < 3; i++) {
             g.FDE();
-            g.ppu.main();
+
+            // One M Cycle == 4 T Cycles
+            for (int j = 0; j < 4; j++) {
+                g.ppu.main();
+            }
         }
 
         //frameCount++;
         //if (frameCount & 1 && !g.ppu.readyToDraw) continue;
 
         // Event handling
-        handleEvents(win);
-
+        handleEvents(win, g);
 
         // Render handling
         handleRendering(win, g);

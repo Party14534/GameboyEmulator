@@ -26,10 +26,10 @@ bool OAM::tick() {
 
         case ReadSpriteX:
             // Sprite table must have room left
-            if (objects.size() == 10) {
+            /*if (objects.size() == 10) {
                 return true;
             }
-
+            */
             object.xPos = mem.read(addr + 1);
             
             unsigned char height = 8;
@@ -38,7 +38,7 @@ bool OAM::tick() {
                 height = 16; 
             } 
             
-            if (object.xPos != 0) {
+            if (object.xPos != 0 && objects.size() < 10) {
                 unsigned char y = mem.read(LY_ADDR) + 16;
                 if (object.yPos <= y && object.yPos + height > y) {
                     object.fetched = false;

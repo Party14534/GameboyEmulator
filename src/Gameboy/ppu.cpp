@@ -61,6 +61,13 @@ PPU::PPU(GameboyMem& gameboyMem, sf::Vector2u winSize) :
 }
 
 void PPU::main() {
+    if ((*LCDC & 0x80) == 0) {
+        // LCD is off - reset state
+        *LY = 0;
+        cycles = 0;
+        state = HBlank;
+        return;
+    }
     // Check for interrupts
     *STAT &= 0xFC;  // Clear mode bits (0-1)
 
@@ -166,11 +173,13 @@ void PPU::DoVBlank() {
     if (cycles == 456) {
         cycles = 0;
         if (*LY == 153) {
+            //printf("FRAME COMPLETE! LCDC=0x%02x, readyToDraw=%d\n", *LCDC, readyToDraw);
             *LY = 0;
             fetcher.vBufferIndex = 0;
             windowLineCounter = 0;
             oam.start();
-            readyToDraw = true;
+            //readyToDraw = true;
+            drawToBuffer();
             state = OAMSearch;
         } else {
             *LY = *LY + 1;
@@ -294,6 +303,12 @@ void PPU::drop() {
 }
 
 void PPU::drawToScreen(sf::RenderWindow& win) {
+    win.draw(displaySprite);
+    
+    readyToDraw = false;
+}
+
+void PPU::drawToBuffer() {
     display = sf::Image({160, 144}, reinterpret_cast<std::uint8_t*>(fetcher.videoBuffer.data()));
 
     bool worked = displayTexture.loadFromImage(display);
@@ -302,10 +317,8 @@ void PPU::drawToScreen(sf::RenderWindow& win) {
         exit(1);
     }
     displaySprite.setTexture(displayTexture);
-    win.draw(displaySprite);
-    //printf("0x%2x\n", *LCDC);
 
-    readyToDraw = false;
+    readyToDraw = true;
 }
 
 bool PPU::IsFetchingSprites() {

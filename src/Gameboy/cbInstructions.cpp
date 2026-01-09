@@ -67,6 +67,13 @@ void Gameboy::loadCBInstruction() {
                 rotateRegisterLeft(target);
             }
             break;
+        case 0x02:
+            if (secondHalfByte < 8) {
+                SLA(target);
+            } else { 
+                SRA(target);
+            }
+            break;
         case 0x03:
             if (secondHalfByte < 8) {
                 swap(target);
@@ -78,27 +85,21 @@ void Gameboy::loadCBInstruction() {
         case 0x05:
         case 0x06:
         case 0x07:
-            bitOffset = (firstHalfByte - 0x04) * 2;
-            bitOffset = (secondHalfByte < 0x07) ? bitOffset : bitOffset + 1;
-            
+            bitOffset = (byte & 0b00111000) >> 3; 
             bit(target, bitOffset);
             break;
         case 0x08:
         case 0x09:
         case 0x0A:
         case 0x0B:
-            bitOffset = (firstHalfByte - 0x08) * 2;
-            bitOffset = (secondHalfByte < 0x07) ? bitOffset : bitOffset + 1;
-
+            bitOffset = (byte & 0b00111000) >> 3; 
             resetBit(target, bitOffset);
             break;
         case 0x0C:
         case 0x0D:
         case 0x0E:
         case 0x0F:
-            bitOffset = (firstHalfByte - 0x0C) * 2;
-            bitOffset = (secondHalfByte < 0x07) ? bitOffset : bitOffset + 1;
-
+            bitOffset = (byte & 0b00111000) >> 3; 
             setBit(target, bitOffset);
             break;
         default:
@@ -260,11 +261,59 @@ void Gameboy::rotateRegisterRightHL() {
     cycles = 4;
 }
 
+void Gameboy::SLA(RegisterIndex target) {
+    unsigned char mask = 0b10000000;
+    unsigned char* value;
+    
+    if (target == F) {
+        value = &mem.read(r.getHL());
+        cycles = 4;
+    } else {
+        value = &r.registers[target];
+        cycles = 2;
+    }
+
+    r.carry = ((*value & mask) != 0);
+
+    *value = *value << 1;
+    
+    r.zero = *value == 0;
+    r.subtract = 0;
+    r.halfCarry = 0;
+
+    r.modifiedFlags = true;
+}
+
+void Gameboy::SRA(RegisterIndex target) {
+    unsigned char lowMask = 0b00000001;
+    unsigned char highMask = 0b10000000;
+    unsigned char* value;
+    
+    if (target == F) {
+        value = &mem.read(r.getHL());
+        cycles = 4;
+    } else {
+        value = &r.registers[target];
+        cycles = 2;
+    }
+
+    r.carry = ((*value & lowMask) != 0);
+
+    unsigned char highBit = *value & highMask;
+    *value = *value >> 1;
+    *value |= highBit;
+    
+    r.zero = *value == 0;
+    r.subtract = 0;
+    r.halfCarry = 0;
+
+    r.modifiedFlags = true;
+}
+
 void Gameboy::bit(RegisterIndex target, unsigned short int bitOffset) {
     unsigned char mask = 0b00000001 << bitOffset;
     unsigned char val;    
 
-    //printf("%04x %d\n", mask, bitOffset);
     if (target == F) {
         val = mem.read(r.getHL()) & mask;
         cycles = 3;
@@ -286,7 +335,6 @@ void Gameboy::swap(RegisterIndex target) {
     cycles = 2;
     
     if (target == RegisterIndex::F) {
-        printf("0x%04x\n", r.getHL());
         data = &mem.read(r.getHL());
         cycles = 4;
     } else {

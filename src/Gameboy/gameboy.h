@@ -20,6 +20,12 @@
 #define IF_ADDR 0xFF0F
 #define IE_ADDR 0xFFFF
 
+// Timer Addrs
+#define DIV_ADDR 0xFF04
+#define TIMA_ADDR 0xFF05
+#define TMA_ADDR 0xFF06
+#define TAC_ADDR 0xFF07
+
 // STAT
 #define STAT_ADDR 0xFF41
 #define STAT_LYC_INTERRUPT 0x40
@@ -94,6 +100,13 @@ struct GameboyMem {
     std::vector<unsigned char> bootRomMem;
     unsigned char* bootFinished;
     unsigned short int* PC;
+
+    // Gamepad variables
+    bool startButton = false;
+    bool selectButton = false;
+    bool aButton = false;
+    bool bButton = false;
+
 
     GameboyMem(unsigned short int& PC);
     unsigned char& read(unsigned short int addr);
@@ -228,6 +241,7 @@ struct PPU {
 
     void drop();
 
+    void drawToBuffer();
     void drawToScreen(sf::RenderWindow& win);
 };
 
@@ -275,7 +289,14 @@ struct Gameboy {
     bool testing = false;
     Registers r;
 
-    unsigned short int cycles;
+    // Timer values
+    unsigned char* DIV;
+    unsigned char* TIMA;
+    int cyclesSinceLastTima = 0;
+
+    bool halted = false;
+
+    int cycles;
 
     // Emulator variables
     std::string romPath;
@@ -291,6 +312,8 @@ struct Gameboy {
     void FDE();
     unsigned char fetch();
     void decode(unsigned char instruction);
+
+    void timer();
 
     RegisterIndex byteToIndex(unsigned char secondHalfByte);
 
@@ -389,6 +412,8 @@ struct Gameboy {
     void rotateRegisterLeftHL();
     void rotateRegisterRightHL();
 
+    void SLA(RegisterIndex target);
+    void SRA(RegisterIndex target);
     void RLC(RegisterIndex target);
     void RRC(RegisterIndex target);
     void RLCHL();

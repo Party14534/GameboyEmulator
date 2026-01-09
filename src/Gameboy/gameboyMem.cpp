@@ -20,6 +20,26 @@ unsigned char& GameboyMem::read(unsigned short int addr) {
         mem[addr] = 0x90;
     }
 
+    if (addr == 0xFF00) {
+        // Joypad handling
+        unsigned char joypad = mem[addr];
+        unsigned char buttons = 0x0F;  // Default: no buttons pressed (all 1s)
+
+        if ((joypad & 0x20) == 0) {  // Button keys selected
+            /*printf("Checking buttons: start=%d, select=%d, a=%d, b=%d\n", 
+               startButton, selectButton, aButton, bButton);*/
+
+            // Bit 3: Start, Bit 2: Select, Bit 1: B, Bit 0: A
+            if (startButton) buttons &= ~0x08;   // Start (bit 3 = 0)
+            if (selectButton) buttons &= ~0x04;  // Select (bit 2 = 0)
+            if (bButton) buttons &= ~0x02;       // B (bit 1 = 0)
+            if (aButton) buttons &= ~0x01;       // A (bit 0 = 0)
+
+            mem[addr] = (joypad & 0xF0) | buttons;  // Combine selection bits with button states
+            //printf("Joypad read! Returning: 0x%02x\n", mem[addr]);
+        }
+    }
+
     return mem[addr];
 }
 
@@ -39,16 +59,16 @@ void GameboyMem::write(unsigned short int addr, unsigned char val) {
         case STAT_ADDR:
             //printf("STAT WRITTEN: 0x%02x\n", mem[addr]);
             break;
-        case 0xFF50:
+        /*case 0xFF50:
             if (val == 0) { return; }
             break;
 
             *PC = 0x100;
-            return;
+            return;*/
         default:
             break;
     }
-    if (addr == 0xFF50 && val != 0) {
+    /*if (addr == 0xFF50 && val != 0) {
         *PC = 0x100;
-    }
+    }*/
 }
