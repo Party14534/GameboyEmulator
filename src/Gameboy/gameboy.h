@@ -100,15 +100,25 @@ struct GameboyMem {
     std::vector<unsigned char> bootRomMem;
     unsigned char* bootFinished;
     unsigned short int* PC;
+    int* cycles;
+    unsigned char fakeVal = 0xFF;
+    bool dmaActive = false;
+    int dmaCyclesRemaining = 0;
 
-    // Gamepad variables
+    // Joypad variables
     bool startButton = false;
     bool selectButton = false;
     bool aButton = false;
     bool bButton = false;
+    bool upButton = false;
+    bool downButton = false;
+    bool leftButton = false;
+    bool rightButton = false;
+
+    unsigned char prevJoypadState = 0xFF;  // Previous button state (0xFF = all released)
 
 
-    GameboyMem(unsigned short int& PC);
+    GameboyMem(unsigned short int& PC, int& cycles);
     unsigned char& read(unsigned short int addr);
     void write(unsigned short int addr, unsigned char val);
 };
@@ -230,7 +240,7 @@ struct PPU {
     bool readyToDraw = false;
     bool drawWindow = false;
     
-    PPU(GameboyMem& ameboyMem, sf::Vector2u winSize);
+    PPU(GameboyMem& gameboyMem, sf::Vector2u winSize);
     void main();
 
     void DoHBlank();
@@ -288,6 +298,8 @@ struct Gameboy {
     bool IME = false;
     bool testing = false;
     Registers r;
+
+    int EITiming = 0;
 
     // Timer values
     unsigned char* DIV;

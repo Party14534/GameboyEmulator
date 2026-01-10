@@ -11,7 +11,10 @@ int main() {
         //printf("PC:%d\n", g.mem.read(0xFF50));
         if (LOGGING) printf("LY 0xFF44: %d 0x%02x\n", g.mem.read(0xFF44), g.mem.read(0xFF44));
 
-        for (int i = 0; i < 3; i++) {
+        // Event handling
+        handleEvents(win, g);
+
+        for (int i = 0; i < 5; i++) {
             g.FDE();
 
             // One M Cycle == 4 T Cycles
@@ -22,9 +25,6 @@ int main() {
 
         //frameCount++;
         //if (frameCount & 1 && !g.ppu.readyToDraw) continue;
-
-        // Event handling
-        handleEvents(win, g);
 
         // Render handling
         handleRendering(win, g);

@@ -54,9 +54,8 @@ void Gameboy::popToRegisterPair(RegisterPair target) {
             r.setHL(nn);
             break;
         case AF:
-            if (LOGGING) printf("SET AF TO %d FROM 0x%04x\n", nn, SP - 2);
+            if (LOGGING) printf("SET AF TO 0x%04x FROM 0x%04x\n", nn, SP - 2);
             r.setAF(nn);
-            r.setFlags();
             break;
         default:
             break;

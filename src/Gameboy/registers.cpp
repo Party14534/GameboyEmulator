@@ -1,10 +1,15 @@
 #include "gameboy.h"
 
 void Registers::setFlags() {
-    zero = registers[RegisterIndex::F] & 0b10000000;
+    /*zero = registers[RegisterIndex::F] & 0b10000000;
     subtract = registers[RegisterIndex::F] & 0b01000000;
     halfCarry = registers[RegisterIndex::F] & 0b00100000;
-    carry = registers[RegisterIndex::F] & 0b00010000;
+    carry = registers[RegisterIndex::F] & 0b00010000;*/
+
+    zero = (registers[RegisterIndex::F] >> 7) & 1;
+    subtract = (registers[RegisterIndex::F] >> 6) & 1;
+    halfCarry = (registers[RegisterIndex::F] >> 5) & 1;
+    carry = (registers[RegisterIndex::F] >> 4) & 1;
 }
 
 void Registers::setF() {

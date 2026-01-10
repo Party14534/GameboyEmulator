@@ -66,8 +66,10 @@ void PPU::main() {
         *LY = 0;
         cycles = 0;
         state = HBlank;
+        *STAT = (*STAT & 0xFC);
         return;
     }
+    
     // Check for interrupts
     *STAT &= 0xFC;  // Clear mode bits (0-1)
 

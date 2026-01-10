@@ -117,7 +117,7 @@ void Gameboy::loadFromAcc(RegisterPair src, bool inc) {
 
     mem.write(addr, r.registers[RegisterIndex::A]);
 
-    if (LOGGING) printf("LOAD REGISTER A TO ADDR: 0x%04x\n", addr);
+    if (LOGGING) printf("LOAD REGISTER A (0x%02x) TO ADDR: 0x%04x\n", r.registers[A], addr);
     
     if (src == HL) {
         if (inc) { 
@@ -160,5 +160,5 @@ void Gameboy::loadMemoryToAcc() {
 
     r.registers[A] = mem.read(addr);
 
-    if (LOGGING) printf("LOAD ADDR: 0x%04x TO REGISTER A\n", addr);
+    if (LOGGING) printf("LOAD ADDR: 0x%04x DATA: 0x%02x TO REGISTER A\n", addr, mem.mem[addr]);
 }

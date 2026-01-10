@@ -3,7 +3,7 @@
 Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom, bool _testing) : 
     testing(_testing),
     romPath(_romPath),
-    mem(PC), // 65535
+    mem(PC, cycles), // 65535
     ppu(mem, winSize)
 {
     r.registers = std::vector<unsigned char>(8);
@@ -96,7 +96,7 @@ void Gameboy::writeRom() {
     //std::ifstream file ("../tests/dmg-acid2.gb", std::ios::binary);
     //std::ifstream file ("../tests/m3_bgp_change_sprites.gb", std::ios::binary);
     //std::ifstream file ("../tests/11.gb", std::ios::binary);
-    std::ifstream file ("../roms/tetris.gb", std::ios::binary);
+    std::ifstream file ("../roms/drmario.gb", std::ios::binary);
     if (!file.good()) { 
         printf("file doesn't exist\n");
         exit(1);
@@ -114,6 +114,14 @@ void Gameboy::writeRom() {
 
 void Gameboy::FDE() {
     timer();
+
+    if (mem.dmaActive) {
+        mem.dmaCyclesRemaining--;
+        if (mem.dmaCyclesRemaining <= 0) {
+            mem.dmaActive = false;
+            printf("Finished DMA\n");
+        }
+    }
 
     cycles--;
     if (cycles > 0 && !testing) { return; }
@@ -136,14 +144,23 @@ void Gameboy::FDE() {
         }
     }
 
-    static int instrCount = 0;
-
-    instrCount++;
-    if (instrCount % 1000 == 0) {
-        //printf("Executed %d instructions, PC=0x%04x, cycles=%d\n", instrCount, PC, cycles);
-    }
-
     unsigned char instruction = fetch();
+    //printf("0x%02x\n", instruction);
+
+    /*if (mem.dmaActive) {
+        printf("A:%02x F:%02x B:%02x C:%02x D:%02x E:%02x H:%02x L:%02x SP:%04x PC:%04x PCMEM:%02x,%02x,%02x,%02x\n",
+                r.registers[A], 
+                r.registers[F],
+                r.registers[B],
+                r.registers[C],
+                r.registers[D],
+                r.registers[E],
+                r.registers[H],
+                r.registers[L],
+                SP, PC,
+                mem.mem[PC], mem.mem[PC+1], mem.mem[PC+2],
+                mem.mem[PC+3]);
+    }*/
 
     decode(instruction);
 
@@ -168,6 +185,12 @@ void Gameboy::FDE() {
                 mem.read(PC+3));
     }
     
+    if (EITiming > 0) { EITiming--; }
+    if (EITiming == 0) { 
+        IME = true; 
+        EITiming = -1;
+    }
+
     if (!IME) { return; } 
     
     unsigned char* IF = &mem.mem[IF_ADDR];
@@ -219,7 +242,15 @@ void Gameboy::timer() {
     cyclesSinceLastTima++;
 
     // Timer work
-    *DIV = *DIV + 1; // TODO: Is this how often we should update this
+    static int divCounter = 0;
+
+    // DIV increments every 64 M-cycles (256 T-cycles, 16384 Hz)
+    divCounter++;
+
+    if (divCounter >= 64) {
+        divCounter = 0;
+        *DIV = *DIV + 1;
+    }
 
     unsigned char TAC = mem.mem[TAC_ADDR];
     if ((TAC & 4) == 0) { return; }
@@ -1027,7 +1058,7 @@ void Gameboy::callFXInstructions(unsigned char secondHalfByte) {
             cycles = 4;
             break;
         case 0x0B:
-            IME = true;
+            EITiming = 2;
             cycles = 1;
             break;
         case 0x0E:
