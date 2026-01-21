@@ -96,7 +96,7 @@ void Gameboy::writeRom() {
     //std::ifstream file ("../tests/dmg-acid2.gb", std::ios::binary);
     //std::ifstream file ("../tests/m3_bgp_change_sprites.gb", std::ios::binary);
     //std::ifstream file ("../tests/11.gb", std::ios::binary);
-    std::ifstream file ("../roms/drmario.gb", std::ios::binary);
+    std::ifstream file ("../roms/mario.gb", std::ios::binary);
     if (!file.good()) { 
         printf("file doesn't exist\n");
         exit(1);
@@ -119,7 +119,6 @@ void Gameboy::FDE() {
         mem.dmaCyclesRemaining--;
         if (mem.dmaCyclesRemaining <= 0) {
             mem.dmaActive = false;
-            printf("Finished DMA\n");
         }
     }
 

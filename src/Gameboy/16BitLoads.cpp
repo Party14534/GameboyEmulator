@@ -79,8 +79,8 @@ void Gameboy::pushRegisterPair(RegisterPair target) {
             if (LOGGING) printf("PUSH HL: %d TO STACK\n", data);
             break;
         case AF:
-            if (LOGGING) printf("PUSH AF: %d TO STACK\n", data);
             data = r.getAF();
+            if (LOGGING) printf("PUSH AF: %d 0x%04x TO STACK\n", data, data);
             break;
         default:
             printf("Cannot use SP with this function\n");
@@ -91,10 +91,16 @@ void Gameboy::pushRegisterPair(RegisterPair target) {
     SP--;
     unsigned char msb = data >> 8;
     mem.write(SP, msb);
+    if (LOGGING) {
+        printf("WROTE 0x%02x to 0x%04x\n", msb, SP);
+    }
     
     SP--;
     unsigned char lsb = data & 0x00FF;
     mem.write(SP, lsb);
+    if (LOGGING) {
+        printf("WROTE 0x%02x to 0x%04x\n", lsb, SP);
+    }
 }
 
 // 5 cycles

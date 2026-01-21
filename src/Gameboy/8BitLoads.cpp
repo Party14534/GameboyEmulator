@@ -53,7 +53,7 @@ void Gameboy::loadFromAcc(bool usingC) {
 
     mem.write(addr, r.registers[A]);
 
-    if (LOGGING) printf("LOAD REGISTER A TO ADDR: 0x%04x\n", addr);
+    if (LOGGING) printf("LOAD REGISTER A (0x%02x) TO ADDR: 0x%04x\n", r.registers[A], addr);
     //printf("%04x\n", addr);
 }
 

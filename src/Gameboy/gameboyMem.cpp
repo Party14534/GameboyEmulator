@@ -22,13 +22,6 @@ unsigned char& GameboyMem::read(unsigned short int addr) {
         mem[addr] = 0x90;
     }
 
-    if (addr == 0xFF80) {
-        printf("Reading %02x from FF80\n", mem[addr]);
-    }
-    if (addr == 0xFF81) {
-        printf("Reading %02x from FF81\n", mem[addr]);
-    }
-
     if (dmaActive && addr < 0xFF80) {
         static unsigned char dmaBlockedValue = 0xFF;
         dmaBlockedValue = 0xFF;
@@ -89,14 +82,6 @@ void GameboyMem::write(unsigned short int addr, unsigned char val) {
 
         dmaActive = true;
         dmaCyclesRemaining += 160;  // Optional
-        printf("starting dma transfer 0x%02x %04x\n", val, source);
-    }
-
-    if (addr == 0xFF80 && val == 0x2f) {
-        printf("Writing %02x to FF80\n", val);
-    }
-    if (addr == 0xFF81 && val == 0x2f) {
-        printf("Writing %02x to FF81\n", val);
     }
 
    /* if (addr >= 0xFE00 && addr <= 0xFE9F) {
@@ -123,6 +108,10 @@ void GameboyMem::write(unsigned short int addr, unsigned char val) {
     if (addr == 0xFF44) {  // LY is read-only
         return;
     }*/
+
+    if (*bootFinished && addr < 0x7FFF) {
+        return;
+    }
 
     switch(addr) {
         case DIV_ADDR:
