@@ -10,7 +10,6 @@
 #include "ImGuiFileDialog.h"
 
 #include "EventHandling/handleEvents.h"
-#include "RenderHandling/handleRendering.h"
 #include "Gameboy/gameboy.h"
 
 #endif
