@@ -100,7 +100,8 @@ void Gameboy::writeRom() {
     //std::ifstream file ("../tests/dmg-acid2.gb", std::ios::binary);
     //std::ifstream file ("../tests/m3_bgp_change_sprites.gb", std::ios::binary);
     //std::ifstream file ("../tests/11.gb", std::ios::binary);
-    std::ifstream file ("../roms/blue.gb", std::ios::binary);
+    //std::ifstream file ("../roms/blue.gb", std::ios::binary);
+    std::ifstream file (romPath, std::ios::binary);
     if (!file.good()) { 
         printf("file doesn't exist\n");
         exit(1);
@@ -149,6 +150,50 @@ MBCType Gameboy::byteToMBC(unsigned char byte) {
 
     printf("Unsupported MBC Type\n");
     exit(1);
+}
+
+void Gameboy::deserialize(std::string saveStatePath) {
+    if (saveStatePath == "") { return; }
+
+    // Load state
+    std::ifstream is(saveStatePath, std::ios::binary);
+    if (!is.good()) { 
+        printf("Savestate file not found\n");
+        return;
+    }
+
+    cereal::BinaryInputArchive archive(is);
+    archive(*this);
+
+    // Setup gameboy pointers
+    IE = &mem.mem[0xFFFF]; 
+    DIV = &mem.mem[DIV_ADDR]; 
+    TIMA = &mem.mem[TIMA_ADDR]; 
+
+    // Setup PPU pointers
+    ppu.SCY = &mem.mem[0xFF42];
+    ppu.SCX = &mem.mem[0xFF43];
+    ppu.LY = &mem.mem[0xFF44];
+    ppu.LYC = &mem.mem[0xFF45];
+    ppu.WY = &mem.mem[0xFF4A];
+    ppu.WX = &mem.mem[0xFF4B];
+    ppu.LCDC = &mem.mem[LCDC_ADDR];
+    ppu.STAT = &mem.mem[STAT_ADDR];
+    ppu.IF = &mem.mem[IF_ADDR];
+
+    // Setup fetcher references
+    ppu.fetcher.mem = mem;
+    ppu.fetcher.BGP = &mem.mem[0xff47];
+    ppu.fetcher.OBP0 = &mem.mem[0xff48];
+    ppu.fetcher.OBP1 = &mem.mem[0xff49];
+
+    // Setup OAM references
+    ppu.oam.mem = mem;
+
+    // Setup Gameboy Memory references
+    mem.bootFinished = &mem.mem[0xFF50];
+    mem.PC = &PC;
+    mem.cycles = &cycles;
 }
 
 void Gameboy::FDE() {

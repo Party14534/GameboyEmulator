@@ -2,6 +2,9 @@
 #define GAMEBOY_H
 
 #include <SFML/Graphics.hpp>
+#include <cereal/archives/binary.hpp>
+#include <cereal/types/string.hpp>
+#include <cereal/types/vector.hpp>
 #include <string>
 #include <vector>
 #include <stdio.h>
@@ -83,6 +86,11 @@ struct OAMProperties {
     bool flipX;
     bool palette;
     bool bank;
+
+    template<class Archive>
+    void serialize(Archive &ar) {
+        ar(priority, flipY, flipX, palette, bank);
+    }
 };
 
 struct OAMObject {
@@ -92,6 +100,12 @@ struct OAMObject {
     unsigned short int addr;
     OAMProperties attributes;
     bool fetched = false;
+
+
+    template<class Archive>
+    void serialize(Archive &ar) {
+        ar(yPos, xPos, tileIndex, addr, attributes, fetched);
+    }
 };
 
 enum OAMState {
@@ -140,6 +154,15 @@ struct GameboyMem {
 
     unsigned char prevJoypadState = 0xFF;  // Previous button state (0xFF = all released)
 
+    template<class Archive>
+    void serialize(Archive &ar) {
+        ar(mem, romMem, bootRomMem, memType, fakeVal, dmaActive,
+                dmaCyclesRemaining, ramEnabled, batteryEnabled, timerEnabled,
+                ramEnable, romBankLower, upperBankBits, bankingMode,
+                ramBankOrRTC, latchData, rtcRegs, rtcRegsInternal,
+                startButton, selectButton, aButton, bButton, upButton,
+                downButton, leftButton, rightButton, prevJoypadState);
+    }
 
     GameboyMem(unsigned short int& PC, int& cycles);
     unsigned char& read(unsigned short int addr);
@@ -152,6 +175,12 @@ struct OAM {
     std::vector<OAMObject> objects;
     OAMObject object; // Current object
     OAMState state;
+
+    template<class Archive>
+    void serialize(Archive &ar) {
+        ar(index, objects, object, state);
+    }
+
     OAM(GameboyMem& mem);
     
     bool tick();
@@ -163,6 +192,11 @@ struct Pixel {
     bool palette;
     bool priority; // only used for sprites
     bool isObject = false;
+
+    template<class Archive>
+    void serialize(Archive &ar) {
+        ar(color, palette, priority, isObject);
+    }
 };
 
 struct Fetcher {
@@ -190,6 +224,39 @@ struct Fetcher {
     unsigned char* OBP0;
     unsigned char* OBP1;
 
+    // Serialization
+    template<class Archive>
+    void save(Archive &ar) const {
+        ar(FIFO, tileData, objectData, state, oldState, object,
+                cycles, mapAddr, dataAddr, tileLine, tileID,
+                signedId, tileOffset, objectOffset, objectLine, objectId,
+                vBufferIndex);
+
+        // Serialize sf::Color videoBuffer
+        size_t size = videoBuffer.size();
+        ar(size);
+        for (const auto& color : videoBuffer) {
+            ar(color.r, color.g, color.b, color.a);
+        }
+    }
+
+    template<class Archive>
+    void load(Archive &ar) {
+        ar(FIFO, tileData, objectData, state, oldState, object,
+                cycles, mapAddr, dataAddr, tileLine, tileID,
+                signedId, tileOffset, objectOffset, objectLine, objectId,
+                vBufferIndex);
+
+        // Deserialize sf::Color videoBuffer
+        size_t size;
+        ar(size);
+        videoBuffer.resize(size);
+        for (auto& color : videoBuffer) {
+            uint8_t r, g, b, a;
+            ar(r, g, b, a);
+            color = sf::Color(r, g, b, a);
+        }
+    }
     Fetcher(GameboyMem& _mem);
 
     void setup();
@@ -212,18 +279,7 @@ struct PPU {
     std::vector<Pixel> spriteFIFO;
     std::vector<Pixel> bgWinFIFO;
     
-    // Pointers to VRAM sections
-    unsigned char* graphicsData; // 8000 - 97FF
-    
-    // Hold data for background tiles layed out row by row.
-    // Each byte is a tile number and is on the background buffer
-    // based on where it is in the graphics data. E.g. the first
-    // byte would be in the top left corner and the 33rd would be
-    // placed in the leftmost position of the second row.
-    unsigned char* backgroundMap1; // 9800 - 9BFF
-    unsigned char* backgroundMap2; // 9C00 - 9FFF
-    
-    // Contains data for displaying sprites where each sprite
+    // OAM Memory Contains data for displaying sprites where each sprite
     // takes up 4 bytes
     // Byte 0: Y pos
     // Byte 1: X pos
@@ -235,7 +291,6 @@ struct PPU {
     //          Bit 6:  Y flip
     //          Bit 5:  X flip
     //          Bit 4: Palette Number
-    unsigned char* OAMemory; // FE00 - FE9F
 
     // Register pointers
     unsigned char* SCY; // FF42
@@ -262,6 +317,16 @@ struct PPU {
     sf::RectangleShape test;
     bool readyToDraw = false;
     bool drawWindow = false;
+
+    // Serialization
+    template<class Archive>
+    void serialize(Archive &ar) {
+        ar(viewport, background, window, spriteFIFO, bgWinFIFO,
+                state, cycles, x, pixelsToDrop, windowLineCounter,
+                fetcher, oam, readyToDraw, drawWindow);
+
+        // TODO: set up pointers and SFML
+    }
     
     PPU(GameboyMem& gameboyMem, sf::Vector2u winSize);
     void main();
@@ -287,6 +352,13 @@ struct Registers {
     bool halfCarry = false;
     bool carry = false;
     bool modifiedFlags = false;
+
+    // Serialization
+    template<class Archive>
+    void serialize(Archive &ar) {
+        ar(registers, zero, subtract, halfCarry,
+                carry, modifiedFlags);
+    }
 
     void setFlags();
     void setF();
@@ -338,6 +410,21 @@ struct Gameboy {
     GameboyMem mem;
     PPU ppu;
 
+    // Serialization
+    template<class Archive>
+    void serialize(Archive &ar) {
+        ar(PC, SP, IX, IY, I, R, IME, testing,
+                r, EITiming, cyclesSinceLastTima,
+                halted, cycles, romPath, mem, ppu);
+
+        // Handle pointers as offsets into memory
+        if (!Archive::is_saving::value) {
+            IE = &mem.mem[0xFFFF];
+            DIV = &mem.mem[DIV_ADDR];
+            TIMA = &mem.mem[TIMA_ADDR];
+        }     
+    }
+
     /*
      * Function Definitions
      */
@@ -347,6 +434,8 @@ struct Gameboy {
     void FDE();
     unsigned char fetch();
     void decode(unsigned char instruction);
+
+    void deserialize(std::string saveStatePath);
 
     MBCType byteToMBC(unsigned char byte);
 

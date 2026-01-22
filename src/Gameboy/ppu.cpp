@@ -29,11 +29,6 @@ PPU::PPU(GameboyMem& gameboyMem, sf::Vector2u winSize) :
     viewport = std::vector<unsigned char>(160 * 144);
     fetcher.setup();
 
-    graphicsData = &gameboyMem.mem[0x8000];
-    backgroundMap1 = &gameboyMem.mem[0x9800];
-    backgroundMap2 = &gameboyMem.mem[0x9C00];
-    OAMemory = &gameboyMem.mem[0xFE00];
-
     SCY = &gameboyMem.mem[0xFF42];
     SCX = &gameboyMem.mem[0xFF43];
     LY = &gameboyMem.mem[0xFF44];

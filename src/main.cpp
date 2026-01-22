@@ -1,10 +1,20 @@
 #include "main.h"
 
-int main() {
-    sf::RenderWindow win(sf::VideoMode::getDesktopMode(), "Template", sf::Style::Default);
+int main(int argc, char* argv[]) {
+    // Parse command line arguments
+    if (argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " <rom_path> [savestate_path]" << std::endl;
+        return 1;
+    }
+
+    std::string romPath = argv[1];
+    std::string savestatePath = (argc >= 3) ? argv[2] : "";
+
+    sf::RenderWindow win(sf::VideoMode::getDesktopMode(), "Gameboy Emulator", sf::Style::Default);
     
-    Gameboy g("", win.getSize(), false);
-    printf("%d %d\n", g.mem.memType, g.mem.romMem[0x0147]);
+    Gameboy g(romPath, win.getSize(), false);
+
+    g.deserialize(savestatePath);
 
     using Clock = std::chrono::high_resolution_clock;
     using Duration = std::chrono::duration<double>;
@@ -23,7 +33,7 @@ int main() {
         cycleAccumulator += deltaTime.count() / MCYCLE_TIME;
 
         // Event handling
-        handleEvents(win, g);
+        handleEvents(win, g, savestatePath);
 
         /*
         for (int cycles = 0; cycles < 70224; ) {
@@ -39,7 +49,7 @@ int main() {
             cycles += executed;
         }*/
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 15; i++) {
             g.FDE();
 
             // One M Cycle == 4 T Cycles

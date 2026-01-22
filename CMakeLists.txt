@@ -54,6 +54,9 @@ endif()
 # Create library
 add_library(${PROJECT_NAME}_lib STATIC ${LIB_SOURCES})
 
+# Add cereal include directory
+target_include_directories(${PROJECT_NAME}_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 # Create main executable
 add_executable(${PROJECT_NAME} ${MAIN_SOURCE})
 

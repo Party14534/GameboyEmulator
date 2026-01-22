@@ -1,7 +1,8 @@
 #include "handleEvents.h"
 #include "SFML/Window/Keyboard.hpp"
+#include <cstdio>
 
-void handleEvents(sf::RenderWindow& win, Gameboy& g) {
+void handleEvents(sf::RenderWindow& win, Gameboy& g, std::string& saveStatePath) {
     while(const std::optional e = win.pollEvent()) {
         if (e->is<sf::Event::Closed>()) {
             win.close();
@@ -40,6 +41,21 @@ void handleEvents(sf::RenderWindow& win, Gameboy& g) {
         }
         else if (e->is<sf::Event::KeyReleased>()) {
             const auto keyReleased = e->getIf<sf::Event::KeyReleased>();
+
+            // Check for Ctrl+S to save state
+            if (keyReleased->scancode == sf::Keyboard::Scancode::S && 
+                (keyReleased->control || keyReleased->system)) {
+                if (saveStatePath != "") {
+                    std::ofstream os(saveStatePath, std::ios::binary);
+                    cereal::BinaryOutputArchive archive(os);
+                    archive(g);
+                    std::cout << "Game saved to: " << saveStatePath << std::endl;
+                } else {
+                    printf("No save state path provided\n");
+                }
+
+                continue;
+            }
 
             switch (keyReleased->scancode) {
                 case sf::Keyboard::Scancode::Enter:
