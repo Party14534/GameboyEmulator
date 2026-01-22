@@ -14,14 +14,11 @@ unsigned char& GameboyMem::read(unsigned short int addr) {
         return bootRomMem[addr];
     }
 
-    if (addr == IE_ADDR) {
-        //printf("Trying to read IE\n");
-    }
-
     if (DOCTOR_LOGGING && addr == LY_ADDR) {
         mem[addr] = 0x90;
     }
 
+    /*
     if (dmaActive && addr < 0xFF80) {
         static unsigned char dmaBlockedValue = 0xFF;
         dmaBlockedValue = 0xFF;
@@ -33,7 +30,7 @@ unsigned char& GameboyMem::read(unsigned short int addr) {
 
         //printf("DMA blocked read at 0x%04x, PC=0x%04x\n", addr, *PC);
         //return dmaBlockedValue;  // Return 0xFF for blocked reads
-    }
+    }*/
 
     if (addr == 0xFF00) {
         // Joypad handling
@@ -67,7 +64,107 @@ unsigned char& GameboyMem::read(unsigned short int addr) {
         mem[addr] = newState;
     }
 
-    return mem[addr];
+    switch (memType) {
+        case MBC0:
+            return (addr <= 0x7FFF) ? romMem[addr] : mem[addr];
+            break;
+        case MBC1:
+            if (addr <= 0x3FFF) {
+                // ROM Bank 00 (or X0 in mode 1)
+                unsigned int bank = 0;
+                if (bankingMode == 1) {
+                    bank = upperBankBits << 5;
+                }
+                return romMem[(bank * 0x4000) + addr];
+                
+            } else if (addr <= 0x7FFF) {
+                // ROM Bank 01-7F
+                unsigned int bank = (upperBankBits << 5) | romBankLower;
+                return romMem[(bank * 0x4000) + (addr - 0x4000)];
+                
+            } else if (addr >= 0xA000 && addr <= 0xBFFF) {
+                // RAM Bank 00-03
+                if (!ramEnable) {
+                    fakeVal = 0xFF;
+                    return fakeVal;
+                }
+                unsigned int ramBank = (bankingMode == 1) ? upperBankBits : 0;
+                return mem[(ramBank * 0x2000) + (addr - 0xA000) + 0xA000];
+                
+            } else {
+                return mem[addr];
+            };
+        case MBC2:
+            if (addr <= 0x3FFF) {
+                // ROM Bank 0
+                return romMem[addr];
+                
+            } else if (addr <= 0x7FFF) {
+                // ROM Bank 01-0F
+                unsigned int bank = romBankLower;
+                return romMem[(bank * 0x4000) + (addr - 0x4000)];
+                
+            } else if (addr >= 0xA000 && addr <= 0xBFFF) {
+                // Built-in RAM (512 half-bytes with echoes)
+                if (!ramEnable) {
+                    fakeVal = 0xFF;
+                    return fakeVal;
+                }
+                
+                // Only bottom 9 bits of address are used (512 bytes)
+                unsigned short int ramAddr = 0xA000 + (addr & 0x01FF);
+                // Only lower 4 bits are valid, upper 4 are undefined
+                mem[ramAddr] |= 0xF0; // TODO: This may be bad
+                return mem[ramAddr];
+                
+            } else {
+                return mem[addr];
+            }
+            break;
+        case MBC3:
+            if (addr <= 0x3FFF) {
+                // ROM Bank 00
+                return romMem[addr];
+                
+            } else if (addr <= 0x7FFF) {
+                // ROM Bank 01-7F (reuse romBankLower)
+                unsigned int bank = romBankLower;
+                return romMem[(bank * 0x4000) + (addr - 0x4000)];
+                
+            } else if (addr >= 0xA000 && addr <= 0xBFFF) {
+                // RAM Bank 00-07 or RTC Register 08-0C
+                if (!ramEnable) {  // Reuse ramEnable
+                    fakeVal = 0xFF;
+                    return fakeVal;
+                }
+                
+                if (ramBankOrRTC <= 0x07) {
+                    // RAM Bank access
+                    if (!ramEnabled) {
+                        fakeVal = 0xFF;
+                        return fakeVal;
+                    }
+                    unsigned int ramBank = ramBankOrRTC;
+                    return mem[(ramBank * 0x2000) + (addr - 0xA000) + 0xA000];
+                    
+                } else if (ramBankOrRTC >= 0x08 && ramBankOrRTC <= 0x0C) {
+                    // RTC Register access (return latched values)
+                    return rtcRegs[ramBankOrRTC - 0x08];
+                    
+                } else {
+                    fakeVal = 0xFF;
+                    return fakeVal;
+                }
+                
+            } else {
+                return mem[addr];
+            }
+            break;
+        default:
+            printf("Unsupported memory type\n");
+            exit(1);
+            break;
+    }
 }
 
 void GameboyMem::write(unsigned short int addr, unsigned char val) {
@@ -84,33 +181,128 @@ void GameboyMem::write(unsigned short int addr, unsigned char val) {
         dmaCyclesRemaining += 160;  // Optional
     }
 
-   /* if (addr >= 0xFE00 && addr <= 0xFE9F) {
-        unsigned char stat = mem[STAT_ADDR];
-        unsigned char mode = stat & 0x03;
-        if (mode == 2 || mode == 3) {
-            // OAM is locked during OAM Search and Pixel Transfer
-            return;  // Ignore write
+    // MBC1 register writes
+    if (memType == MBC1 && addr < 0x8000) {
+        if (addr <= 0x1FFF) {
+            // RAM Enable
+            if (!ramEnabled) return;
+            ramEnable = ((val & 0x0F) == 0x0A) ? 1 : 0;
+            
+        } else if (addr <= 0x3FFF) {
+            // ROM Bank Number (5-bit)
+            romBankLower = val & 0x1F;
+            if (romBankLower == 0) romBankLower = 1;  // 00→01 translation
+            
+        } else if (addr <= 0x5FFF) {
+            // RAM Bank / Upper ROM bits
+            upperBankBits = val & 0x03;
+            
+        } else if (addr <= 0x7FFF) {
+            // Banking Mode Select
+            bankingMode = val & 0x01;
         }
-    }
-
-    // Protect VRAM during mode 3
-    if (addr >= 0x8000 && addr <= 0x9FFF) {
-        unsigned char stat = mem[STAT_ADDR];
-        unsigned char mode = stat & 0x03;
-        if (mode == 3) {
-            // VRAM is locked during Pixel Transfer
-            return;  // Ignore write
-        }
-    }
-
-    // TODO: Protect more I/O registers
-    // Some I/O registers are read-only
-    if (addr == 0xFF44) {  // LY is read-only
         return;
-    }*/
+    }
+
+    // MBC2 register writes
+    if (memType == MBC2 && addr < 0x8000) {
+        if (addr <= 0x3FFF) {
+            // Check bit 8 of address (bit 0 of upper byte)
+            if ((addr & 0x0100) == 0) {
+                // Bit 8 is 0: RAM Enable
+                // Examples: 0000-00FF, 0200-02FF, 0400-04FF, etc.
+                ramEnable = ((val & 0x0F) == 0x0A) ? 1 : 0;
+                
+            } else {
+                // Bit 8 is 1: ROM Bank Number (4-bit)
+                // Examples: 0100-01FF, 0300-03FF, 0500-05FF, etc.
+                romBankLower = val & 0x0F;
+                if (romBankLower == 0) romBankLower = 1;  // 00→01 translation
+            }
+        }
+        return;
+    }
+
+    // MBC3 register writes
+    if (memType == MBC3 && addr < 0x8000) {
+        if (addr <= 0x1FFF) {
+            // RAM and Timer Enable (reuse ramEnable)
+            ramEnable = ((val & 0x0F) == 0x0A) ? 1 : 0;
+            
+        } else if (addr <= 0x3FFF) {
+            // ROM Bank Number (7-bit, reuse romBankLower)
+            romBankLower = val & 0x7F;
+            if (romBankLower == 0) romBankLower = 1;  // 00→01 translation
+            
+        } else if (addr <= 0x5FFF) {
+            // RAM Bank Number or RTC Register Select
+            ramBankOrRTC = val;
+            
+        } else if (addr <= 0x7FFF) {
+            // Latch Clock Data (00->01 sequence)
+            if (latchData == 0x00 && val == 0x01) {
+                // Latch the RTC registers
+                for (int i = 0; i < 5; i++) {
+                    rtcRegs[i] = rtcRegsInternal[i];
+                }
+            }
+            latchData = val;
+        }
+        return;
+    }
+
+    // Handle RAM writes
+    if (memType == MBC1 && addr >= 0xA000 && addr <= 0xBFFF) {
+        if (ramEnable && ramEnabled) {
+            unsigned int ramBank = (bankingMode == 1) ? upperBankBits : 0;
+            mem[(ramBank * 0x2000) + (addr - 0xA000) + 0xA000] = val;
+        }
+        return;
+    }
+
+    if (memType == MBC2 && addr >= 0xA000 && addr <= 0xBFFF) {
+        if (ramEnable && ramEnabled) {
+            // Only bottom 9 bits of address are used
+            unsigned short int ramAddr = 0xA000 + (addr & 0x01FF);
+            // Only lower 4 bits are stored
+            mem[ramAddr] = val & 0x0F;
+        }
+        return;
+    }
+    // MBC3 RAM/RTC writes
+    if (memType == MBC3 && addr >= 0xA000 && addr <= 0xBFFF) {
+        if (ramEnable) {  // Reuse ramEnable
+            if (ramBankOrRTC <= 0x07) {
+                // RAM Bank write
+                if (ramEnabled) {
+                    unsigned int ramBank = ramBankOrRTC;
+                    mem[(ramBank * 0x2000) + (addr - 0xA000) + 0xA000] = val;
+                }
+                
+            } else if (ramBankOrRTC >= 0x08 && ramBankOrRTC <= 0x0C) {
+                // RTC Register write
+                unsigned char regIndex = ramBankOrRTC - 0x08;
+                switch (regIndex) {
+                    case 0: rtcRegsInternal[0] = val & 0x3F; break;  // Seconds: 0-59
+                    case 1: rtcRegsInternal[1] = val & 0x3F; break;  // Minutes: 0-59
+                    case 2: rtcRegsInternal[2] = val & 0x1F; break;  // Hours: 0-23
+                    case 3: rtcRegsInternal[3] = val; break;         // Days low
+                    case 4: rtcRegsInternal[4] = val & 0xC1; break;  // Days high (bits 0,6,7)
+                }
+            }
+        }
+        return;
+    }
 
     if (*bootFinished && addr < 0x7FFF) {
-        return;
+        switch (memType) {
+            case MBC0:
+                return;
+                break;
+            default:
+                printf("Code shouldn't be reached\n");
+                exit(1);
+        }
     }
 
     switch(addr) {

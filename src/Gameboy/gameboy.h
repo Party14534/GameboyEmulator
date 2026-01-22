@@ -40,6 +40,10 @@
 #define SERIAL_INTERRUPT_VECTOR 0x0058
 #define JOYPAD_INTERRUPT_VECTOR 0x0060
 
+enum MBCType {
+    MBC0 = 0, MBC1, MBC2, MBC3
+};
+
 enum RegisterIndex {
     A = 0, B, C, D, E, F, H, L
 };
@@ -97,13 +101,32 @@ enum OAMState {
 
 struct GameboyMem {
     std::vector<unsigned char> mem;
+    std::vector<unsigned char> romMem;
     std::vector<unsigned char> bootRomMem;
+    MBCType memType;
     unsigned char* bootFinished;
     unsigned short int* PC;
     int* cycles;
     unsigned char fakeVal = 0xFF;
     bool dmaActive = false;
     int dmaCyclesRemaining = 0;
+
+    bool ramEnabled = false;
+    bool batteryEnabled = false;
+    bool timerEnabled = false;
+
+    // Registers
+    unsigned char ramEnable = 0;
+    unsigned char romBankLower = 1;  // 5-bit register (defaults to 1)
+    unsigned char upperBankBits = 0;  // 2-bit register
+    unsigned char bankingMode = 0;   // 0 = simple, 1 = advanced
+
+    unsigned char ramBankOrRTC = 0;       // 00-07 = RAM bank, 08-0C = RTC register
+    unsigned char latchData = 0xFF;       // Track latch writes (00->01 sequence)
+
+    // RTC registers (latched values)
+    unsigned char rtcRegs[5] = {0};       // [0]=seconds, [1]=minutes, [2]=hours, [3]=days_low, [4]=days_high
+    unsigned char rtcRegsInternal[5] = {0}; // Internal running values
 
     // Joypad variables
     bool startButton = false;
@@ -324,6 +347,8 @@ struct Gameboy {
     void FDE();
     unsigned char fetch();
     void decode(unsigned char instruction);
+
+    MBCType byteToMBC(unsigned char byte);
 
     void timer();
 

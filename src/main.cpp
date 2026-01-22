@@ -4,17 +4,42 @@ int main() {
     sf::RenderWindow win(sf::VideoMode::getDesktopMode(), "Template", sf::Style::Default);
     
     Gameboy g("", win.getSize(), false);
+    printf("%d %d\n", g.mem.memType, g.mem.romMem[0x0147]);
 
-    //unsigned int frameCount = 0;
+    using Clock = std::chrono::high_resolution_clock;
+    using Duration = std::chrono::duration<double>;
+    const double MCYCLE_TIME = 1.0 / 1048576.0;  // Time per M-cycle in seconds
+
+    auto lastTime = Clock::now();
+    double cycleAccumulator = 0.0;
 
     while (win.isOpen()) {
-        //printf("PC:%d\n", g.mem.read(0xFF50));
-        if (LOGGING) printf("LY 0xFF44: %d 0x%02x\n", g.mem.read(0xFF44), g.mem.read(0xFF44));
+        // Calculate delta time
+        auto currentTime = Clock::now();
+        Duration deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
+
+        // Convert delta time to M-cycles
+        cycleAccumulator += deltaTime.count() / MCYCLE_TIME;
 
         // Event handling
         handleEvents(win, g);
 
-        for (int i = 0; i < 5; i++) {
+        /*
+        for (int cycles = 0; cycles < 70224; ) {
+            int before = g.cycles;
+            g.FDE();
+            int executed = g.cycles - before;
+            
+            // Tick PPU for each T-cycle
+            for (int i = 0; i < executed; i++) {
+                g.ppu.main();
+            }
+            
+            cycles += executed;
+        }*/
+
+        for (int i = 0; i < 10; i++) {
             g.FDE();
 
             // One M Cycle == 4 T Cycles
@@ -22,9 +47,6 @@ int main() {
                 g.ppu.main();
             }
         }
-
-        //frameCount++;
-        //if (frameCount & 1 && !g.ppu.readyToDraw) continue;
 
         // Render handling
         handleRendering(win, g);

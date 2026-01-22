@@ -29,10 +29,10 @@ PPU::PPU(GameboyMem& gameboyMem, sf::Vector2u winSize) :
     viewport = std::vector<unsigned char>(160 * 144);
     fetcher.setup();
 
-    graphicsData = &gameboyMem.read(0x8000);
-    backgroundMap1 = &gameboyMem.read(0x9800);
-    backgroundMap2 = &gameboyMem.read(0x9C00);
-    OAMemory = &gameboyMem.read(0xFE00);
+    graphicsData = &gameboyMem.mem[0x8000];
+    backgroundMap1 = &gameboyMem.mem[0x9800];
+    backgroundMap2 = &gameboyMem.mem[0x9C00];
+    OAMemory = &gameboyMem.mem[0xFE00];
 
     SCY = &gameboyMem.mem[0xFF42];
     SCX = &gameboyMem.mem[0xFF43];
@@ -272,12 +272,13 @@ void PPU::TransferPixels() {
 
             bool fetch = false;
             unsigned char offset = 0;
+
             if (obj.xPos < 8 && x == 0) {
                 fetch = true;
                 offset = 8 - obj.xPos;
-            } else if (obj.xPos - 8 == x) {
+            } else if ((int)obj.xPos - 8 == x) {
                 fetch = true;
-            } 
+            }
 
             if (fetch) {
                 fetcher.FetchObject(obj, offset, *LY + 16 - obj.yPos);

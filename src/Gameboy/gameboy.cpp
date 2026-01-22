@@ -14,7 +14,11 @@ Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom, bool 
         return; 
     }
     
+    printf("Writing ROM\n");
     writeRom();
+
+    mem.memType = byteToMBC(mem.romMem[0x0147]);
+
     writeBootRom();
 
     if (!bootRom) { 
@@ -34,7 +38,7 @@ Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom, bool 
         r.setFlags();
 
         
-        // ✓ Initialize I/O registers (post-boot state)
+        // Initialize I/O registers (post-boot state)
         mem.write(0xFF40, 0x91);  // LCDC - LCD on, BG on
         mem.write(0xFF47, 0xFC);  // BGP - palette
         mem.write(0xFF48, 0xFF);  // OBP0
@@ -88,7 +92,7 @@ void Gameboy::writeBootRom() {
     };
     
     for (int i = 0x104; i <= 0x133; i++) {
-        mem.write(i, header[i - 0x104]);
+        mem.romMem[i] = header[i - 0x104];
     }
 }
 
@@ -96,7 +100,7 @@ void Gameboy::writeRom() {
     //std::ifstream file ("../tests/dmg-acid2.gb", std::ios::binary);
     //std::ifstream file ("../tests/m3_bgp_change_sprites.gb", std::ios::binary);
     //std::ifstream file ("../tests/11.gb", std::ios::binary);
-    std::ifstream file ("../roms/mario.gb", std::ios::binary);
+    std::ifstream file ("../roms/blue.gb", std::ios::binary);
     if (!file.good()) { 
         printf("file doesn't exist\n");
         exit(1);
@@ -105,11 +109,46 @@ void Gameboy::writeRom() {
     std::stringstream buff;
     buff << file.rdbuf();
 
+    
+    mem.romMem = std::vector<unsigned char>(buff.str().length());
+    printf("Writing to mem\n");
     int i = 0x000;
     for (unsigned char byte : buff.str()) {
-        mem.write(i, byte);
+        mem.romMem[i] = byte;
         i++;
     }
+    printf("Done writing to mem\n");
+}
+
+MBCType Gameboy::byteToMBC(unsigned char byte) {
+    if (byte == 0x00) {
+        return MBC0;
+    } else if (byte <= 0x03) {
+        mem.ramEnabled = (byte >= 0x02);
+        mem.batteryEnabled = (byte == 0x03);
+        return MBC1;
+    } else if (byte <= 0x06) {
+        mem.batteryEnabled = (byte == 0x06);
+        return MBC2;
+    } else if (byte <= 0x09) {
+        mem.ramEnabled = true;
+        mem.batteryEnabled = (byte == 0x09);
+        return MBC0;
+    } else if (byte <= 0x0D) {
+        printf("Unsupported MBC Type\n");
+        exit(1);
+    } else if (byte < 0x0F) {
+        printf("Unsupported MBC Type\n");
+        exit(1);
+    } else if (byte <= 0x13) {
+        mem.ramEnabled = (byte == 0x10 || byte >= 0x12);
+        mem.batteryEnabled = (byte <= 0x10 || byte == 0x13);
+        mem.timerEnabled = (byte <= 0x10);  
+        return MBC3;
+    }
+
+    printf("Unsupported MBC Type\n");
+    exit(1);
 }
 
 void Gameboy::FDE() {
@@ -144,22 +183,6 @@ void Gameboy::FDE() {
     }
 
     unsigned char instruction = fetch();
-    //printf("0x%02x\n", instruction);
-
-    /*if (mem.dmaActive) {
-        printf("A:%02x F:%02x B:%02x C:%02x D:%02x E:%02x H:%02x L:%02x SP:%04x PC:%04x PCMEM:%02x,%02x,%02x,%02x\n",
-                r.registers[A], 
-                r.registers[F],
-                r.registers[B],
-                r.registers[C],
-                r.registers[D],
-                r.registers[E],
-                r.registers[H],
-                r.registers[L],
-                SP, PC,
-                mem.mem[PC], mem.mem[PC+1], mem.mem[PC+2],
-                mem.mem[PC+3]);
-    }*/
 
     decode(instruction);
 

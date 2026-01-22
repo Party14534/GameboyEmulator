@@ -10,9 +10,9 @@ void Fetcher::setup() {
     state = ReadTileID;
     videoBuffer = std::vector<sf::Color>(160 * 144);
 
-    BGP = &mem.read(0xff47);
-    OBP0 = &mem.read(0xff48);
-    OBP1 = &mem.read(0xff49);
+    BGP = &mem.mem[0xff47];
+    OBP0 = &mem.mem[0xff48];
+    OBP1 = &mem.mem[0xff49];
 }
 
 void Fetcher::Start(unsigned short int _mapAddr, unsigned short int _dataAddr,
