@@ -1,4 +1,7 @@
 #include "main.h"
+#include <chrono>
+
+typedef  std::chrono::milliseconds ms;
 
 int main(int argc, char* argv[]) {
     // Parse command line arguments
@@ -11,54 +14,37 @@ int main(int argc, char* argv[]) {
     std::string savestatePath = (argc >= 3) ? argv[2] : "";
 
     sf::RenderWindow win(sf::VideoMode::getDesktopMode(), "Gameboy Emulator", sf::Style::Default);
-    
+    //win.setVerticalSyncEnabled(true);
+
     Gameboy g(romPath, win.getSize(), false);
+
+    win.setFramerateLimit(g.mem.memType == MBC3 ? 120 : 60);
 
     g.deserialize(savestatePath);
 
-    using Clock = std::chrono::high_resolution_clock;
-    using Duration = std::chrono::duration<double>;
-    const double MCYCLE_TIME = 1.0 / 1048576.0;  // Time per M-cycle in seconds
-
-    auto lastTime = Clock::now();
-    double cycleAccumulator = 0.0;
+    const int MCYCLES_PER_FRAME = 70556;
 
     while (win.isOpen()) {
-        // Calculate delta time
-        auto currentTime = Clock::now();
-        Duration deltaTime = currentTime - lastTime;
-        lastTime = currentTime;
-
-        // Convert delta time to M-cycles
-        cycleAccumulator += deltaTime.count() / MCYCLE_TIME;
-
-        // Event handling
         handleEvents(win, g, savestatePath);
-
-        /*
-        for (int cycles = 0; cycles < 70224; ) {
-            int before = g.cycles;
-            g.FDE();
-            int executed = g.cycles - before;
-            
-            // Tick PPU for each T-cycle
-            for (int i = 0; i < executed; i++) {
-                g.ppu.main();
-            }
-            
-            cycles += executed;
-        }*/
-
-        for (int i = 0; i < 15; i++) {
+        
+        for (int i = 0; i < MCYCLES_PER_FRAME; i++) {
+            //printf("%d\n", i);
             g.FDE();
 
             // One M Cycle == 4 T Cycles
             for (int j = 0; j < 4; j++) {
                 g.ppu.main();
             }
+
+            if (g.ppu.readyToDraw) {
+                // Render handling
+                handleRendering(win, g);
+            }
         }
 
-        // Render handling
-        handleRendering(win, g);
+        /* Render
+        if (g.ppu.readyToDraw) {
+            handleRendering(win, g);
+        }*/
     }
 }
