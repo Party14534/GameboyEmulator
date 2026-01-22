@@ -121,6 +121,7 @@ struct GameboyMem {
     unsigned char* bootFinished;
     unsigned short int* PC;
     int* cycles;
+    int* divCounter;
     unsigned char fakeVal = 0xFF;
     bool dmaActive = false;
     int dmaCyclesRemaining = 0;
@@ -164,7 +165,7 @@ struct GameboyMem {
                 downButton, leftButton, rightButton, prevJoypadState);
     }
 
-    GameboyMem(unsigned short int& PC, int& cycles);
+    GameboyMem(unsigned short int& PC, int& cycles, int& divCounter);
     unsigned char& read(unsigned short int addr);
     void write(unsigned short int addr, unsigned char val);
 };
@@ -395,6 +396,7 @@ struct Gameboy {
     Registers r;
 
     int EITiming = 0;
+    int divCounter = 0;
 
     // Timer values
     unsigned char* DIV;
@@ -415,7 +417,7 @@ struct Gameboy {
     void serialize(Archive &ar) {
         ar(PC, SP, IX, IY, I, R, IME, testing,
                 r, EITiming, cyclesSinceLastTima,
-                halted, cycles, romPath, mem, ppu);
+                halted, cycles, romPath, mem, ppu, divCounter);
 
         // Handle pointers as offsets into memory
         if (!Archive::is_saving::value) {

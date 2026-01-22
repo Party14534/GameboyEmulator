@@ -1,11 +1,13 @@
+#include "SFML/Window/Keyboard.hpp"
 #include "gameboy.h"
 
-GameboyMem::GameboyMem(unsigned short int& _PC, int& _cycles) {
+GameboyMem::GameboyMem(unsigned short int& _PC, int& _cycles, int& _divCounter) {
     mem = std::vector<unsigned char>(0xFFFF + 1);
     bootRomMem = std::vector<unsigned char>(0xFF);
     bootFinished = &mem[0xFF50];
     PC = &_PC;
     cycles = &_cycles;
+    divCounter = &_divCounter;
     dmaActive = false;
 }
 
@@ -37,17 +39,26 @@ unsigned char& GameboyMem::read(unsigned short int addr) {
         unsigned char joypad = mem[addr];
         unsigned char buttons = 0x0F;  // Default: no buttons pressed (all 1s)
 
+        bool start = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Enter);
+        bool select = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::RShift);
+        bool b = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Z);
+        bool a = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::X);
+        bool up = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Up);
+        bool down = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Down);
+        bool left = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Left);
+        bool right = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Right);
+
         if ((joypad & 0x20) == 0) {  // Button keys selected
             // Bit 3: Start, Bit 2: Select, Bit 1: B, Bit 0: A
-            if (startButton) buttons &= ~0x08;   // Start (bit 3 = 0)
-            if (selectButton) buttons &= ~0x04;  // Select (bit 2 = 0)
-            if (bButton) buttons &= ~0x02;       // B (bit 1 = 0)
-            if (aButton) buttons &= ~0x01;       // A (bit 0 = 0)
+            if (start) buttons &= ~0x08;   // Start (bit 3 = 0)
+            if (select) buttons &= ~0x04;  // Select (bit 2 = 0)
+            if (b) buttons &= ~0x02;       // B (bit 1 = 0)
+            if (a) buttons &= ~0x01;       // A (bit 0 = 0)
         } else if ((joypad & 0x10) == 0) {  // Direction keys
-            if (downButton) buttons &= ~0x08;
-            if (upButton) buttons &= ~0x04;
-            if (leftButton) buttons &= ~0x02;
-            if (rightButton) buttons &= ~0x01;
+            if (down) buttons &= ~0x08;
+            if (up) buttons &= ~0x04;
+            if (left) buttons &= ~0x02;
+            if (right) buttons &= ~0x01;
         }
 
         unsigned char newState = (joypad & 0xF0) | buttons;  // Combine selection bits with button states
@@ -181,6 +192,12 @@ void GameboyMem::write(unsigned short int addr, unsigned char val) {
         dmaCyclesRemaining += 160;  // Optional
     }
 
+    if (addr == DIV_ADDR) {
+        mem[addr] = 0;
+        *divCounter = 0;
+        return;
+    }
+
     // MBC1 register writes
     if (memType == MBC1 && addr < 0x8000) {
         if (addr <= 0x1FFF) {
@@ -305,14 +322,7 @@ void GameboyMem::write(unsigned short int addr, unsigned char val) {
         }
     }
 
-    switch(addr) {
-        case DIV_ADDR:
-            mem[addr] = 0;
-            break;
-        default:
-            mem[addr] = val;
-            break;
-    }
+    mem[addr] = val;
 
     /*if (addr == 0xFF50 && val != 0) {
         *PC = 0x100;

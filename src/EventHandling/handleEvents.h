@@ -6,6 +6,11 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include "SFML/Window/Keyboard.hpp"
+#include <cstdio>
+#include "imgui.h"
+#include "imgui-SFML.h"
+
 
 #include "../Gameboy/gameboy.h"
 

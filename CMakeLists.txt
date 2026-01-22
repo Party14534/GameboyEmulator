@@ -11,6 +11,56 @@ set(SFML_STATIC_LIBRARIES ON)
 # Find SFML
 find_package(SFML 3.0 REQUIRED COMPONENTS Graphics Window System)
 
+# Try to find ImGui-SFML
+find_package(ImGui-SFML QUIET)
+
+if(NOT ImGui-SFML_FOUND)
+    message(STATUS "ImGui-SFML not found, downloading it...")
+    include(FetchContent)
+    
+    # Fetch ImGui
+    FetchContent_Declare(
+        imgui
+        GIT_REPOSITORY https://github.com/ocornut/imgui.git
+        GIT_TAG v1.91.1
+    )
+    
+    # Make ImGui available first (needed for ImGuiFileDialog)
+    FetchContent_MakeAvailable(imgui)
+    
+    # Fetch ImGui-SFML (master branch for SFML 3.0 support)
+    FetchContent_Declare(
+        imgui-sfml
+        GIT_REPOSITORY https://github.com/SFML/imgui-sfml.git
+        GIT_TAG master
+    )
+    
+    # Set ImGui-SFML options
+    set(IMGUI_DIR ${CMAKE_BINARY_DIR}/_deps/imgui-src)
+    set(IMGUI_SFML_FIND_SFML OFF)
+    set(IMGUI_SFML_IMGUI_DEMO ON)
+    
+    FetchContent_MakeAvailable(imgui-sfml)
+endif()
+
+# Fetch ImGuiFileDialog
+include(FetchContent)
+FetchContent_Declare(
+    ImGuiFileDialog
+    GIT_REPOSITORY https://github.com/aiekick/ImGuiFileDialog.git
+    GIT_TAG v0.6.7
+)
+
+# Set options for ImGuiFileDialog
+set(USE_IMGUI_TABLES ON CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable(ImGuiFileDialog)
+
+# Manually add ImGui include directory to ImGuiFileDialog
+target_include_directories(ImGuiFileDialog PUBLIC 
+    ${CMAKE_BINARY_DIR}/_deps/imgui-src
+)
+
 # Enable testing
 enable_testing()
 
@@ -25,7 +75,7 @@ if(NOT GTest_FOUND)
     FetchContent_Declare(
         googletest
         GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG release-1.12.1  # Known working version
+        GIT_TAG release-1.12.1
     )
     
     FetchContent_MakeAvailable(googletest)
@@ -60,13 +110,16 @@ target_include_directories(${PROJECT_NAME}_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR
 # Create main executable
 add_executable(${PROJECT_NAME} ${MAIN_SOURCE})
 
-# Link SFML
-target_link_libraries(${PROJECT_NAME}_lib PRIVATE
+# Link SFML, ImGui-SFML, and ImGuiFileDialog to library
+target_link_libraries(${PROJECT_NAME}_lib PUBLIC
     SFML::Graphics
     SFML::Window
     SFML::System
+    ImGui-SFML::ImGui-SFML
+    ImGuiFileDialog
 )
 
+# Link library to main executable
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${PROJECT_NAME}_lib
 )

@@ -46,7 +46,7 @@ PPU::PPU(GameboyMem& gameboyMem, sf::Vector2u winSize) :
     test.setPosition({0.f, 0.f});
 
     displaySprite.setOrigin({80, 72});
-    displaySprite.setScale({3.f, 3.f});
+    displaySprite.setScale({4.f, 4.f});
 
     sf::Vector2f midPoint = {(winSize.x / 2.f),
                             (winSize.y / 2.f)};

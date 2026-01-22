@@ -4,6 +4,8 @@
 #include <SFML/Graphics.hpp>
 
 #include "../Gameboy/gameboy.h"
+#include "imgui.h"
+#include "imgui-SFML.h"
 
 void handleRendering(sf::RenderWindow& win, Gameboy& g);
 

@@ -3,7 +3,7 @@
 Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom, bool _testing) : 
     testing(_testing),
     romPath(_romPath),
-    mem(PC, cycles), // 65535
+    mem(PC, cycles, divCounter), // 65535
     ppu(mem, winSize)
 {
     r.registers = std::vector<unsigned char>(8);
@@ -14,7 +14,6 @@ Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom, bool 
         return; 
     }
     
-    printf("Writing ROM\n");
     writeRom();
 
     mem.memType = byteToMBC(mem.romMem[0x0147]);
@@ -49,11 +48,20 @@ Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom, bool 
 
     IE = &mem.mem[0xFFFF];
 
+    /*
     paletteOne = std::vector<sf::Color>{
         sf::Color(155, 188, 15),
         sf::Color(139, 172, 15),
         sf::Color(48, 98, 48),
         sf::Color(15, 56, 15)
+    };*/
+    
+    // Gameboy pocket
+    paletteOne = std::vector<sf::Color>{
+        sf::Color(255, 255, 255),
+        sf::Color(169, 169, 169),
+        sf::Color(84, 84, 84),
+        sf::Color(0, 0, 0)
     };
 
     if (DOCTOR_LOGGING) {
@@ -112,13 +120,11 @@ void Gameboy::writeRom() {
 
     
     mem.romMem = std::vector<unsigned char>(buff.str().length());
-    printf("Writing to mem\n");
     int i = 0x000;
     for (unsigned char byte : buff.str()) {
         mem.romMem[i] = byte;
         i++;
     }
-    printf("Done writing to mem\n");
 }
 
 MBCType Gameboy::byteToMBC(unsigned char byte) {
@@ -194,6 +200,7 @@ void Gameboy::deserialize(std::string saveStatePath) {
     mem.bootFinished = &mem.mem[0xFF50];
     mem.PC = &PC;
     mem.cycles = &cycles;
+    mem.divCounter = &divCounter;
 }
 
 void Gameboy::FDE() {
@@ -308,9 +315,6 @@ void Gameboy::FDE() {
 void Gameboy::timer() {
     cyclesSinceLastTima++;
 
-    // Timer work
-    static int divCounter = 0;
-
     // DIV increments every 64 M-cycles (256 T-cycles, 16384 Hz)
     divCounter++;
 
@@ -361,10 +365,10 @@ unsigned char Gameboy::fetch() {
     unsigned char instruction = mem.read(PC);
 
     PC++;
-    // TODO: Find actual problem
+    /* TODO: Find actual problem
     if (PC == 0xFA) { 
         PC = 0xFC; 
-    }
+    }*/
 
     return instruction;
 }
