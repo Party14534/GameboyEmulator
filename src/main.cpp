@@ -34,6 +34,7 @@ int main(int argc, char* argv[]) {
     // ImGui state
     int currentFrameRate = frameRate;
     sf::Clock deltaClock;
+    float scale = 4.0;
 
     while (win.isOpen()) {
         // Update ImGui
@@ -106,7 +107,18 @@ int main(int argc, char* argv[]) {
         }
         
         ImGui::Text("FPS: %d", currentFrameRate);
-        
+
+       ImGui::Text("Scale: %d", int(scale));
+        ImGui::SameLine();
+        if (ImGui::Button("+")) {
+            scale += 1.0;
+            g.ppu.displaySprite.setScale({scale, scale});
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("-")) {
+            scale = std::max(1.0, scale - 1.0);  // prevent going below 1
+            g.ppu.displaySprite.setScale({scale, scale});
+        } 
         ImGui::End();
         
         for (int i = 0; i < MCYCLES_PER_FRAME; i++) {
