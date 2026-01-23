@@ -6,17 +6,38 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall")
-set(SFML_STATIC_LIBRARIES ON)
 
-# Find SFML
-find_package(SFML 3.0 REQUIRED COMPONENTS Graphics Window System)
+# Clear any cached SFML paths to avoid finding old version
+unset(SFML_DIR CACHE)
+unset(SFML_ROOT CACHE)
+
+# Get SFML 3.0 via FetchContent
+include(FetchContent)
+
+message(STATUS "Fetching SFML 3.0...")
+FetchContent_Declare(
+    sfml
+    GIT_REPOSITORY https://github.com/SFML/SFML.git
+    GIT_TAG 3.0.0  # Use the latest 3.0 release
+)
+
+# Set SFML build options BEFORE making it available
+set(SFML_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(SFML_BUILD_AUDIO OFF CACHE BOOL "" FORCE)
+set(SFML_BUILD_NETWORK OFF CACHE BOOL "" FORCE)
+set(SFML_BUILD_DOC OFF CACHE BOOL "" FORCE)
+set(SFML_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(SFML_BUILD_TEST_SUITE OFF CACHE BOOL "" FORCE)
+set(SFML_USE_SYSTEM_DEPS OFF CACHE BOOL "" FORCE)
+
+# Make SFML available - DON'T call find_package after this
+FetchContent_MakeAvailable(sfml)
 
 # Try to find ImGui-SFML
 find_package(ImGui-SFML QUIET)
 
 if(NOT ImGui-SFML_FOUND)
     message(STATUS "ImGui-SFML not found, downloading it...")
-    include(FetchContent)
     
     # Fetch ImGui
     FetchContent_Declare(
@@ -37,14 +58,14 @@ if(NOT ImGui-SFML_FOUND)
     
     # Set ImGui-SFML options
     set(IMGUI_DIR ${CMAKE_BINARY_DIR}/_deps/imgui-src)
-    set(IMGUI_SFML_FIND_SFML OFF)
+    set(IMGUI_SFML_FIND_SFML OFF)  # Tell ImGui-SFML not to look for SFML
     set(IMGUI_SFML_IMGUI_DEMO ON)
     
     FetchContent_MakeAvailable(imgui-sfml)
 endif()
 
 # Fetch ImGuiFileDialog
-include(FetchContent)
+message(STATUS "Fetching ImGuiFileDialog...")
 FetchContent_Declare(
     ImGuiFileDialog
     GIT_REPOSITORY https://github.com/aiekick/ImGuiFileDialog.git
@@ -70,7 +91,6 @@ find_package(GTest QUIET)
 if(NOT GTest_FOUND)
     # Fallback: Download GTest if not found
     message(STATUS "GTest not found, downloading it...")
-    include(FetchContent)
     
     FetchContent_Declare(
         googletest
@@ -111,10 +131,11 @@ target_include_directories(${PROJECT_NAME}_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR
 add_executable(${PROJECT_NAME} ${MAIN_SOURCE})
 
 # Link SFML, ImGui-SFML, and ImGuiFileDialog to library
+# Use the targets from FetchContent, not find_package
 target_link_libraries(${PROJECT_NAME}_lib PUBLIC
-    SFML::Graphics
-    SFML::Window
-    SFML::System
+    sfml-graphics
+    sfml-window
+    sfml-system
     ImGui-SFML::ImGui-SFML
     ImGuiFileDialog
 )
