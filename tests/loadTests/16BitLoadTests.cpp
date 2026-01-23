@@ -3,7 +3,7 @@
 #include "../../src/Gameboy/gameboy.h"
 
 TEST(Load16BitTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0x01;
@@ -19,7 +19,7 @@ TEST(Load16BitTest, HandlesHappyPath) {
 }
 
 TEST(Load16BitTest, HandlesSPPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0x31;
@@ -35,7 +35,7 @@ TEST(Load16BitTest, HandlesSPPath) {
 }
 
 TEST(Load16BitToAccTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0xFA;
@@ -52,7 +52,7 @@ TEST(Load16BitToAccTest, HandlesHappyPath) {
 }
 
 TEST(Load16BitFromSPTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0x08;
@@ -70,7 +70,7 @@ TEST(Load16BitFromSPTest, HandlesHappyPath) {
 }
 
 TEST(Pop16BitTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0xC1;
@@ -87,7 +87,7 @@ TEST(Pop16BitTest, HandlesHappyPath) {
 }
 
 TEST(Pop16BitTest, HandlesAFPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0xF1;
@@ -109,7 +109,7 @@ TEST(Pop16BitTest, HandlesAFPath) {
 }
 
 TEST(Push16BitTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0xC5;

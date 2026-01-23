@@ -2,7 +2,7 @@
 #include "../../src/Gameboy/gameboy.h"
 
 TEST(CallFunctionTest, HappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0110] = 0xCD;

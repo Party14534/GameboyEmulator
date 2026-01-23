@@ -1,9 +1,9 @@
 #include "gameboy.h"
 
-Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom, bool _testing) : 
+Gameboy::Gameboy(std::string _romPath, std::string _bootRomPath, sf::Vector2u winSize, bool _testing) : 
     testing(_testing),
     romPath(_romPath),
-    mem(PC, cycles, divCounter), // 65535
+    mem(PC, cycles, divCounter, testing), // 65535
     ppu(mem, winSize)
 {
     r.registers = std::vector<unsigned char>(8);
@@ -11,6 +11,11 @@ Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom, bool 
     // Used for unit tests
     if (testing) { 
         mem.mem[0xFF50] = 1;
+        mem.memType = MBC0;
+        IE = &mem.mem[0xFFFF];
+        DIV = &mem.mem[DIV_ADDR];
+        TIMA = &mem.mem[TIMA_ADDR];
+        cycles = 0;
         return; 
     }
     
@@ -18,9 +23,9 @@ Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom, bool 
 
     mem.memType = byteToMBC(mem.romMem[0x0147]);
 
-    writeBootRom();
+    writeBootRom(_bootRomPath);
 
-    if (!bootRom) { 
+    if (_bootRomPath == "") { 
         mem.write(0xFF50, 1);
 
         // Correct state after boot rom
@@ -85,8 +90,8 @@ Gameboy::Gameboy(std::string _romPath, sf::Vector2u winSize, bool bootRom, bool 
     cycles = 0;
 }
 
-void Gameboy::writeBootRom() {
-    std::ifstream file ("../src/res/dmg_boot.bin", std::ios::binary);
+void Gameboy::writeBootRom(std::string bootRomPath) {
+    std::ifstream file (bootRomPath, std::ios::binary);
 
     // Read entire file into vector
     mem.bootRomMem.assign(std::istreambuf_iterator<char>(file),
@@ -201,6 +206,7 @@ void Gameboy::deserialize(std::string saveStatePath) {
     mem.PC = &PC;
     mem.cycles = &cycles;
     mem.divCounter = &divCounter;
+    mem.testing = &testing;
 }
 
 void Gameboy::FDE() {

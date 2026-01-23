@@ -2,7 +2,7 @@
 #include "../../src/Gameboy/gameboy.h"
 
 TEST(LoadTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.write(0x0000, 0x41);
@@ -19,7 +19,7 @@ TEST(LoadTest, HandlesHappyPath) {
 }
 
 TEST(LoadTest, IncrementTarget) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.write(0x0000, 0x48);
@@ -36,7 +36,7 @@ TEST(LoadTest, IncrementTarget) {
 }
 
 TEST(LoadTest, LoadFromMemory) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.write(0x0000, 0x46);
@@ -56,7 +56,7 @@ TEST(LoadTest, LoadFromMemory) {
 }
 
 TEST(LoadToMemoryTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.write(0x0000, 0x70);
@@ -75,7 +75,7 @@ TEST(LoadToMemoryTest, HandlesHappyPath) {
 }
 
 TEST(LoadAccToMemoryTest, HappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.write(0x0000, 0xEA);
@@ -93,7 +93,7 @@ TEST(LoadAccToMemoryTest, HappyPath) {
 }
 
 TEST(LoadMemoryToAccTest, HappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.write(0x0000, 0xFA);

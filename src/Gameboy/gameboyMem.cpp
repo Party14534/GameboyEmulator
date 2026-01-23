@@ -1,17 +1,22 @@
 #include "SFML/Window/Keyboard.hpp"
 #include "gameboy.h"
 
-GameboyMem::GameboyMem(unsigned short int& _PC, int& _cycles, int& _divCounter) {
+GameboyMem::GameboyMem(unsigned short int& _PC, int& _cycles, int& _divCounter, bool& _testing) {
     mem = std::vector<unsigned char>(0xFFFF + 1);
     bootRomMem = std::vector<unsigned char>(0xFF);
     bootFinished = &mem[0xFF50];
     PC = &_PC;
     cycles = &_cycles;
     divCounter = &_divCounter;
+    testing = &_testing;
     dmaActive = false;
 }
 
 unsigned char& GameboyMem::read(unsigned short int addr) {
+    if (*testing) {
+        return mem[addr];
+    }
+
     if (!*bootFinished && addr <= 0xFF) {
         return bootRomMem[addr];
     }
@@ -172,13 +177,18 @@ unsigned char& GameboyMem::read(unsigned short int addr) {
             }
             break;
         default:
-            printf("Unsupported memory type\n");
+            printf("Unsupported memory type %d\n", memType);
             exit(1);
             break;
     }
 }
 
 void GameboyMem::write(unsigned short int addr, unsigned char val) {
+    if (*testing) {
+        mem[addr] = val;
+        return;
+    }
+
     if (addr == 0xFF46) {
         // Calculate source address (val * 0x100)
         unsigned short int source = ((unsigned short int)val) << 8;

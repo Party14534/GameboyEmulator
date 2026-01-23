@@ -3,7 +3,7 @@
 #include "../../src/Gameboy/gameboy.h"
 
 TEST(Inc16BitTest, HandlesBCPair) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0x03; // INC BC
@@ -20,7 +20,7 @@ TEST(Inc16BitTest, HandlesBCPair) {
 }
 
 TEST(Inc16BitTest, HandlesSP) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0x33; // INC SP
@@ -36,7 +36,7 @@ TEST(Inc16BitTest, HandlesSP) {
 }
 
 TEST(Dec16BitTest, HandlesBCPair) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0x0B; // DEC BC
@@ -53,7 +53,7 @@ TEST(Dec16BitTest, HandlesBCPair) {
 }
 
 TEST(Dec16BitTest, HandlesSP) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0x3B; // DEC SP
@@ -69,7 +69,7 @@ TEST(Dec16BitTest, HandlesSP) {
 }
 
 TEST(Add16BitTest, HandlesHLBCPair) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0x09; // Add BC to HL
@@ -88,7 +88,7 @@ TEST(Add16BitTest, HandlesHLBCPair) {
 }
 
 TEST(Add16BitTest, HandlesCarryPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0x09; // Add BC to HL
@@ -107,7 +107,7 @@ TEST(Add16BitTest, HandlesCarryPath) {
 }
 
 TEST(Add16BitTest, HandlesHalfCarryPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0x09; // Add BC to HL

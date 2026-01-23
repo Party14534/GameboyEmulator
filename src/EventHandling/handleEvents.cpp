@@ -1,6 +1,6 @@
 #include "handleEvents.h"
 
-void handleEvents(sf::RenderWindow& win, Gameboy& g, std::string& saveStatePath) {
+void handleEvents(sf::RenderWindow& win, Gameboy& g) {
     while(const std::optional e = win.pollEvent()) {
         ImGui::SFML::ProcessEvent(win, *e);
 

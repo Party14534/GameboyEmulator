@@ -126,6 +126,7 @@ struct GameboyMem {
     bool dmaActive = false;
     int dmaCyclesRemaining = 0;
 
+    bool* testing;
     bool ramEnabled = false;
     bool batteryEnabled = false;
     bool timerEnabled = false;
@@ -165,7 +166,7 @@ struct GameboyMem {
                 downButton, leftButton, rightButton, prevJoypadState);
     }
 
-    GameboyMem(unsigned short int& PC, int& cycles, int& divCounter);
+    GameboyMem(unsigned short int& PC, int& cycles, int& divCounter, bool& testing);
     unsigned char& read(unsigned short int addr);
     void write(unsigned short int addr, unsigned char val);
 };
@@ -430,8 +431,8 @@ struct Gameboy {
     /*
      * Function Definitions
      */
-    Gameboy(std::string _romPath, sf::Vector2u winSize = {160, 144}, bool bootRom = false, bool _testing = false);
-    void writeBootRom();
+    Gameboy(std::string _romPath, std::string _bootRomPath, sf::Vector2u winSize = {160, 144}, bool _testing = false);
+    void writeBootRom(std::string bootRomPath);
     void writeRom();
     void FDE();
     unsigned char fetch();

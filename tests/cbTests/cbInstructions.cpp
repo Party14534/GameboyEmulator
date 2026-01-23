@@ -3,7 +3,7 @@
 #include "../../src/Gameboy/gameboy.h"
 
 TEST(CBBitTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0xCB; // CB prefix
@@ -21,7 +21,7 @@ TEST(CBBitTest, HandlesHappyPath) {
 }
 
 TEST(CBBitTest, HandlesZeroPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0xCB; // CB prefix
@@ -39,7 +39,7 @@ TEST(CBBitTest, HandlesZeroPath) {
 }
 
 TEST(CBBitTest, HandlesOddPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0xCB; // CB prefix
@@ -57,7 +57,7 @@ TEST(CBBitTest, HandlesOddPath) {
 }
 
 TEST(CBBitTest, HandlesHLPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0xCB; // CB prefix
@@ -76,7 +76,7 @@ TEST(CBBitTest, HandlesHLPath) {
 }
 
 TEST(CBRLTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0xCB; // CB prefix
@@ -98,7 +98,7 @@ TEST(CBRLTest, HandlesHappyPath) {
 }
 
 TEST(CBRRTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0xCB; // CB prefix
@@ -120,7 +120,7 @@ TEST(CBRRTest, HandlesHappyPath) {
 }
 
 TEST(CBRLCTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0xCB; // CB prefix
@@ -141,7 +141,7 @@ TEST(CBRLCTest, HandlesHappyPath) {
 }
 
 TEST(CBRRCTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0xCB; // CB prefix
@@ -162,7 +162,7 @@ TEST(CBRRCTest, HandlesHappyPath) {
 }
 
 TEST(CBSwapTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0xCB; // CB prefix
@@ -185,7 +185,7 @@ TEST(CBSwapTest, HandlesHappyPath) {
 }
 
 TEST(CBSwapTest, HandlesZeroPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0xCB; // CB prefix
@@ -206,7 +206,7 @@ TEST(CBSwapTest, HandlesZeroPath) {
 }
 
 TEST(CBSrlTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0xCB; // CB prefix
@@ -229,7 +229,7 @@ TEST(CBSrlTest, HandlesHappyPath) {
 }
 
 TEST(CBSrlTest, HandlesZeroPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0xCB; // CB prefix

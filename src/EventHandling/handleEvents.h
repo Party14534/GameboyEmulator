@@ -14,6 +14,6 @@
 
 #include "../Gameboy/gameboy.h"
 
-void handleEvents(sf::RenderWindow& win, Gameboy& g, std::string& saveStatePath);
+void handleEvents(sf::RenderWindow& win, Gameboy& g);
 
 #endif

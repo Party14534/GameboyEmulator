@@ -1,9 +1,8 @@
 #include "gtest/gtest.h"
-#include <cstdio>
 #include "../../src/Gameboy/gameboy.h"
 
 TEST(AdditionTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0x80;
@@ -26,7 +25,7 @@ TEST(AdditionTest, HandlesHappyPath) {
 }
 
 TEST(AdditionTest, HandlesHalfCarryPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0x80;
@@ -49,7 +48,7 @@ TEST(AdditionTest, HandlesHalfCarryPath) {
 }
 
 TEST(AdditionTest, HandlesCarryPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0x80;
@@ -75,7 +74,7 @@ TEST(AdditionTest, HandlesCarryPath) {
 }
 
 TEST(IncTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0x04;
@@ -96,7 +95,7 @@ TEST(IncTest, HandlesHappyPath) {
 }
 
 TEST(IncTest, HandlesZeroAndCarryPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0x04;
@@ -117,7 +116,7 @@ TEST(IncTest, HandlesZeroAndCarryPath) {
 }
 
 TEST(DecTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0x05;
@@ -138,7 +137,7 @@ TEST(DecTest, HandlesHappyPath) {
 }
 
 TEST(DecTest, HandlesZeroPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0x05;
@@ -163,7 +162,7 @@ TEST(DecTest, HandlesZeroPath) {
  */
 
 TEST(OrTest, HappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0xB0;
@@ -186,7 +185,7 @@ TEST(OrTest, HappyPath) {
 }
 
 TEST(OrTest, ZeroPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0xB0;
@@ -209,7 +208,7 @@ TEST(OrTest, ZeroPath) {
 }
 
 TEST(CompareNTest, HappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0xFE; // CP n
@@ -233,7 +232,7 @@ TEST(CompareNTest, HappyPath) {
 }
 
 TEST(CompareNTest, ZeroPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0xFE; // CP n

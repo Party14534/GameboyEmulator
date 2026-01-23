@@ -2,7 +2,7 @@
 #include "../../src/Gameboy/gameboy.h"
 
 TEST(JumpNZTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0x20;
@@ -18,7 +18,7 @@ TEST(JumpNZTest, HandlesHappyPath) {
 }
 
 TEST(JumpNCTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.PC = 18;
@@ -35,7 +35,7 @@ TEST(JumpNCTest, HandlesHappyPath) {
 }
 
 TEST(JumpZTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.mem.mem[0x0000] = 0x28;
@@ -51,7 +51,7 @@ TEST(JumpZTest, HandlesHappyPath) {
 }
 
 TEST(JumpCTest, HandlesHappyPath) {
-    Gameboy g("", {0,0}, false, true);
+    Gameboy g("", "", {0,0}, true);
 
     // Set instruction
     g.PC = 18;

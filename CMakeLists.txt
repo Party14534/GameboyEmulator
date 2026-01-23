@@ -1,5 +1,7 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.15...4.2)
 project(gameboy)
+
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)

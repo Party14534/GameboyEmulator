@@ -3,12 +3,12 @@
 int main(int argc, char* argv[]) {
     // Parse command line arguments
     if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <rom_path> [savestate_path]" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <rom_path> [boot_rom_path]" << std::endl;
         return 1;
     }
 
     std::string romPath = argv[1];
-    std::string savestatePath = (argc >= 3) ? argv[2] : "";
+    std::string bootRomPath = (argc >= 3) ? argv[2] : "";
 
     unsigned int frameRate = 60;
     /*if (argc >= 4) {
@@ -22,13 +22,12 @@ int main(int argc, char* argv[]) {
     // Initialize ImGui-SFML
     int init = ImGui::SFML::Init(win);
 
-    Gameboy g(romPath, win.getSize(), true);
+    Gameboy g(romPath, bootRomPath, win.getSize());
+
     win.setVerticalSyncEnabled(true);
-
     win.setFramerateLimit(frameRate);
-    //printf("Memtype: %d\n", g.mem.memType);
 
-    g.deserialize(savestatePath);
+    //printf("Memtype: %d\n", g.mem.memType);
 
     const int MCYCLES_PER_FRAME = 70556 / 4;
 
@@ -40,7 +39,7 @@ int main(int argc, char* argv[]) {
         // Update ImGui
         ImGui::SFML::Update(win, deltaClock.restart());
         
-        handleEvents(win, g, savestatePath);
+        handleEvents(win, g);
 
         // ImGui Window for settings
         ImGui::Begin("Emulator Settings");
