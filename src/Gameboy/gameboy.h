@@ -5,6 +5,7 @@
 #include <cereal/archives/binary.hpp>
 #include <cereal/types/string.hpp>
 #include <cereal/types/vector.hpp>
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <stdio.h>
@@ -80,6 +81,8 @@ enum FetcherState {
 
 inline std::vector<sf::Color> paletteOne;
 
+struct Gameboy;
+
 struct OAMProperties {
     bool priority;
     bool flipY;
@@ -121,7 +124,7 @@ struct GameboyMem {
     unsigned char* bootFinished;
     unsigned short int* PC;
     int* cycles;
-    int* divCounter;
+    uint16_t* clock;
     unsigned char fakeVal = 0xFF;
     bool dmaActive = false;
     int dmaCyclesRemaining = 0;
@@ -166,9 +169,10 @@ struct GameboyMem {
                 downButton, leftButton, rightButton, prevJoypadState);
     }
 
-    GameboyMem(unsigned short int& PC, int& cycles, int& divCounter, bool& testing);
+    GameboyMem(unsigned short int& PC, int& cycles, uint16_t& clock, bool& testing);
     unsigned char& read(unsigned short int addr);
     void write(unsigned short int addr, unsigned char val);
+    bool getTimerBit();
 };
 
 struct OAM {
@@ -317,6 +321,7 @@ struct PPU {
     sf::Texture displayTexture;
     sf::Sprite displaySprite;
     sf::RectangleShape test;
+    float scale = 4.f;
     bool readyToDraw = false;
     bool drawWindow = false;
 
@@ -325,7 +330,7 @@ struct PPU {
     void serialize(Archive &ar) {
         ar(viewport, background, window, spriteFIFO, bgWinFIFO,
                 state, cycles, x, pixelsToDrop, windowLineCounter,
-                fetcher, oam, readyToDraw, drawWindow);
+                fetcher, oam, readyToDraw, drawWindow, scale);
 
         // TODO: set up pointers and SFML
     }
@@ -397,12 +402,11 @@ struct Gameboy {
     Registers r;
 
     int EITiming = 0;
-    int divCounter = 0;
+    uint16_t clock = 0;
 
     // Timer values
     unsigned char* DIV;
     unsigned char* TIMA;
-    int cyclesSinceLastTima = 0;
 
     bool halted = false;
 
@@ -410,6 +414,7 @@ struct Gameboy {
 
     // Emulator variables
     std::string romPath;
+    int FPS = 1;
     GameboyMem mem;
     PPU ppu;
 
@@ -417,8 +422,8 @@ struct Gameboy {
     template<class Archive>
     void serialize(Archive &ar) {
         ar(PC, SP, IX, IY, I, R, IME, testing,
-                r, EITiming, cyclesSinceLastTima,
-                halted, cycles, romPath, mem, ppu, divCounter);
+                r, EITiming, clock,
+                halted, cycles, romPath, mem, ppu, FPS);
 
         // Handle pointers as offsets into memory
         if (!Archive::is_saving::value) {
@@ -443,6 +448,8 @@ struct Gameboy {
     MBCType byteToMBC(unsigned char byte);
 
     void timer();
+    bool getTimerBit();
+    void incrementTIMA();
 
     RegisterIndex byteToIndex(unsigned char secondHalfByte);
 

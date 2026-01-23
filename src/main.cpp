@@ -1,4 +1,5 @@
 #include "main.h"
+#include "Internal/fpsHandling.h"
 
 int main(int argc, char* argv[]) {
     // Parse command line arguments
@@ -10,7 +11,6 @@ int main(int argc, char* argv[]) {
     std::string romPath = argv[1];
     std::string bootRomPath = (argc >= 3) ? argv[2] : "";
 
-    unsigned int frameRate = 60;
     /*if (argc >= 4) {
         frameRate = std::atoi(argv[3]);
         frameRate = frameRate == 0 ? 60 : frameRate;
@@ -24,19 +24,18 @@ int main(int argc, char* argv[]) {
 
     Gameboy g(romPath, bootRomPath, win.getSize());
 
-    win.setVerticalSyncEnabled(true);
-    win.setFramerateLimit(frameRate);
-
     //printf("Memtype: %d\n", g.mem.memType);
 
-    const int MCYCLES_PER_FRAME = 70556 / 4;
+    //const int MCYCLES_PER_FRAME = 69905;
+    const int MCYCLES_PER_FRAME = 17556;
 
     // ImGui state
-    int currentFrameRate = frameRate;
     sf::Clock deltaClock;
-    float scale = 4.0;
+    float deltaT = 0.f;
 
-    while (win.isOpen()) {
+    std::string lastPath = ".";
+
+    while (win.isOpen()) { if (framePassed(deltaT, g.FPS * 60, false)) {
         // Update ImGui
         ImGui::SFML::Update(win, deltaClock.restart());
         
@@ -48,7 +47,7 @@ int main(int argc, char* argv[]) {
         // LOAD STATE BUTTON
         if (ImGui::Button("Load State")) {
             IGFD::FileDialogConfig config;
-            config.path = ".";
+            config.path = lastPath;
             ImGuiFileDialog::Instance()->OpenDialog("LoadStateDlg", 
                 "Choose Save State", ".sav,.state", config);
         }
@@ -58,7 +57,7 @@ int main(int argc, char* argv[]) {
         // SAVE STATE BUTTON
         if (ImGui::Button("Save State")) {
             IGFD::FileDialogConfig config;
-            config.path = ".";
+            config.path = lastPath;
             config.flags = ImGuiFileDialogFlags_ConfirmOverwrite; // Ask before overwriting
             ImGuiFileDialog::Instance()->OpenDialog("SaveStateDlg", 
                 "Save State As", ".sav,.state", config);
@@ -72,6 +71,9 @@ int main(int argc, char* argv[]) {
                 // Load your save state
                 g.deserialize(filePath);
                 printf("Loaded state from: %s\n", filePath.c_str());
+                size_t pos = filePath.find_last_of("/\\");
+                std::string dir = (pos != std::string::npos) ? filePath.substr(0, pos + 1) : "";
+                lastPath = dir;
             }
             ImGuiFileDialog::Instance()->Close();
         }
@@ -94,6 +96,9 @@ int main(int argc, char* argv[]) {
                     archive(g);
                     os.close();
                     printf("Saved state to: %s\n", filePath.c_str());
+                    size_t pos = filePath.find_last_of("/\\");
+                    std::string dir = (pos != std::string::npos) ? filePath.substr(0, pos + 1) : "";
+                    lastPath = dir;
                 } else {
                     printf("Failed to save state to: %s\n", filePath.c_str());
                 }
@@ -101,23 +106,26 @@ int main(int argc, char* argv[]) {
             ImGuiFileDialog::Instance()->Close();
         }
 
-        if (ImGui::SliderInt("Frame Rate", &currentFrameRate, 1, 240)) {
-            currentFrameRate = currentFrameRate & 1 ? currentFrameRate ^ 1 : currentFrameRate; 
-            win.setFramerateLimit(currentFrameRate);
-        }
-        
-        ImGui::Text("FPS: %d", currentFrameRate);
-
-       ImGui::Text("Scale: %d", int(scale));
+        ImGui::Text("Game Speed: %d", int(g.FPS));
         ImGui::SameLine();
         if (ImGui::Button("+")) {
-            scale += 1.0;
-            g.ppu.displaySprite.setScale({scale, scale});
+            g.FPS++;
         }
         ImGui::SameLine();
         if (ImGui::Button("-")) {
-            scale = std::max(1.0, scale - 1.0);  // prevent going below 1
-            g.ppu.displaySprite.setScale({scale, scale});
+            g.FPS = std::max(1, g.FPS - 1);  // prevent going below 1
+        } 
+
+        ImGui::Text("Scale: %d", int(g.ppu.scale));
+        ImGui::SameLine();
+        if (ImGui::Button("+")) {
+            g.ppu.scale += 1.0;
+            g.ppu.displaySprite.setScale({g.ppu.scale, g.ppu.scale});
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("-")) {
+            g.ppu.scale = std::max(1.0, g.ppu.scale - 1.0);  // prevent going below 1
+            g.ppu.displaySprite.setScale({g.ppu.scale, g.ppu.scale});
         } 
         ImGui::End();
         
@@ -127,9 +135,11 @@ int main(int argc, char* argv[]) {
             // One M Cycle == 4 T Cycles
             for (int j = 0; j < 4; j++) {
                 g.ppu.main();
+                g.timer();
             }
-
         }
+
+        if (!win.isOpen()) { continue; }
 
         win.clear(sf::Color::Black);
 
@@ -138,7 +148,7 @@ int main(int argc, char* argv[]) {
         ImGui::SFML::Render(win);
 
         win.display();
-    }
+    }}
 
     // Cleanup ImGui
     ImGui::SFML::Shutdown();

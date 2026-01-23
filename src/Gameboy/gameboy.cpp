@@ -3,7 +3,7 @@
 Gameboy::Gameboy(std::string _romPath, std::string _bootRomPath, sf::Vector2u winSize, bool _testing) : 
     testing(_testing),
     romPath(_romPath),
-    mem(PC, cycles, divCounter, testing), // 65535
+    mem(PC, cycles, clock, testing), // 65535
     ppu(mem, winSize)
 {
     r.registers = std::vector<unsigned char>(8);
@@ -24,6 +24,12 @@ Gameboy::Gameboy(std::string _romPath, std::string _bootRomPath, sf::Vector2u wi
     mem.memType = byteToMBC(mem.romMem[0x0147]);
 
     writeBootRom(_bootRomPath);
+
+    IE = &mem.mem[0xFFFF];
+    DIV = &mem.mem[DIV_ADDR];
+    TIMA = &mem.mem[TIMA_ADDR];
+
+    cycles = 0;
 
     if (_bootRomPath == "") { 
         mem.write(0xFF50, 1);
@@ -49,9 +55,10 @@ Gameboy::Gameboy(std::string _romPath, std::string _bootRomPath, sf::Vector2u wi
         mem.write(0xFF49, 0xFF);  // OBP1
         mem.write(0xFF0F, 0x00);  // IF - no interrupts
         mem.write(0xFFFF, 0x00);  // IE - interrupts disabled
-    }
 
-    IE = &mem.mem[0xFFFF];
+        *DIV = 0xAB;
+        clock = 0xABCC;
+    }
 
     /*
     paletteOne = std::vector<sf::Color>{
@@ -83,11 +90,6 @@ Gameboy::Gameboy(std::string _romPath, std::string _bootRomPath, sf::Vector2u wi
                 mem.read(PC), mem.read(PC+1), mem.read(PC+2),
                 mem.read(PC+3));
     }
-
-    DIV = &mem.mem[DIV_ADDR];
-    TIMA = &mem.mem[TIMA_ADDR];
-
-    cycles = 0;
 }
 
 void Gameboy::writeBootRom(std::string bootRomPath) {
@@ -205,13 +207,13 @@ void Gameboy::deserialize(std::string saveStatePath) {
     mem.bootFinished = &mem.mem[0xFF50];
     mem.PC = &PC;
     mem.cycles = &cycles;
-    mem.divCounter = &divCounter;
     mem.testing = &testing;
+    mem.clock = &clock;
+
+    ppu.displaySprite.setScale({ppu.scale, ppu.scale});
 }
 
 void Gameboy::FDE() {
-    timer();
-
     if (mem.dmaActive) {
         mem.dmaCyclesRemaining--;
         if (mem.dmaCyclesRemaining <= 0) {
@@ -222,9 +224,20 @@ void Gameboy::FDE() {
     cycles--;
     if (cycles > 0 && !testing) { return; }
 
+    unsigned char* IF = &mem.mem[IF_ADDR];
+    if (halted && *IE == 0 && *IF != 0) {
+        //printf("WARNING: Halted with IE=0, IF=0x%02x - forcing wake\n", *IF);
+        *IE = *IF;  // Temporary hack to test
+    }
+
+    if (EITiming > 0) { EITiming--; }
+    if (EITiming == 0) { 
+        IME = true; 
+        EITiming = -1;
+    }
+
     if (halted) {
         // Check if we should wake up
-        unsigned char* IF = &mem.mem[IF_ADDR];
         if ((*IF & *IE & 0x1F) != 0) {
             // Interrupt pending - wake up
             halted = false;
@@ -264,16 +277,10 @@ void Gameboy::FDE() {
                 mem.read(PC), mem.read(PC+1), mem.read(PC+2),
                 mem.read(PC+3));
     }
-    
-    if (EITiming > 0) { EITiming--; }
-    if (EITiming == 0) { 
-        IME = true; 
-        EITiming = -1;
-    }
 
     if (!IME) { return; } 
     
-    unsigned char* IF = &mem.mem[IF_ADDR];
+    //unsigned char* IF = &mem.mem[IF_ADDR];
 
     // Interrupt
     if ((*IF & *IE & 0x1F) != 0) {
@@ -318,53 +325,73 @@ void Gameboy::FDE() {
     }
 }
 
+// Called once every T-cycle (clock)
 void Gameboy::timer() {
-    cyclesSinceLastTima++;
-
-    // DIV increments every 64 M-cycles (256 T-cycles, 16384 Hz)
-    divCounter++;
-
-    if (divCounter >= 64) {
-        divCounter = 0;
-        *DIV = *DIV + 1;
-    }
-
-    unsigned char TAC = mem.mem[TAC_ADDR];
-    if ((TAC & 4) == 0) { return; }
-
-    unsigned char clockSelect = TAC & 3;
-    int timaTimer;
-    switch (clockSelect) {
-        case 0b00:
-            timaTimer = 256;
-            break;
-        case 0b01:
-            timaTimer = 4;
-            break;
-        case 0b10:
-            timaTimer = 16;
-            break;
-        case 0b11:
-            timaTimer = 64;
-            break;
-        default:
-            printf("Unknown clock select 0x%02x\n", TAC);
-            exit(1);
-            break;
-    }
-
-    if (cyclesSinceLastTima < timaTimer) { return; }
-
-    cyclesSinceLastTima = 0;
+    // Get the current timer bit state BEFORE incrementing
+    bool prevTimerBit = getTimerBit();
     
-    unsigned char prevTima = *TIMA;
-    *TIMA = *TIMA + 1;
+    // Increment the internal counter
+    clock++;
+    
+    // DIV is always the upper 8 bits of the internal counter
+    *DIV = (clock >> 8) & 0xFF;
+    
+    // Get the current timer bit state AFTER incrementing
+    bool currentTimerBit = getTimerBit();
+    
+    // Detect falling edge (1 -> 0 transition)
+    // This is when TIMA should increment
+    if (prevTimerBit && !currentTimerBit) {
+        incrementTIMA();
+    }
+}
 
-    // When TIMA overflows reset to TMA
+void Gameboy::incrementTIMA() {
+    unsigned char prevTima = *TIMA;
+    (*TIMA)++;
+    
+    // Check for overflow
     if (*TIMA < prevTima) {
         *TIMA = mem.mem[TMA_ADDR];
         mem.mem[IF_ADDR] |= 0x04; // Timer interrupt
     }
+}
+
+// Helper function to get the current timer bit
+bool Gameboy::getTimerBit() {
+    unsigned char TAC = mem.mem[TAC_ADDR];
+    
+    // Check if timer is enabled (bit 2 of TAC)
+    bool timerEnabled = (TAC & 0x04) != 0;
+    
+    // Select which bit of the counter to check based on TAC bits 0-1
+    unsigned char clockSelect = TAC & 0x03;
+    int bitPosition;
+    
+    switch (clockSelect) {
+        case 0b00: // 4096 Hz - bit toggles every 1024 T-cycles
+            bitPosition = 9;
+            break;
+        case 0b01: // 262144 Hz - bit toggles every 16 T-cycles
+            bitPosition = 3;
+            break;
+        case 0b10: // 65536 Hz - bit toggles every 64 T-cycles
+            bitPosition = 5;
+            break;
+        case 0b11: // 16384 Hz - bit toggles every 256 T-cycles
+            bitPosition = 7;
+            break;
+        default:
+            bitPosition = 9; // Shouldn't happen
+            break;
+    }
+    
+    // Get the selected bit from the internal counter
+    bool bit = ((clock >> bitPosition) & 1) != 0;
+    
+    // Return the bit ANDed with timer enable
+    // This is the actual signal that goes to the falling edge detector
+    return timerEnabled && bit;
 }
 
 unsigned char Gameboy::fetch() {

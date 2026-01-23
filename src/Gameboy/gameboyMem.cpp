@@ -1,14 +1,14 @@
 #include "SFML/Window/Keyboard.hpp"
 #include "gameboy.h"
 
-GameboyMem::GameboyMem(unsigned short int& _PC, int& _cycles, int& _divCounter, bool& _testing) {
+GameboyMem::GameboyMem(unsigned short int& _PC, int& _cycles, uint16_t& _clock, bool& _testing){
     mem = std::vector<unsigned char>(0xFFFF + 1);
     bootRomMem = std::vector<unsigned char>(0xFF);
     bootFinished = &mem[0xFF50];
     PC = &_PC;
     cycles = &_cycles;
-    divCounter = &_divCounter;
     testing = &_testing;
+    clock = &_clock;
     dmaActive = false;
 }
 
@@ -202,9 +202,54 @@ void GameboyMem::write(unsigned short int addr, unsigned char val) {
         dmaCyclesRemaining += 160;  // Optional
     }
 
+    if (addr == TAC_ADDR) {
+        // Get timer bit with OLD TAC value
+        bool prevTimerBit = getTimerBit();
+        
+        // Write the new TAC value
+        mem[TAC_ADDR] = val & 0x07; // Only lower 3 bits are writable
+        
+        // Get timer bit with NEW TAC value
+        bool currentTimerBit = getTimerBit();
+        
+        // Check for falling edge (this handles the glitch behavior)
+        if (prevTimerBit && !currentTimerBit) {
+            unsigned char* TIMA = &mem[TIMA_ADDR];
+            unsigned char prevTima = *TIMA;
+            (*TIMA)++;
+            
+            // Check for overflow
+            if (*TIMA < prevTima) {
+                *TIMA = mem[TMA_ADDR];
+                mem[IF_ADDR] |= 0x04; // Timer interrupt
+            }
+        }
+        return;
+    }
+
     if (addr == DIV_ADDR) {
-        mem[addr] = 0;
-        *divCounter = 0;
+        // Get timer bit BEFORE resetting clock
+        bool prevTimerBit = getTimerBit();
+        
+        // Writing ANY value to DIV resets the entire internal counter to 0
+        clock = 0;
+        mem[DIV_ADDR] = 0;
+        
+        // Get timer bit AFTER resetting (will be 0)
+        bool currentTimerBit = getTimerBit();
+        
+        // Check for falling edge (this is the "glitch" behavior)
+        if (prevTimerBit && !currentTimerBit) {
+            unsigned char* TIMA = &mem[TIMA_ADDR];
+            unsigned char prevTima = *TIMA;
+            (*TIMA)++;
+            
+            // Check for overflow
+            if (*TIMA < prevTima) {
+                *TIMA = mem[TMA_ADDR];
+                mem[IF_ADDR] |= 0x04; // Timer interrupt
+            }
+        }
         return;
     }
 
@@ -337,4 +382,41 @@ void GameboyMem::write(unsigned short int addr, unsigned char val) {
     /*if (addr == 0xFF50 && val != 0) {
         *PC = 0x100;
     }*/
+}
+
+// Helper function to get the current timer bit
+bool GameboyMem::getTimerBit() {
+    unsigned char TAC = mem[TAC_ADDR];
+    
+    // Check if timer is enabled (bit 2 of TAC)
+    bool timerEnabled = (TAC & 0x04) != 0;
+    
+    // Select which bit of the counter to check based on TAC bits 0-1
+    unsigned char clockSelect = TAC & 0x03;
+    int bitPosition;
+    
+    switch (clockSelect) {
+        case 0b00: // 4096 Hz - bit toggles every 1024 T-cycles
+            bitPosition = 9;
+            break;
+        case 0b01: // 262144 Hz - bit toggles every 16 T-cycles
+            bitPosition = 3;
+            break;
+        case 0b10: // 65536 Hz - bit toggles every 64 T-cycles
+            bitPosition = 5;
+            break;
+        case 0b11: // 16384 Hz - bit toggles every 256 T-cycles
+            bitPosition = 7;
+            break;
+        default:
+            bitPosition = 9; // Shouldn't happen
+            break;
+    }
+    
+    // Get the selected bit from the internal counter
+    bool bit = ((*clock >> bitPosition) & 1) != 0;
+    
+    // Return the bit ANDed with timer enable
+    // This is the actual signal that goes to the falling edge detector
+    return timerEnabled && bit;
 }

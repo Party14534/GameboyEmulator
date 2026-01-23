@@ -11,5 +11,6 @@
 
 #include "EventHandling/handleEvents.h"
 #include "Gameboy/gameboy.h"
+#include "Internal/fpsHandling.h"
 
 #endif

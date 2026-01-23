@@ -128,7 +128,7 @@ void PPU::main() {
                 }
                 break;
             case VBlank:
-                *IF |= 0x01;  // VBlank interrupt
+                //*IF |= 0x01;  // VBlank interrupt
                 if ((*STAT & STAT_MODE1_INTERRUPT) != 0) {
                     *IF |= 2;
                 }
