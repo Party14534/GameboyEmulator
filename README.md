@@ -51,7 +51,7 @@ The gameboy has 8 different buttons, 4 directional buttons and 4 regular buttons
 The emulator loads with a UI that has Save and Load buttons which allow you to search for specific locations on your computer to save your savestate or load a previously made savestate.
 
 ### Other features
-The emulator also allows you to change the game speed and the scale of the gameboy screen that is displayed.
+The emulator also allows you to change the game speed, scale of the gameboy screen that is displayed, and the scale of the UI.
 
 ## Resources Used
 Some articles that helped me create this emulator
