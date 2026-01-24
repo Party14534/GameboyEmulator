@@ -21,6 +21,7 @@ int main(int argc, char* argv[]) {
     
     // Initialize ImGui-SFML
     int init = ImGui::SFML::Init(win);
+    ImGui::GetIO().FontGlobalScale = 2.5f;
 
     Gameboy g(romPath, bootRomPath, win.getSize());
 
@@ -35,7 +36,7 @@ int main(int argc, char* argv[]) {
 
     std::string lastPath = ".";
 
-    while (win.isOpen()) { if (framePassed(deltaT, g.FPS * 60, false)) {
+    while (win.isOpen()) { if (framePassed(deltaT, g.FPS * 60, true)) {
         // Update ImGui
         ImGui::SFML::Update(win, deltaClock.restart());
         
@@ -106,6 +107,7 @@ int main(int argc, char* argv[]) {
             ImGuiFileDialog::Instance()->Close();
         }
 
+        ImGui::PushID("GameSpeed");
         ImGui::Text("Game Speed: %d", int(g.FPS));
         ImGui::SameLine();
         if (ImGui::Button("+")) {
@@ -114,8 +116,10 @@ int main(int argc, char* argv[]) {
         ImGui::SameLine();
         if (ImGui::Button("-")) {
             g.FPS = std::max(1, g.FPS - 1);  // prevent going below 1
-        } 
+        }
+        ImGui::PopID();
 
+        ImGui::PushID("Scale");
         ImGui::Text("Scale: %d", int(g.ppu.scale));
         ImGui::SameLine();
         if (ImGui::Button("+")) {
@@ -127,6 +131,7 @@ int main(int argc, char* argv[]) {
             g.ppu.scale = std::max(1.0, g.ppu.scale - 1.0);  // prevent going below 1
             g.ppu.displaySprite.setScale({g.ppu.scale, g.ppu.scale});
         } 
+        ImGui::PopID();
         ImGui::End();
         
         for (int i = 0; i < MCYCLES_PER_FRAME; i++) {
