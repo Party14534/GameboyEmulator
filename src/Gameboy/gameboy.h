@@ -81,8 +81,6 @@ enum FetcherState {
 
 inline std::vector<sf::Color> paletteOne;
 
-struct Gameboy;
-
 struct OAMProperties {
     bool priority;
     bool flipY;
@@ -174,6 +172,11 @@ struct GameboyMem {
     void write(unsigned short int addr, unsigned char val);
     bool getTimerBit();
 };
+
+struct APU {
+    
+};
+
 
 struct OAM {
     unsigned short int index;
