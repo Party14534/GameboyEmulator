@@ -417,7 +417,9 @@ struct Gameboy {
 
     // Emulator variables
     std::string romPath;
-    int FPS = 1;
+    float FPS = 1.f;
+    float UIScale = 1.f;
+
     GameboyMem mem;
     PPU ppu;
 
@@ -426,7 +428,7 @@ struct Gameboy {
     void serialize(Archive &ar) {
         ar(PC, SP, IX, IY, I, R, IME, testing,
                 r, EITiming, clock,
-                halted, cycles, romPath, mem, ppu, FPS);
+                halted, cycles, romPath, mem, ppu, FPS, UIScale);
 
         // Handle pointers as offsets into memory
         if (!Archive::is_saving::value) {

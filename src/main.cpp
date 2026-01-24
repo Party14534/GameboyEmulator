@@ -21,9 +21,10 @@ int main(int argc, char* argv[]) {
     
     // Initialize ImGui-SFML
     int init = ImGui::SFML::Init(win);
-    ImGui::GetIO().FontGlobalScale = 2.5f;
 
     Gameboy g(romPath, bootRomPath, win.getSize());
+
+    ImGui::GetIO().FontGlobalScale = g.UIScale;
 
     //printf("Memtype: %d\n", g.mem.memType);
 
@@ -36,7 +37,7 @@ int main(int argc, char* argv[]) {
 
     std::string lastPath = ".";
 
-    while (win.isOpen()) { if (framePassed(deltaT, g.FPS * 60, true)) {
+    while (win.isOpen()) { if (framePassed(deltaT, g.FPS * 60, false)) {
         // Update ImGui
         ImGui::SFML::Update(win, deltaClock.restart());
         
@@ -75,6 +76,7 @@ int main(int argc, char* argv[]) {
                 size_t pos = filePath.find_last_of("/\\");
                 std::string dir = (pos != std::string::npos) ? filePath.substr(0, pos + 1) : "";
                 lastPath = dir;
+                ImGui::GetIO().FontGlobalScale = g.UIScale;
             }
             ImGuiFileDialog::Instance()->Close();
         }
@@ -108,19 +110,19 @@ int main(int argc, char* argv[]) {
         }
 
         ImGui::PushID("GameSpeed");
-        ImGui::Text("Game Speed: %d", int(g.FPS));
+        ImGui::Text("Game Speed: %.1f", g.FPS);
         ImGui::SameLine();
         if (ImGui::Button("+")) {
-            g.FPS++;
+            g.FPS += 0.5f;
         }
         ImGui::SameLine();
         if (ImGui::Button("-")) {
-            g.FPS = std::max(1, g.FPS - 1);  // prevent going below 1
+            g.FPS = std::max(0.5f, g.FPS - 0.5f);  // prevent going below 1
         }
         ImGui::PopID();
 
-        ImGui::PushID("Scale");
-        ImGui::Text("Scale: %d", int(g.ppu.scale));
+        ImGui::PushID("ScreenScale");
+        ImGui::Text("Screen Scale: %d", int(g.ppu.scale));
         ImGui::SameLine();
         if (ImGui::Button("+")) {
             g.ppu.scale += 1.0;
@@ -130,6 +132,20 @@ int main(int argc, char* argv[]) {
         if (ImGui::Button("-")) {
             g.ppu.scale = std::max(1.0, g.ppu.scale - 1.0);  // prevent going below 1
             g.ppu.displaySprite.setScale({g.ppu.scale, g.ppu.scale});
+        } 
+        ImGui::PopID();
+
+        ImGui::PushID("UIScale");
+        ImGui::Text("UIScale: %.1f", g.UIScale);
+        ImGui::SameLine();
+        if (ImGui::Button("+")) {
+            g.UIScale += 0.5f;
+            ImGui::GetIO().FontGlobalScale = g.UIScale;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("-")) {
+            g.UIScale = std::max(0.5f, g.UIScale - 0.5f);  // prevent going below 1
+            ImGui::GetIO().FontGlobalScale = g.UIScale;
         } 
         ImGui::PopID();
         ImGui::End();
