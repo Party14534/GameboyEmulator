@@ -44,14 +44,14 @@ unsigned char& GameboyMem::read(unsigned short int addr) {
         unsigned char joypad = mem[addr];
         unsigned char buttons = 0x0F;  // Default: no buttons pressed (all 1s)
 
-        bool start = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Enter);
-        bool select = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::RShift);
-        bool b = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Z);
-        bool a = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::X);
-        bool up = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Up);
-        bool down = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Down);
-        bool left = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Left);
-        bool right = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Right);
+        bool start = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Enter) && windowFocused;
+        bool select = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::RShift) && windowFocused;
+        bool b = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Z) && windowFocused;
+        bool a = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::X) && windowFocused;
+        bool up = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Up) && windowFocused;
+        bool down = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Down) && windowFocused;
+        bool left = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Left) && windowFocused;
+        bool right = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Right) && windowFocused;
 
         if ((joypad & 0x20) == 0) {  // Button keys selected
             // Bit 3: Start, Bit 2: Select, Bit 1: B, Bit 0: A

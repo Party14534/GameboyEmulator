@@ -145,15 +145,7 @@ struct GameboyMem {
     unsigned char rtcRegs[5] = {0};       // [0]=seconds, [1]=minutes, [2]=hours, [3]=days_low, [4]=days_high
     unsigned char rtcRegsInternal[5] = {0}; // Internal running values
 
-    // Joypad variables
-    bool startButton = false;
-    bool selectButton = false;
-    bool aButton = false;
-    bool bButton = false;
-    bool upButton = false;
-    bool downButton = false;
-    bool leftButton = false;
-    bool rightButton = false;
+    bool windowFocused = true;
 
     unsigned char prevJoypadState = 0xFF;  // Previous button state (0xFF = all released)
 
@@ -162,9 +154,7 @@ struct GameboyMem {
         ar(mem, romMem, bootRomMem, memType, fakeVal, dmaActive,
                 dmaCyclesRemaining, ramEnabled, batteryEnabled, timerEnabled,
                 ramEnable, romBankLower, upperBankBits, bankingMode,
-                ramBankOrRTC, latchData, rtcRegs, rtcRegsInternal,
-                startButton, selectButton, aButton, bButton, upButton,
-                downButton, leftButton, rightButton, prevJoypadState);
+                ramBankOrRTC, latchData, rtcRegs, rtcRegsInternal, prevJoypadState);
     }
 
     GameboyMem(unsigned short int& PC, int& cycles, uint16_t& clock, bool& testing);
