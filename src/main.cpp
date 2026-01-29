@@ -3,12 +3,7 @@
 
 int main(int argc, char* argv[]) {
     // Parse command line arguments
-    if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <rom_path> [boot_rom_path]" << std::endl;
-        return 1;
-    }
-
-    std::string romPath = argv[1];
+    std::string romPath = argc < 2 ? "" : argv[1];
     std::string bootRomPath = (argc >= 3) ? argv[2] : "";
 
     /*if (argc >= 4) {
@@ -22,9 +17,9 @@ int main(int argc, char* argv[]) {
     // Initialize ImGui-SFML
     int init = ImGui::SFML::Init(win);
 
-    Gameboy g(romPath, bootRomPath, win.getSize());
+    Gameboy* g = new Gameboy(romPath, bootRomPath, win.getSize());
 
-    ImGui::GetIO().FontGlobalScale = g.UIScale;
+    ImGui::GetIO().FontGlobalScale = g->UIScale;
 
     //printf("Memtype: %d\n", g.mem.memType);
 
@@ -35,16 +30,42 @@ int main(int argc, char* argv[]) {
     sf::Clock deltaClock;
     float deltaT = 0.f;
 
+    std::string lastRomPath = ".";
     std::string lastPath = ".";
 
-    while (win.isOpen()) { if (framePassed(deltaT, g.FPS * 60, false)) {
+    while (win.isOpen()) { if (framePassed(deltaT, g->FPS * 60, false)) {
         // Update ImGui
         ImGui::SFML::Update(win, deltaClock.restart());
         
-        handleEvents(win, g);
+        handleEvents(win, *g);
 
         // ImGui Window for settings
         ImGui::Begin("Emulator Settings");
+
+        // LOAD ROM BUTTON
+        if (ImGui::Button("Load Rom")) {
+            IGFD::FileDialogConfig config;
+            config.path = lastRomPath;
+            ImGuiFileDialog::Instance()->OpenDialog("LoadRomDlg", 
+                "Choose ROM", ".gb", config);
+        }
+
+        // Handle LOAD dialog
+        if (ImGuiFileDialog::Instance()->Display("LoadRomDlg")) {
+            if (ImGuiFileDialog::Instance()->IsOk()) {
+                std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
+                
+                // Load your save state
+                delete g;
+                g = new Gameboy(filePath, bootRomPath, win.getSize());
+                printf("Loaded rom from: %s\n", filePath.c_str());
+                size_t pos = filePath.find_last_of("/\\");
+                std::string dir = (pos != std::string::npos) ? filePath.substr(0, pos + 1) : "";
+                lastRomPath = dir;
+                ImGui::GetIO().FontGlobalScale = g->UIScale;
+            }
+            ImGuiFileDialog::Instance()->Close();
+        }
 
         // LOAD STATE BUTTON
         if (ImGui::Button("Load State")) {
@@ -71,12 +92,12 @@ int main(int argc, char* argv[]) {
                 std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
                 
                 // Load your save state
-                g.deserialize(filePath);
+                g->deserialize(filePath);
                 printf("Loaded state from: %s\n", filePath.c_str());
                 size_t pos = filePath.find_last_of("/\\");
                 std::string dir = (pos != std::string::npos) ? filePath.substr(0, pos + 1) : "";
                 lastPath = dir;
-                ImGui::GetIO().FontGlobalScale = g.UIScale;
+                ImGui::GetIO().FontGlobalScale = g->UIScale;
             }
             ImGuiFileDialog::Instance()->Close();
         }
@@ -96,7 +117,7 @@ int main(int argc, char* argv[]) {
                 std::ofstream os(filePath, std::ios::binary);
                 if (os.is_open()) {
                     cereal::BinaryOutputArchive archive(os);
-                    archive(g);
+                    archive(*g);
                     os.close();
                     printf("Saved state to: %s\n", filePath.c_str());
                     size_t pos = filePath.find_last_of("/\\");
@@ -110,53 +131,55 @@ int main(int argc, char* argv[]) {
         }
 
         ImGui::PushID("GameSpeed");
-        ImGui::Text("Game Speed: %.1f", g.FPS);
+        ImGui::Text("Game Speed: %.1f", g->FPS);
         ImGui::SameLine();
         if (ImGui::Button("+")) {
-            g.FPS += 0.5f;
+            g->FPS += 0.5f;
         }
         ImGui::SameLine();
         if (ImGui::Button("-")) {
-            g.FPS = std::max(0.5f, g.FPS - 0.5f);  // prevent going below 1
+            g->FPS = std::max(0.5f, g->FPS - 0.5f);  // prevent going below 1
         }
         ImGui::PopID();
 
         ImGui::PushID("ScreenScale");
-        ImGui::Text("Screen Scale: %d", int(g.ppu.scale));
+        ImGui::Text("Screen Scale: %d", int(g->ppu.scale));
         ImGui::SameLine();
         if (ImGui::Button("+")) {
-            g.ppu.scale += 1.0;
-            g.ppu.displaySprite.setScale({g.ppu.scale, g.ppu.scale});
+            g->ppu.scale += 1.0;
+            g->ppu.displaySprite.setScale({g->ppu.scale, g->ppu.scale});
         }
         ImGui::SameLine();
         if (ImGui::Button("-")) {
-            g.ppu.scale = std::max(1.0, g.ppu.scale - 1.0);  // prevent going below 1
-            g.ppu.displaySprite.setScale({g.ppu.scale, g.ppu.scale});
+            g->ppu.scale = std::max(1.0, g->ppu.scale - 1.0);  // prevent going below 1
+            g->ppu.displaySprite.setScale({g->ppu.scale, g->ppu.scale});
         } 
         ImGui::PopID();
 
         ImGui::PushID("UIScale");
-        ImGui::Text("UIScale: %.1f", g.UIScale);
+        ImGui::Text("UIScale: %.1f", g->UIScale);
         ImGui::SameLine();
         if (ImGui::Button("+")) {
-            g.UIScale += 0.5f;
-            ImGui::GetIO().FontGlobalScale = g.UIScale;
+            g->UIScale += 0.5f;
+            ImGui::GetIO().FontGlobalScale = g->UIScale;
         }
         ImGui::SameLine();
         if (ImGui::Button("-")) {
-            g.UIScale = std::max(0.5f, g.UIScale - 0.5f);  // prevent going below 1
-            ImGui::GetIO().FontGlobalScale = g.UIScale;
+            g->UIScale = std::max(0.5f, g->UIScale - 0.5f);  // prevent going below 1
+            ImGui::GetIO().FontGlobalScale = g->UIScale;
         } 
         ImGui::PopID();
         ImGui::End();
         
-        for (int i = 0; i < MCYCLES_PER_FRAME; i++) {
-            g.FDE();
+        if (g->romPath != "") {
+            for (int i = 0; i < MCYCLES_PER_FRAME; i++) {
+                g->FDE();
 
-            // One M Cycle == 4 T Cycles
-            for (int j = 0; j < 4; j++) {
-                g.ppu.main();
-                g.timer();
+                // One M Cycle == 4 T Cycles
+                for (int j = 0; j < 4; j++) {
+                    g->ppu.main();
+                    g->timer();
+                }
             }
         }
 
@@ -164,7 +187,7 @@ int main(int argc, char* argv[]) {
 
         win.clear(sf::Color::Black);
 
-        g.ppu.drawToScreen(win);
+        g->ppu.drawToScreen(win);
 
         ImGui::SFML::Render(win);
 

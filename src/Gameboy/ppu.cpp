@@ -39,12 +39,6 @@ PPU::PPU(GameboyMem& gameboyMem, sf::Vector2u winSize) :
     STAT = &gameboyMem.mem[STAT_ADDR];
     IF = &gameboyMem.mem[IF_ADDR];
 
-    test = sf::RectangleShape({160, 144});
-    test.setFillColor(sf::Color::Red);
-    test.setOrigin({80, 72});
-    //test.setScale({200.f, 200.f});
-    test.setPosition({0.f, 0.f});
-
     displaySprite.setOrigin({80, 72});
     displaySprite.setScale({4.f, 4.f});
 
@@ -53,6 +47,31 @@ PPU::PPU(GameboyMem& gameboyMem, sf::Vector2u winSize) :
     displaySprite.setPosition(midPoint);
 
     state = OAMSearch;
+}
+
+void PPU::reset(GameboyMem& gameboyMem) {
+    background = std::vector<unsigned char>(256 * 256);
+    window = std::vector<unsigned char>(256 * 256);
+    viewport = std::vector<unsigned char>(160 * 144);
+    fetcher.setup();
+
+    oam.state = ReadSpriteY;
+
+    SCY = &gameboyMem.mem[0xFF42];
+    SCX = &gameboyMem.mem[0xFF43];
+    LY = &gameboyMem.mem[0xFF44];
+    LYC = &gameboyMem.mem[0xFF45];
+    WX = &gameboyMem.mem[0xFF4B];
+    WY = &gameboyMem.mem[0xFF4A];
+    LCDC = &gameboyMem.mem[LCDC_ADDR];
+    STAT = &gameboyMem.mem[STAT_ADDR];
+    IF = &gameboyMem.mem[IF_ADDR];
+
+    cycles = 0;
+    state = OAMSearch;
+    x = 0;
+    pixelsToDrop = 0;
+    windowLineCounter = 0;
 }
 
 void PPU::main() {

@@ -12,6 +12,13 @@ GameboyMem::GameboyMem(unsigned short int& _PC, int& _cycles, uint16_t& _clock, 
     dmaActive = false;
 }
 
+void GameboyMem::reset() {
+    mem = std::vector<unsigned char>(0xFFFF + 1);
+    bootRomMem = std::vector<unsigned char>(0xFF);
+    bootFinished = &mem[0xFF50];
+    dmaActive = false;
+}
+
 unsigned char& GameboyMem::read(unsigned short int addr) {
     if (*testing) {
         return mem[addr];

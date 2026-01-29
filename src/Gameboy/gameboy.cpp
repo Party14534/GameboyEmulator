@@ -1,4 +1,5 @@
 #include "gameboy.h"
+#include "SFML/System/Vector2.hpp"
 
 Gameboy::Gameboy(std::string _romPath, std::string _bootRomPath, sf::Vector2u winSize, bool _testing) : 
     testing(_testing),
@@ -19,11 +20,13 @@ Gameboy::Gameboy(std::string _romPath, std::string _bootRomPath, sf::Vector2u wi
         return; 
     }
     
-    writeRom();
+    if (romPath != "") {
+        writeRom();
+        writeBootRom(_bootRomPath);
+        mem.memType = byteToMBC(mem.romMem[0x0147]);
+    }
 
-    mem.memType = byteToMBC(mem.romMem[0x0147]);
 
-    writeBootRom(_bootRomPath);
 
     IE = &mem.mem[0xFFFF];
     DIV = &mem.mem[DIV_ADDR];
@@ -59,6 +62,8 @@ Gameboy::Gameboy(std::string _romPath, std::string _bootRomPath, sf::Vector2u wi
         *DIV = 0xAB;
         clock = 0xABCC;
     }
+
+    printf("Here\n");
 
     /*
     paletteOne = std::vector<sf::Color>{
@@ -163,6 +168,71 @@ MBCType Gameboy::byteToMBC(unsigned char byte) {
 
     printf("Unsupported MBC Type\n");
     exit(1);
+}
+
+void Gameboy::reset(std::string _romPath, std::string _bootRomPath) {
+    PC = 0;
+    cycles = 0;
+    romPath = _romPath;
+
+    mem.reset();
+    ppu.reset(mem);
+
+    r.registers = std::vector<unsigned char>(8);
+
+    // Used for unit tests
+    if (testing) { 
+        mem.mem[0xFF50] = 1;
+        mem.memType = MBC0;
+        IE = &mem.mem[0xFFFF];
+        DIV = &mem.mem[DIV_ADDR];
+        TIMA = &mem.mem[TIMA_ADDR];
+        cycles = 0;
+        return; 
+    }
+    
+    if (romPath != "") {
+        writeRom();
+    }
+
+    mem.memType = byteToMBC(mem.romMem[0x0147]);
+
+    writeBootRom(_bootRomPath);
+
+    IE = &mem.mem[0xFFFF];
+    DIV = &mem.mem[DIV_ADDR];
+    TIMA = &mem.mem[TIMA_ADDR];
+
+    cycles = 0;
+
+    if (_bootRomPath == "") { 
+        mem.write(0xFF50, 1);
+
+        // Correct state after boot rom
+        r.registers[A] = 0x01;
+        r.registers[F] = 0xB0;
+        r.registers[B] = 0x00;
+        r.registers[C] = 0x13;
+        r.registers[D] = 0x00;
+        r.registers[E] = 0xD8;
+        r.registers[H] = 0x01;
+        r.registers[L] = 0x4D;
+        SP = 0xFFFE;
+        PC = 0x100;
+        r.setFlags();
+
+        
+        // Initialize I/O registers (post-boot state)
+        mem.write(0xFF40, 0x91);  // LCDC - LCD on, BG on
+        mem.write(0xFF47, 0xFC);  // BGP - palette
+        mem.write(0xFF48, 0xFF);  // OBP0
+        mem.write(0xFF49, 0xFF);  // OBP1
+        mem.write(0xFF0F, 0x00);  // IF - no interrupts
+        mem.write(0xFFFF, 0x00);  // IE - interrupts disabled
+
+        *DIV = 0xAB;
+        clock = 0xABCC;
+    }
 }
 
 void Gameboy::deserialize(std::string saveStatePath) {

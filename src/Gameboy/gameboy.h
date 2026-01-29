@@ -158,6 +158,7 @@ struct GameboyMem {
     }
 
     GameboyMem(unsigned short int& PC, int& cycles, uint16_t& clock, bool& testing);
+    void reset();
     unsigned char& read(unsigned short int addr);
     void write(unsigned short int addr, unsigned char val);
     bool getTimerBit();
@@ -181,6 +182,7 @@ struct OAM {
     }
 
     OAM(GameboyMem& mem);
+    void reset();
     
     bool tick();
     void start();
@@ -329,6 +331,7 @@ struct PPU {
     }
     
     PPU(GameboyMem& gameboyMem, sf::Vector2u winSize);
+    void reset(GameboyMem& mem);
     void main();
 
     void DoHBlank();
@@ -432,6 +435,7 @@ struct Gameboy {
      * Function Definitions
      */
     Gameboy(std::string _romPath, std::string _bootRomPath, sf::Vector2u winSize = {160, 144}, bool _testing = false);
+    void reset(std::string _romPath, std::string _bootRomPath);
     void writeBootRom(std::string bootRomPath);
     void writeRom();
     void FDE();
