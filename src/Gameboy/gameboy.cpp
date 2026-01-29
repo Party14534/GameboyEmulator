@@ -63,8 +63,6 @@ Gameboy::Gameboy(std::string _romPath, std::string _bootRomPath, sf::Vector2u wi
         clock = 0xABCC;
     }
 
-    printf("Here\n");
-
     /*
     paletteOne = std::vector<sf::Color>{
         sf::Color(155, 188, 15),
